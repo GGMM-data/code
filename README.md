@@ -1,2 +1,2 @@
-# CNN
-my own implement of classical CNN architecture
+# myown code
+some code corrsponding to my blog
