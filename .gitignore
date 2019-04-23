@@ -1,7 +1,9 @@
 LSTM_MADDPG_TF/
 pytorch/.idea/
-pytorch/datasets/mnist/
-pytorch/datasets/cifar/
+pytorch/datasets/mnist/processed/
+pytorch/datasets/mnist/raw/
+pytorch/datasets/cifar/cifar-100-python/
+pytorch/datasets/cifar/cifar-100-python.tar.gz
 pytorch/tutorials/.idea/
 pytorch/tutorials/faces/
 pytorch/tutorials/hymenoptera_data/
