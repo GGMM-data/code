@@ -56,6 +56,9 @@ class Net(nn.Module):
 net = Net()
 print(Net.__dict__)
 print(net.__dict__)
+print(repr(Net))
 print(Net)
 print(repr(net))
 print(net)
+for mod in net.children():
+   print(mod)
