@@ -21,5 +21,6 @@ for i in range(500):
   loss.backward()
   with torch.no_grad():
     for param in model.parameters():
+      print(param.grad)
       param -= param.grad*lr
-    
+   
