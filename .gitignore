@@ -9,4 +9,5 @@ pytorch/tutorials/faces/
 pytorch/tutorials/hymenoptera_data/
 pytorch/tutorials/saving_model/
 pytorch/tutorials/venv/
-
+__pycachae__
+pytorch/tutorials/multiprocess_torch/mnist_hogwild/__pycache__
