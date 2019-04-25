@@ -142,6 +142,7 @@ f = list(net.parameters())[0]
 print(type(f))
 
 for f in net.named_parameters():
+    print(type(f))
     print(f[0])
     f[1].data.sub_(f[1].grad.data * learning_rate)
 
