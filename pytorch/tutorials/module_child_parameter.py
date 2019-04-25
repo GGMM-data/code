@@ -18,7 +18,6 @@ class Net(nn.Module):
      x = self.conv2(x)
      x = self.conv3(x)
      x = self.conv4(x)
-     print(x.size())
      x = x.view(-1, 32 * 3 * 3)
      x = F.relu(self.linear1(x))
      x = F.relu(self.linear2(x))
@@ -35,16 +34,22 @@ if __name__ == "__main__":
 
    for module in net.modules():
       print(module)
-   print(net.modules())
-   print(net.named_modules())
+   for module in net.named_modules():
+      print(module)
 
    for child in net.children():
        print(child)
-   print(net.children())
-   print(net.named_children())
 
    for parameter in net.parameters():
-       print(parameter)
-   print(net.parameters())
-   print(net.named_parameters())
+       print(parameter.size())
+   count = 0
+   for parameter in net.named_parameters():
+       print(type(parameter))
+       print(len(parameter))
+       print(parameter[0])
+       print(parameter[1].size())
+       count+=1
+       if count == 2:
+           break
+
 
