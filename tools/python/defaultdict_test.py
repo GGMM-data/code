@@ -1,14 +1,25 @@
 from collections import defaultdict
 
-dd = defaultdict(dict)
-print(dd)
+print("=================defaultdict(dict)================")
+ddd = defaultdict(dict)
+print(ddd)
 
-m = dd['a']
+m = ddd['a']
 m['step'] = 1
 m['exp'] = 3
-print(dd)
+print(type(m))
+print(ddd)
 
-m = dd['b']
+m = ddd['b']
 m['step'] = 1
 m['exp'] = 3
-print(dd)
+print(ddd)
+
+print("=================defaultdict(list)================")
+ddl = defaultdict(list)
+print(ddl)
+m = ddl['a']
+print(type(m))
+m.append(3)
+m.append('hhhh')
+print(ddl)
