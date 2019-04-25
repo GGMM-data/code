@@ -1,8 +1,14 @@
 import gym
 import numpy as np
+import time
 
-env = gym.make('SpaceInvaders-v0')
+env = gym.make("PongDeterministic-v4")
 env.reset()
 while True:
-    env.step(np.random.randint(env.action_space.n))
+    state, reward, done, _ = env.step(np.random.randint(env.action_space.n))
     env.render()
+    if done:
+       print("Done")
+       time.sleep(3)
+       env.reset()
+    
