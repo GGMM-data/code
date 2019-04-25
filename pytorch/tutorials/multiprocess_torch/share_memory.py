@@ -18,7 +18,7 @@ if __name__ == '__main__':
    x = torch.ones([3,])
    x.share_memory_()
    for rank in range(num_processes):
-     p = mp.Process(target=proc, args=(rank, x))
+     p = mp.Process(target=proc, args=(rank+1, x))
      p.start() 
      processes.append(p)
    for p in processes:
