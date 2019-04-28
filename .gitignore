@@ -18,5 +18,5 @@ pytorch/.idea/
 pytorch/tutorials/.idea/
 tools/PIL/.idea
 tools/matplotlib/.idea
-*.idea
-*.__pycache__
+.*idea
+.*/__pycache__
