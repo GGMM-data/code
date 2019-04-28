@@ -154,4 +154,5 @@ alias branch='git branch'
 alias check='git checkout '
 alias push-master='git push origin master'
 alias push-hexo='git push origin hexo'
+alias folder-size='sh /home/lirhea/.current_folder_size.sh'
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/mxxmhh/.mujoco/mujoco200/bin
