@@ -9,3 +9,10 @@ pytorch/tutorials/saving_model/
 pytorch/tutorials/venv/
 **/.idea/
 **/__pycache__/
+# Distral
+# Distral/code/__pycache__/*
+# Distral/code/envs/__pycache__/*
+Distral/code/envs/.ipynb_checkpoints/*
+# Distral/code/a3c/__pycache__/*
+# Distral/code/dqn/__pycache__/*
+# Distral/code/sql/__pycache__/*
