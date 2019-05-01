@@ -7,12 +7,13 @@ pytorch/tutorials/faces/
 pytorch/tutorials/hymenoptera_data/
 pytorch/tutorials/saving_model/
 pytorch/tutorials/venv/
+Distral/code/envs/.ipynb_checkpoints/*
 **/.idea/
 **/__pycache__/
+# below(including this) lines are comments
 # Distral
 # Distral/code/__pycache__/*
 # Distral/code/envs/__pycache__/*
-Distral/code/envs/.ipynb_checkpoints/*
 # Distral/code/a3c/__pycache__/*
 # Distral/code/dqn/__pycache__/*
 # Distral/code/sql/__pycache__/*
