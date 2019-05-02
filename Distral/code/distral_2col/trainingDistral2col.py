@@ -22,10 +22,15 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
     Soft Q-learning training routine. Retuns rewards and durations logs.
     Plot environment screen
     """
+    # action dimension
     num_actions = list_of_envs[0].action_space.n
+    # total envs
     num_envs = len(list_of_envs)
+    # pi_0
     policy = PolicyNetwork(num_actions)
+    # Q value, every environment has one, used to calculate A_i,
     models = [DQN(num_actions) for _ in range(0, num_envs)]   ### Add torch.nn.ModuleList (?)
+    # replay buffer for env ???
     memories = [ReplayMemory(memory_replay_size, memory_policy_size) for _ in range(0, num_envs)]
 
     use_cuda = torch.cuda.is_available()
@@ -34,17 +39,20 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
         for model in models:
             model.cuda()
 
+    # optimizer for every Q model
     optimizers = [optim.Adam(model.parameters(), lr=learning_rate)
                     for model in models]
+    # optimizer for policy
     policy_optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
     # optimizer = optim.RMSprop(model.parameters(), )
 
-    episode_durations = [[] for _ in range(num_envs)]
-    episode_rewards = [[] for _ in range(num_envs)]
+    # info list for each environment
+    episode_durations = [[] for _ in range(num_envs)]   # list of local steps
+    episode_rewards = [[] for _ in range(num_envs)]     # list of list of episode reward
 
-    steps_done = np.zeros(num_envs)
-    episodes_done = np.zeros(num_envs)
-    current_time = np.zeros(num_envs)
+    episodes_done = np.zeros(num_envs)      # episode num
+    steps_done = np.zeros(num_envs)         # global timesteps for each env
+    current_time = np.zeros(num_envs)       # local timesteps for each env
 
     # Initialize environments
     for env in list_of_envs:
@@ -58,24 +66,30 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
         #   2. do one optimization step for each env using "soft-q-learning".
         #   3. do one optimization step for the policy
 
+        #   1. do the step for each env
         for i_env, env in enumerate(list_of_envs):
             # print("Cur episode:", i_episode, "steps done:", steps_done,
             #         "exploration factor:", eps_end + (eps_start - eps_end) * \
             #         math.exp(-1. * steps_done / eps_decay))
         
             # last_screen = env.current_grid_map
+            # ===========update step info begin========================
             current_screen = get_screen(env)
+            # state
             state = current_screen # - last_screen
-            # Select and perform an action
+            # action
             action = select_action(state, policy, models[i_env], num_actions,
                                     eps_start, eps_end, eps_decay,
                                     episodes_done[i_env], alpha, beta)
+            # global_steps
             steps_done[i_env] += 1
+            # local steps
             current_time[i_env] += 1
+            # reward
             _, reward, done, _ = env.step(action[0, 0])
             reward = Tensor([reward])
 
-            # Observe new state
+            # next state
             last_screen = current_screen
             current_screen = get_screen(env)
             if not done:
@@ -83,27 +97,39 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
             else:
                 next_state = None
 
-            # Store the transition in memory
+            # add to buffer
             time = Tensor([current_time[i_env]])
             memories[i_env].push(state, action, next_state, reward, time)
 
+            #   2. do one optimization step for each env using "soft-q-learning".
             # Perform one step of the optimization (on the target network)
             optimize_model(policy, models[i_env], optimizers[i_env],
                             memories[i_env], batch_size, alpha, beta, gamma)
+            # ===========update step info end ========================
+
+
+            # ===========update episode info begin ====================
             if done:
                 print("ENV:", i_env, "iter:", episodes_done[i_env],
                     "\treward:", env.episode_total_reward,
                     "\tit:", current_time[i_env], "\texp_factor:", eps_end +
                     (eps_start - eps_end) * math.exp(-1. * episodes_done[i_env] / eps_decay))
+                # reset env
                 env.reset()
+                # episode steps
                 episodes_done[i_env] += 1
+                # append each episode local timesteps list for every env
                 episode_durations[i_env].append(current_time[i_env])
+                # reset local timesteps
                 current_time[i_env] = 0
+                # append total episode_reward to list
                 episode_rewards[i_env].append(env.episode_total_reward)
                 if is_plot:
                     plot_rewards(episode_rewards, i_env)
+            # ===========update episode info end ====================
 
-
+        #   3. do one optimization step for the policy
+        # after all envs has performed one step, optimize policy
         optimize_policy(policy, policy_optimizer, memories, batch_size,
                     num_envs, gamma)
 

@@ -9,12 +9,15 @@ use_cuda = torch.cuda.is_available()
 FloatTensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 Tensor = FloatTensor
 
+# get current screen state
 def get_screen(env):
+    '''Return a contiguous screen tensor'''
     screen = env.current_grid_map
     screen = np.ascontiguousarray(screen, dtype=np.float32)
     screen = torch.from_numpy(screen)
     return screen.unsqueeze(0).unsqueeze(0).type(Tensor)
 
+#
 def play_game(env, agent, max_steps_num=100): #### To fix for dqn0, sql0
 
     keyFrames = []
@@ -50,7 +53,7 @@ def play_game(env, agent, max_steps_num=100): #### To fix for dqn0, sql0
     imageio.mimsave(gifFilename, images, duration=0.3)
 
 
-
+# plot each episode local timesteps list
 def plot_durations(episode_durations, mean_durations):
     plt.figure(2)
     plt.clf()
@@ -72,6 +75,7 @@ def plot_durations(episode_durations, mean_durations):
     #     display.clear_output(wait=True)
     #     display.display(plt.gcf())
 
+# plot total rewards
 def plot_rewards(episode_rewards, mean_rewards):
     plt.figure(3)
     plt.clf()

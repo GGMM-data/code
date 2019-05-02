@@ -8,7 +8,9 @@ pytorch/tutorials/hymenoptera_data/
 pytorch/tutorials/saving_model/
 pytorch/tutorials/venv/
 Distral/code/envs/.ipynb_checkpoints/*
+# delete all .idea files
 **/.idea/
+# delete all pycache files
 **/__pycache__/
 # below(including this) lines are comments
 # Distral

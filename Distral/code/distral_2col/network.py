@@ -18,6 +18,8 @@ LongTensor = torch.cuda.LongTensor if use_cuda else torch.LongTensor
 ByteTensor = torch.cuda.ByteTensor if use_cuda else torch.ByteTensor
 Tensor = FloatTensor
 
+
+# Q
 class DQN(nn.Module):
     """
     Deep neural network with represents an agent.
@@ -36,11 +38,10 @@ class DQN(nn.Module):
         x = F.leaky_relu(self.bn1(self.conv1(x)))
         x = F.leaky_relu(self.bn2(self.conv2(x)))
         x = F.leaky_relu(self.bn3(self.conv3(x)))
-        # x = F.leaky_relu(self.conv1(x))
-        # x = F.leaky_relu(self.conv2(x))
-        # x = F.leaky_relu(self.conv3(x))
         return self.head(x.view(x.size(0), -1))
 
+
+# policy network output softmax which represent probability of choosing an action
 class PolicyNetwork(nn.Module):
     """
     Deep neural network which represents policy network.
@@ -63,6 +64,7 @@ class PolicyNetwork(nn.Module):
         x = F.leaky_relu(self.head(x.view(x.size(0), -1)))
         return self.softmax(x)
 
+
 def select_action(state, policy, model, num_actions,
                     EPS_START, EPS_END, EPS_DECAY, steps_done, alpha, beta):
     """
@@ -77,18 +79,23 @@ def select_action(state, policy, model, num_actions,
     
     # print("state = ", state)
     # print("forward = ", model(Variable(state, volatile=True)))
+    # Q
     Q = model(Variable(state, volatile=True).type(FloatTensor))
+    # pi_0
     pi0 = policy(Variable(state, volatile=True).type(FloatTensor))
+    # V
     V = torch.log((torch.pow(pi0, alpha) * torch.exp(beta * Q)).sum(1)) / beta
     # print("pi0 = ", pi0)
     # print(torch.pow(pi0, alpha) * torch.exp(beta * Q))
     # print("V = ", V)
+    # use equation 2 to gen pi_i
     pi_i = torch.pow(pi0, alpha) * torch.exp(beta * (Q - V))
     if sum(pi_i.data.numpy()[0] < 0) > 0:
         print("Warning!!!: pi_i has negative values: pi_i", pi_i.data.numpy()[0])
     pi_i = torch.max(torch.zeros_like(pi_i) + 1e-15, pi_i)
     # probabilities = pi_i.data.numpy()[0]
     # print("pi_i = ", pi_i)
+    # sample action
     m = Categorical(pi_i)
     action = m.sample().data.view(1, 1)
     return action
