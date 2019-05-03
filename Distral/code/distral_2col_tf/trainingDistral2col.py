@@ -6,7 +6,9 @@ import torch
 import math
 import numpy as np
 from memory_replay import ReplayMemory, Transition
-from network import DQN, select_action, optimize_model, Tensor, optimize_policy, PolicyNetwork
+from model import DQN
+from policy import Policy
+from network import select_action, optimize_model, optimize_policy
 import sys
 sys.path.append('../')
 from envs.gridworld_env import GridworldEnv
@@ -27,18 +29,13 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
     # total envs
     num_envs = len(list_of_envs)
     # pi_0
-    policy = PolicyNetwork(num_actions)
+    policy = Policy(num_actions)
     # Q value, every environment has one, used to calculate A_i,
     models = [DQN(num_actions) for _ in range(0, num_envs)]   ### Add torch.nn.ModuleList (?)
     # replay buffer for env ???
     memories = [ReplayMemory(memory_replay_size, memory_policy_size) for _ in range(0, num_envs)]
 
-    use_cuda = torch.cuda.is_available()
-    if use_cuda:
-        policy.cuda()
-        for model in models:
-            model.cuda()
-
+    optimizer = tf.train.AdamOptimizer(lr).minimize(loss)
     # optimizer for every Q model
     optimizers = [optim.Adam(model.parameters(), lr=learning_rate)
                     for model in models]
@@ -68,11 +65,6 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
 
         #   1. do the step for each env
         for i_env, env in enumerate(list_of_envs):
-            # print("Cur episode:", i_episode, "steps done:", steps_done,
-            #         "exploration factor:", eps_end + (eps_start - eps_end) * \
-            #         math.exp(-1. * steps_done / eps_decay))
-        
-            # last_screen = env.current_grid_map
             # ===========update step info begin========================
             current_screen = get_screen(env)
             # state
@@ -87,10 +79,9 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
             current_time[i_env] += 1
             # reward
             _, reward, done, _ = env.step(action[0, 0])
-            reward = Tensor([reward])
+            reward = [reward]
 
             # next state
-            last_screen = current_screen
             current_screen = get_screen(env)
             if not done:
                 next_state = current_screen # - last_screen
@@ -98,7 +89,7 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
                 next_state = None
 
             # add to buffer
-            time = Tensor([current_time[i_env]])
+            time = [current_time[i_env]]
             memories[i_env].push(state, action, next_state, reward, time)
 
             #   2. do one optimization step for each env using "soft-q-learning".

@@ -57,7 +57,7 @@ class TfInput(object):
 
 class PlacholderTfInput(TfInput):
     def __init__(self, placeholder):
-        """Wrapper for regular tensorflow placeholder."""
+        """Wrapper for regular tf placeholder."""
         super(PlacholderTfInput,self).__init__(placeholder.name)
         self._placeholder = placeholder
 
@@ -249,7 +249,7 @@ def save_state(fname, saver=None):
 
 
 def function(inputs, outputs, updates=None, givens=None):
-    """Just like Theano function. Take a bunch of tensorflow placeholders and expersions
+    """Just like Theano function. Take a bunch of tf placeholders and expersions
     computed based on those placeholders and produces f(inputs) -> outputs. Function f takes
     values to be feed to the inputs placeholders and produces the values of the experessions
     in outputs.

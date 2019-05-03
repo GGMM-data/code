@@ -1,0 +1,130 @@
+import torch
+
+# contents
+# 1.torch.tensor()
+# 2.tensor.size()
+# 3.torch.add()
+# 4.tensor.unfold()
+# 5.tensor.view()
+# 6 tensor.item() to get the value of only one element tensor
+# 7.tensor.numpy() and torch.tensor
+# 8.cuda
+
+#############################################################
+# 1.how to create torch tensor
+
+##########################################################
+# 2.tensor.size()
+
+x = torch.randn(4,3)
+print(x.size())
+
+##########################################################
+# 3.torch.add()
+
+x = torch.randn(4,3)
+y = torch.randn(4,3)
+
+#(1)
+print(x+y)
+
+#(2)
+print(torch.add(x,y))
+
+#(3)
+result = torch.empty(4,3)
+torch.add(x,y,out=result)
+print(result)
+
+#(4) in-place
+y.add_(x)
+
+###############
+#in-place
+
+x.copy_(y)
+x.t_()
+
+##############################
+# 4.torch.unfold(dim, size, step)
+# return a tensor which contaions all slices of size from self tensor in the dimension dim
+#   dim : dimension in which unfolding happens
+#   size : the size of each slice that is unfolded  
+#   step : the step between each slice
+print("======================================4.tensor.unfold()==================================\n")
+x = torch.arange(0, 110, 1)
+y = x.unfold(0, 100, 3)
+print(x.size())
+print(y.size())
+
+###############
+# 5.tensor.view()
+
+print("======================================5.tensor.view()=====================================\n")
+x = torch.randn(4, 3)
+print("x.size()")
+print("  ", x.size(),"\n")
+
+y = x.view(12)
+print("y = x.view(12)")
+print("  ", y.size(),"\n")
+
+z = x.view(-1, 2)
+print("z = x.view(-1, 2)")
+print("  ", z.size(),"\n")
+
+w = x.view(-1)
+print("w = x.view(-1)")
+print("  ", w.size(),"\n")
+
+u = x.view(-1, 1)
+print("u = x.view(-1, 1)")
+print("  ", u.size(),"\n")
+
+v = x.view(1, -1)
+print("v = x.view(1, -1)")
+print("  ", v.size(),"\n")
+
+print(x.size(), y.size(), z.size(), w.size(), u.size(), v.size())
+
+###############
+# 6 tensor.item() to get the value of only one element tensor
+
+x = torch.randn(1)
+print(x)
+print(x.item())
+
+###############
+# 7.numpy and torch.tensor
+
+a = torch.ones(5)
+print(a)
+b = a.numpy()
+print(b)
+a.add_(1)
+print(a)
+print(b)
+
+
+################
+# 8.cuda
+import numpy as np
+
+a = np.ones([1,2])
+b = torch.from_numpy(a)
+print(b)
+np.add(a,1,a)
+print(a)
+print(b)
+
+try:
+  if torch.cuda.is_available():
+    device = torch.device("cuda")
+    y = torch.ones_like(x, device=device) # directly create a tensor on gpu
+    x = x.to(device) # .to("cuda")
+    z = x + y
+    print(z) 
+    print(z.to("cpu",torch.double)) # .to change dtype
+except Exception as E:
+    print(E)
+print("End!")
