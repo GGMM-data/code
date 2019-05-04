@@ -88,7 +88,7 @@ def select_action(state, policy, model, num_actions,
     # print("pi_i = ", pi_i)
     # sample action
     m = Categorical(pi_i)
-    action = m.sample().data.view(1, 1)
+    action = m.sample().data.view(1, 1) # m.sample() tensor([4]), action: tensor([[4]])
     return action
     # numpy.random.choice(numpy.arange(0, num_actions), p=probabilities)
 

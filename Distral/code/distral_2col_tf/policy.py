@@ -124,13 +124,13 @@ class Policy:
         pi_i = tf.pow(pi0, self.alpha) * tf.exp(self.beta * (Q - V))
         if sum(pi_i.data.numpy()[0] < 0) > 0:
             print("Warning!!!: pi_i has negative values: pi_i", pi_i.data.numpy()[0])
-        pi_i = tf.max(tf.zeros_like(pi_i) + 1e-15, pi_i)
+        pi_i = tf.maximum(tf.zeros_like(pi_i) + 1e-15, pi_i)
         # probabilities = pi_i.data.numpy()[0]
         # print("pi_i = ", pi_i)
         # sample action
         action_sample = tf.multinomial([pi_i], 1)
         # m = Categorical(pi_i)
-        # action = m.sample().data.view(1, 1)
+        # action = m.sample().data.view(1, 1) # m.sample() tensor([4]), action: tensor([[4]])
 
         return action_sample
         # numpy.random.choice(numpy.arange(0, num_actions), p=probabilities)

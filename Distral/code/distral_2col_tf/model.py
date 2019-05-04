@@ -128,9 +128,10 @@ class Policy:
             print("Warning!!!: pi_i has negative values: pi_i", pi_i.data.numpy()[0])
         pi_i = tf.max(tf.zeros(pi_i.shape) + 1e-15, pi_i)
         # sample action
-        m = Categorical(pi_i)
-        action = m.sample().data.view(1, 1)
-        return action
+        action_sample = tf.multinomial([pi_i], 1)
+        # m = Categorical(pi_i)
+        # action = m.sample().data.view(1, 1) # m.sample() tensor([4]), action: tensor([[4]])
+        return action_sample
 
 
     def action(self, state):
