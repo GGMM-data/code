@@ -42,8 +42,7 @@ print(tf.shape(z).eval())
 print(tf.stack([tf.shape(z),tf.shape(z),[3]]).eval())
 # tf.reshape, tf.matmul
 z_ = tf.matmul(tf.reshape(z, (n, 1)), tf.reshape(z, (1, n)))
-plt.imshow(z_.eval())
-plt.show()
+plt.imshow(z_.eval()) plt.show()
 
 # tf.ones_like, tf.multiply
 # tf.ones_like返回与输入tensor具有相同shape的tensor
