@@ -67,7 +67,7 @@ class GridworldEnv():
     	self.np_random, seed = seeding.np_random(seed)
     	return [seed]
 
-    def get_state ( self , coordinates, action, reward ) :
+    def get_state (self, coordinates, action, reward) :
 
     	# Return a triple with: current location of the agent in the map
     	# given coordinates, the previous action and the previous reward

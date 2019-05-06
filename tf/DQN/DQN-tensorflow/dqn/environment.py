@@ -43,7 +43,9 @@ class Environment(object):
 
   @ property
   def screen(self):
-    return imresize(rgb2gray(self._screen)/255., self.dims)
+    gray = rgb2gray(self._screen) / 255.
+    resise = imresize(gray, self.dims)
+    return resise
     #return cv2.resize(cv2.cvtColor(self._screen, cv2.COLOR_BGR2YCR_CB)/255., self.dims)[:,:,0]
 
   @property

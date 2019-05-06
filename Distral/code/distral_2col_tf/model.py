@@ -30,10 +30,12 @@ steps = 300
 test_steps = 300
 
 
-class Policy:
-    def __init__(self, env, shared_policy, alpha, beta, sess=tf.InteractiveSession()):
+class DQN:
+    """Predicted Q value """
+    def __init__(self, env, shared_policy, alpha, beta, sess=tf.InteractiveSession(), model_name=""):
         self.sess = sess
         self.env = env
+        self.model_name = model_name
         # action space of env
         self.action_dim = self.env.action_space.n
         # pi_0
@@ -56,12 +58,18 @@ class Policy:
         self.activation_fn = tf.nn.relu
 
         self.w = {}
+        self.build_model()
 
     def build_model(self):
         # model layers
-        with tf.variable_scope('prediction'):
+        with tf.variable_scope(self.model_name + 'prediction'):
             # state
             self.state = tf.placeholder('float32', (None, ), name='s_t')
+            # input action (one hot)
+            self.action_one_hot = tf.placeholder("float", [None, self.action_dim])
+            self.next_state = tf.placeholder('float32', (None, ), name='s_t_1')
+            self.reward = tf.placeholder('float32', (None,), name='reward')
+            self.done = tf.placeholder('float32', (None,), name='done')
 
             # cnn layers
             self.l1, self.w['l1_w'], self.w['l1_b'] = conv2d(self.state, 5, [2, 2], [1, 1], initializer=self.initializer,
@@ -79,18 +87,23 @@ class Policy:
             # fc layers
             self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q')
 
-            # output
-            self.action = tf.nn.log_softmax(self.q)
-
         # optimizer
-        with tf.variable_scope('optimizer'):
-            # input action (one hot)
-            self.action_one_hot = tf.placeholder("float", [None, self.action_dim])
+        with tf.variable_scope(self.model_name + 'optimizer'):
             # predicted q value, action is one hot representation
             self.predicted_q = tf.reduce_sum(tf.multiply(self.q, self.action_one_hot),
                                              reduction_indices=1, name='q_acted')
+            self.v = tf.log(tf.pow(self.shared_policy.action(self.next_state), self.alpha) *
+                            tf.exp(self.beta* self.q(self.next_state))
+                            ) / self.beta
+
             # true value
-            self.y = tf.placeholder("float", [None])
+            self.y = []
+            for i in range(self.batch_size):
+                if self.done[i]:
+                    self.y.append(self.reward[i])
+                else:
+                    self.y.append(self.reward[i] + self.gamma * self.v[i])
+
             # error
             self.delta = self.y - self.predicted_q
             # clipped loss function
@@ -112,40 +125,34 @@ class Policy:
 
         self.sess.run(tf.global_variables_initializer())
 
-    def greedy_action(self, state):
+    def action(self, state):
         # q value
         Q = self.q.eval(feed_dict={self.state: [state]})
         # pi_0
         pi_0 = self.shared_policy.action
-        # V
+        # V  tf.pow(pi0, alpha) * tf.exp(beta * Q))
         V = tf.log((tf.pow(pi_0, self.alpha) * tf.exp(self.beta * Q)).sum(1)) / self.beta
-        # print("pi0 = ", pi0)
-        # print(torch.pow(pi0, alpha) * torch.exp(beta * Q))
-        # print("V = ", V)
         # use equation 2 to gen pi_i
         pi_i = tf.pow(pi_0, self.alpha) * tf.exp(self.beta * (Q - V))
         if sum(pi_i.data.numpy()[0] < 0) > 0:
             print("Warning!!!: pi_i has negative values: pi_i", pi_i.data.numpy()[0])
-        pi_i = tf.max(tf.zeros(pi_i.shape) + 1e-15, pi_i)
+        pi_i = tf.maximum(tf.zeros(pi_i.shape) + 1e-15, pi_i)
         # sample action
         action_sample = tf.multinomial([pi_i], 1)
-        # m = Categorical(pi_i)
-        # action = m.sample().data.view(1, 1) # m.sample() tensor([4]), action: tensor([[4]])
         return action_sample
 
-
-    def action(self, state):
-        q = self.q.eval(feed_dict={self.state: [state]})
-        return np.argmax(q)
-
-    def experience(self, state, action, reward, next_state, done):
+    def experience(self, state, action, reward, next_state, done, time):
+        # add to model buffer
         one_hot_action = np.zeros(self.action_dim)
         one_hot_action[action] = 1
-        self.replay_buffer.append((state, one_hot_action, reward, next_state, done))
+        self.replay_buffer.append((state, one_hot_action, reward, next_state, done, time))
         if len(self.replay_buffer) > self.replay_buffer_size:
             self.replay_buffer.popleft()
 
-    def update(self):
+        # add to  policy buffer
+        self.shared_policy.experience(state, action, reward, next_state, done, time)
+
+    def optimize_step(self):
         if len(self.replay_buffer) < self.batch_size:
             return
 
@@ -154,19 +161,15 @@ class Policy:
         action = [data[1] for data in batch]
         reward = [data[2] for data in batch]
         next_state = [data[3] for data in batch]
+        done = [data[4] for data in batch]
 
-        next_state_values = self.q.eval(feed_dict={self.state: next_state})
-        y = []
+        # feed data
+        loss, _ = self.sess.run([self.loss, self.optimizer],
+                                feed_dict={self.state: state, self.action_one_hot:action, self.reward: reward,
+                                    self.next_state: next_state, self.done: done,
+                                           self.learning_rate_step: self.global_step,})
+        return loss
 
-        # calculate true q value
-        for i in range(self.batch_size):
-            if batch[i][4]:
-                y.append(reward[i])
-            else:
-                next_state_value = np.max(next_state_values[i])
-                y.append(reward[i] + self.gamma * next_state_value)
-            loss, _ = self.sess.run([self.loss, self.optimizer], feed_dict={self.state: state, self.action_one_hot:action, self.y: y, self.learning_rate_step: self.global_step,})
-            return loss
 
     def train(self):
         # begin to train
@@ -177,7 +180,7 @@ class Policy:
             for step in range(self.episode_steps):
                 self.global_step += 1
                 # choose action
-                action = self.greedy_action(state)
+                action = self.action(state)
                 # run a step
                 next_state, reward, done, _ = self.env.step(action)
                 # reset reward
