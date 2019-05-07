@@ -75,7 +75,6 @@ def main():
   torch.manual_seed(args.seed)
   
   device = torch.device("cuda" if use_cuda else "cpu")
-  device = "cpu"
 
   kwargs = {}
   train_loader = torch.utils.data.DataLoader(

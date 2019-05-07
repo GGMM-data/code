@@ -72,7 +72,7 @@ def select_action(state, policy, model, num_actions,
     Selects whether the next action is choosen by our model or randomly
     """
     Q = model(Variable(state, volatile=True).type(FloatTensor))
-    # pi_0
+    # pi_0  
     pi0 = policy(Variable(state, volatile=True).type(FloatTensor))
     # V
     V = torch.log((torch.pow(pi0, alpha) * torch.exp(beta * Q)).sum(1)) / beta
@@ -95,25 +95,25 @@ def select_action(state, policy, model, num_actions,
 
 # optimize pi_0
 def optimize_policy(policy, optimizer, memories, batch_size,
-                    num_envs, gamma):
+                    num_envs, gamma, device):
     loss = 0
     for i_env in range(num_envs):
         size_to_sample = np.minimum(batch_size, len(memories[i_env]))
         transitions = memories[i_env].policy_sample(size_to_sample)
         batch = Transition(*zip(*transitions))
-        state_batch = torch.cat(batch.state).cuda() if use_cuda else torch.cat(batch.state)
+
+        state_batch = torch.cat(batch.state).to(device)
         # print(batch.action)
-        gamma = Tensor([gamma]) if use_cuda else Tensor([gamma])
-        time_batch = torch.cat(batch.time).cuda() if use_cuda else torch.cat(batch.time)
+        gamma = Tensor([gamma]).to(device)
+        time_batch = torch.cat(batch.time).to(device)
         actions = np.array([action.cpu().numpy()[0][0] for action in batch.action])
-        actions = torch.from_numpy(actions).cuda() if use_cuda else actions
+        actions = torch.from_numpy(actions).to(device)
         cur_loss = (torch.pow(gamma, time_batch) *
             torch.log(policy(state_batch)[:, actions])).sum()
         loss -= cur_loss
         # loss = cur_loss if i_env == 0 else loss + cur_loss
 
     optimizer.zero_grad()
-    loss = loss.cuda()
     loss.backward()
 
     for param in policy.parameters():
@@ -123,7 +123,7 @@ def optimize_policy(policy, optimizer, memories, batch_size,
 
 # optimize pi_1~pi_i
 def optimize_model(policy, model, optimizer, memory, batch_size,
-                    alpha, beta, gamma):
+                    alpha, beta, gamma, device):
     if len(memory) < batch_size:
         return
     transitions = memory.sample(batch_size)
@@ -137,13 +137,12 @@ def optimize_model(policy, model, optimizer, memory, batch_size,
     # We don't want to backprop through the expected action values and volatile
     # will save us on temporarily changing the model parameters'
     # requires_grad to False!
-    non_final_next_states = Variable(torch.cat([s for s in batch.next_state
-                                                if s is not None]),
-                                     volatile=True)
+    non_final_next_states = torch.cat([s for s in batch.next_state
+                                                if s is not None]).to(device)
 
-    state_batch = Variable(torch.cat(batch.state))
-    action_batch = Variable(torch.cat(batch.action))
-    reward_batch = Variable(torch.cat(batch.reward))
+    state_batch = torch.cat(batch.state).to(device)
+    action_batch = torch.cat(batch.action).to(device)
+    reward_batch = torch.cat(batch.reward).to(device)
 
     # Compute Q(s_t, a) - the model computes Q(s_t), then we select the
     # columns of actions taken

@@ -34,10 +34,12 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
     memories = [ReplayMemory(memory_replay_size, memory_policy_size) for _ in range(0, num_envs)]
 
     use_cuda = torch.cuda.is_available()
-    if use_cuda:
-        policy.cuda()
-        for model in models:
-            model.cuda()
+    device = torch.device("cuda" if use_cuda else "cpu")
+
+    # model
+    policy = policy.to(device)
+    for i in range(len(models)):
+        models[i] = models[i].to(device)
 
     # optimizer for every Q model
     optimizers = [optim.Adam(model.parameters(), lr=learning_rate)
@@ -59,6 +61,10 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
         env.reset()
 
     while np.min(episodes_done) < num_episodes:
+        policy.train()
+        for model in models:
+            model.train()
+
         # TODO: add max_num_steps_per_episode
 
         # Optimization is given by alterating minimization scheme:
@@ -104,7 +110,7 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
             #   2. do one optimization step for each env using "soft-q-learning".
             # Perform one step of the optimization (on the target network)
             optimize_model(policy, models[i_env], optimizers[i_env],
-                            memories[i_env], batch_size, alpha, beta, gamma)
+                            memories[i_env], batch_size, alpha, beta, gamma, device)
             # ===========update step info end ========================
 
 
@@ -131,7 +137,7 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
         #   3. do one optimization step for the policy
         # after all envs has performed one step, optimize policy
         optimize_policy(policy, policy_optimizer, memories, batch_size,
-                    num_envs, gamma)
+                    num_envs, gamma, device)
 
     print('Complete')
     env.render(close=True)
