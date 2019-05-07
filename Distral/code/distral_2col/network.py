@@ -101,18 +101,19 @@ def optimize_policy(policy, optimizer, memories, batch_size,
         size_to_sample = np.minimum(batch_size, len(memories[i_env]))
         transitions = memories[i_env].policy_sample(size_to_sample)
         batch = Transition(*zip(*transitions))
-        
-        state_batch = Variable(torch.cat(batch.state))
+        state_batch = torch.cat(batch.state).cuda() if use_cuda else torch.cat(batch.state)
         # print(batch.action)
-        time_batch = Variable(torch.cat(batch.time))
-        actions = np.array([action.numpy()[0][0] for action in batch.action])
-        
-        cur_loss = (torch.pow(Variable(Tensor([gamma])), time_batch) *
+        gamma = Tensor([gamma]) if use_cuda else Tensor([gamma])
+        time_batch = torch.cat(batch.time).cuda() if use_cuda else torch.cat(batch.time)
+        actions = np.array([action.cpu().numpy()[0][0] for action in batch.action])
+        actions = torch.from_numpy(actions).cuda() if use_cuda else actions
+        cur_loss = (torch.pow(gamma, time_batch) *
             torch.log(policy(state_batch)[:, actions])).sum()
         loss -= cur_loss
         # loss = cur_loss if i_env == 0 else loss + cur_loss
 
     optimizer.zero_grad()
+    loss = loss.cuda()
     loss.backward()
 
     for param in policy.parameters():
