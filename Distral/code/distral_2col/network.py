@@ -71,9 +71,11 @@ def select_action(state, policy, model, num_actions,
     """
     Selects whether the next action is choosen by our model or randomly
     """
-    Q = model(Variable(state, volatile=True).type(FloatTensor))
-    # pi_0  
-    pi0 = policy(Variable(state, volatile=True).type(FloatTensor))
+    with torch.no_grad():
+        state = Variable(state)
+    Q = model(state)
+    # pi_0
+    pi0 = policy(state)
     # V
     V = torch.log((torch.pow(pi0, alpha) * torch.exp(beta * Q)).sum(1)) / beta
     # print("pi0 = ", pi0)
