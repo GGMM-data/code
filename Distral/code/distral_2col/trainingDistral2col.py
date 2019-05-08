@@ -35,7 +35,8 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
 
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
-
+    device = "cpu"
+    print(device)
     # model
     policy = policy.to(device)
     for i in range(len(models)):
@@ -86,7 +87,7 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
             # action chosen by pi_1~pi_i
             action = select_action(state, policy, models[i_env], num_actions,
                                     eps_start, eps_end, eps_decay,
-                                    episodes_done[i_env], alpha, beta)
+                                    episodes_done[i_env], alpha, beta, device)
             # global_steps
             steps_done[i_env] += 1
             # local steps
@@ -136,8 +137,8 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
 
         #   3. do one optimization step for the policy
         # after all envs has performed one step, optimize policy
-#        optimize_policy(policy, policy_optimizer, memories, batch_size,
-#                    num_envs, gamma, device)
+        # optimize_policy(policy, policy_optimizer, memories, batch_size,
+        #             num_envs, gamma, device)
 
     print('Complete')
     env.render(close=True)

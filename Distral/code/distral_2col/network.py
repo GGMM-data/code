@@ -67,12 +67,14 @@ class PolicyNetwork(nn.Module):
 
 # choose action according to pi_1~pi_i
 def select_action(state, policy, model, num_actions,
-                    EPS_START, EPS_END, EPS_DECAY, steps_done, alpha, beta):
+                    EPS_START, EPS_END, EPS_DECAY, steps_done, alpha, beta, device):
     """
     Selects whether the next action is choosen by our model or randomly
     """
     with torch.no_grad():
-        state = Variable(state)
+        state = torch.tensor(state).float()
+        print(state.type())
+        state.to(device)
     Q = model(state)
     # pi_0
     pi0 = policy(state)
@@ -111,7 +113,7 @@ def optimize_policy(policy, optimizer, memories, batch_size,
         actions = np.array([action.cpu().numpy()[0][0] for action in batch.action])
         actions = torch.from_numpy(actions).to(device)
         cur_loss = (torch.pow(gamma, time_batch) *
-            torch.log(policy(state_batch)[:, actions])).sum()
+            torch.log(policy(state_batch).to(device)[:, actions])).sum()
         loss -= cur_loss
         # loss = cur_loss if i_env == 0 else loss + cur_loss
 
@@ -135,7 +137,7 @@ def optimize_model(policy, model, optimizer, memory, batch_size,
 
     # Compute a mask of non-final states and concatenate the batch elements
     non_final_mask = ByteTensor(tuple(map(lambda s: s is not None,
-                                          batch.next_state)))
+                                          batch.next_state))).to(device)
     # We don't want to backprop through the expected action values and volatile
     # will save us on temporarily changing the model parameters'
     # requires_grad to False!
@@ -158,10 +160,11 @@ def optimize_model(policy, model, optimizer, memory, batch_size,
     # Now, we don't want to mess up the loss with a volatile flag, so let's
     # clear it. After this, we'll just end up with a Variable that has
     # requires_grad=False
+    next_state_values = next_state_values.to(device)
     next_state_values.volatile = False
     # Compute the expected Q values
     expected_state_action_values = (next_state_values * gamma) + reward_batch
-
+    expected_state_action_values = expected_state_action_values.to(device)
     # Compute Huber loss
     loss = F.mse_loss(state_action_values + 1e-16, expected_state_action_values)
     # print("loss:", loss)
