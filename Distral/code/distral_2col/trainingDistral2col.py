@@ -136,8 +136,8 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
 
         #   3. do one optimization step for the policy
         # after all envs has performed one step, optimize policy
-        optimize_policy(policy, policy_optimizer, memories, batch_size,
-                    num_envs, gamma, device)
+#        optimize_policy(policy, policy_optimizer, memories, batch_size,
+#                    num_envs, gamma, device)
 
     print('Complete')
     env.render(close=True)

@@ -151,7 +151,7 @@ def optimize_model(policy, model, optimizer, memory, batch_size,
     state_action_values = model(state_batch).gather(1, action_batch)
 
     # Compute V(s_{t+1}) for all next states.
-    next_state_values = Variable(torch.zeros(batch_size).type(Tensor))
+    next_state_values = torch.zeros(batch_size).to(device)
     next_state_values[non_final_mask] = torch.log(
         (torch.pow(policy(non_final_next_states), alpha)
         * torch.exp(beta * model(non_final_next_states))).sum(1)) / beta
