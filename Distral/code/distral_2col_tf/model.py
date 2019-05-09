@@ -62,38 +62,43 @@ class DQN:
 
     def build_model(self):
         # model layers
-        with tf.variable_scope(self.model_name + 'prediction'):
+        scope = self.model_name + "_" + 'prediction'
+        with tf.variable_scope(scope):
             # state
-            self.state = tf.placeholder('float32', (None, ), name='s_t')
+
+            self.state = tf.placeholder('float32', [None, 84, 84, 3], name='s_t')
             # input action (one hot)
             self.action_one_hot = tf.placeholder("float", [None, self.action_dim])
-            self.next_state = tf.placeholder('float32', (None, ), name='s_t_1')
+            self.next_state = tf.placeholder('float32', (None, 84, 84, 3), name='s_t_1')
             self.reward = tf.placeholder('float32', (None,), name='reward')
-            self.done = tf.placeholder('float32', (None,), name='done')
+            self.done = tf.placeholder('int32', (None,), name='done')
+            self.times = tf.placeholder('float32', (None,), name='timesteps')
 
             # cnn layers
             self.l1, self.w['l1_w'], self.w['l1_b'] = conv2d(self.state, 5, [2, 2], [1, 1], initializer=self.initializer,
                                                              activation_fn=self.activation_fn,
-                                                             name='l1')
+                                                             name='l1', reuse=False)
             self.l2, self.w['l2_w'], self.w['l2_b'] = conv2d(self.l1, 10, [3, 3], [1, 1], initializer=self.initializer,
                                                              activation_fn=self.activation_fn,
-                                                             name='l2')
+                                                             name='l2', reuse=False)
             self.l3, self.w['l3_w'], self.w['l3_b'] = conv2d(self.l2, 10, [3, 3], [1, 1], initializer=self.initializer,
                                                              activation_fn=self.activation_fn,
-                                                             name='l3')
+                                                             name='l3', reuse=False)
             shape = self.l3.get_shape().as_list()
             self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
 
             # fc layers
-            self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q')
+            self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q', reuse=False)
 
         # optimizer
         with tf.variable_scope(self.model_name + 'optimizer'):
             # predicted q value, action is one hot representation
-            self.predicted_q = tf.reduce_sum(tf.multiply(self.q, self.action_one_hot),
-                                             reduction_indices=1, name='q_acted')
-            self.v = tf.log(tf.pow(self.shared_policy.action(self.next_state), self.alpha) *
-                            tf.exp(self.beta* self.q(self.next_state))
+            self.predicted_q = tf.boolean_mask(self.q, self.action_one_hot)
+            # pi0 = self.shared_policy.select_action(self.next_state)
+            self.pi0_prob = tf.placeholder(tf.float32, [None, ], name="pi0")
+            self.next_q = tf.placeholder(tf.float32, [None, ], name="next_q")
+            self.v = tf.log(tf.pow(self.pi0_prob, self.alpha) *
+                            tf.exp(self.beta * self.next_q)
                             ) / self.beta
 
             # true value
@@ -125,22 +130,6 @@ class DQN:
 
         self.sess.run(tf.global_variables_initializer())
 
-    def action(self, state):
-        # q value
-        Q = self.q.eval(feed_dict={self.state: [state]})
-        # pi_0
-        pi_0 = self.shared_policy.action
-        # V  tf.pow(pi0, alpha) * tf.exp(beta * Q))
-        V = tf.log((tf.pow(pi_0, self.alpha) * tf.exp(self.beta * Q)).sum(1)) / self.beta
-        # use equation 2 to gen pi_i
-        pi_i = tf.pow(pi_0, self.alpha) * tf.exp(self.beta * (Q - V))
-        if sum(pi_i.data.numpy()[0] < 0) > 0:
-            print("Warning!!!: pi_i has negative values: pi_i", pi_i.data.numpy()[0])
-        pi_i = tf.maximum(tf.zeros(pi_i.shape) + 1e-15, pi_i)
-        # sample action
-        action_sample = tf.multinomial([pi_i], 1)
-        return action_sample
-
     def experience(self, state, action, reward, next_state, done, time):
         # add to model buffer
         one_hot_action = np.zeros(self.action_dim)
@@ -151,6 +140,23 @@ class DQN:
 
         # add to  policy buffer
         self.shared_policy.experience(state, action, reward, next_state, done, time)
+
+    def select_action(self, state):
+        # 计算当前状态的Q值
+        Q = self.q.eval(feed_dict={state: state})
+        # pi_0
+        # 计算当前状态的action分布
+        prob = self.shared_policy.action.eval(feed_dict={state: state})
+        # 根据公式计算V值，V = tf.pow(pi0, alpha) * tf.exp(beta * Q))
+        V = tf.log((tf.pow(prob, self.alpha) * tf.exp(self.beta * Q)).sum(1)) / self.beta
+        # 根据公式2计算pi_i
+        pi_i = tf.pow(prob, self.alpha) * tf.exp(self.beta * (Q - V))
+        if sum(pi_i.data.numpy()[0] < 0) > 0:
+            print("Warning!!!: pi_i has negative values: pi_i", pi_i.data.numpy()[0])
+        pi_i = tf.maximum(tf.zeros(pi_i.shape) + 1e-15, pi_i)
+        # 根据pi_i进行采样
+        action_sample = tf.multinomial([pi_i], 1)
+        return action_sample
 
     def optimize_step(self):
         if len(self.replay_buffer) < self.batch_size:
@@ -163,57 +169,12 @@ class DQN:
         next_state = [data[3] for data in batch]
         done = [data[4] for data in batch]
 
+        pi_0 = self.select_action(state)
+        next_q = self.sess.run(self.q, feed_dict={state: next_state})
         # feed data
         loss, _ = self.sess.run([self.loss, self.optimizer],
-                                feed_dict={self.state: state, self.action_one_hot:action, self.reward: reward,
-                                    self.next_state: next_state, self.done: done,
-                                           self.learning_rate_step: self.global_step,})
+                                feed_dict={self.state: state, self.action_one_hot: action, self.reward: reward,
+                                           self.next_state: next_state, self.done: done,
+                                           self.pi0_prob: pi_0, self.next_q: next_q,
+                                           self.learning_rate_step: self.global_step, })
         return loss
-
-
-    def train(self):
-        # begin to train
-        self.global_step = 0
-        for i in range(self.episodes):
-            # reset environment
-            state = self.env.reset()
-            for step in range(self.episode_steps):
-                self.global_step += 1
-                # choose action
-                action = self.action(state)
-                # run a step
-                next_state, reward, done, _ = self.env.step(action)
-                # reset reward
-                reward = -1 if done else 0.1
-                # add transition to replay buffer
-                self.experience(state, action, reward, next_state, done)
-
-                # update parameters
-                loss = self.update()
-                if step % 100 == 0:
-                    print("Train episode ", i, ", step ", step, ", loss: ", loss)
-                    # move to next state
-                state = next_state
-                if done:
-                    break
-            # after train one episode, test
-            self.test()
-
-    def test(self):
-        total_reward = 0
-        for i in range(self.test_episodes):
-            # print(i)
-            state = self.env.reset()
-            for step in range(self.test_episode_steps):
-                # env.render()
-                action = self.action(state)
-                # print(action)
-                next_state, reward, done, _ = self.env.step(action)
-                if reward != 0.0:
-                    print(reward)
-                total_reward += reward
-                if done:
-                    break
-        average_reward = total_reward / test_episodes
-        print("Average reward test episode: ", average_reward)
-

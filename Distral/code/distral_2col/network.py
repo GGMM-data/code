@@ -72,9 +72,7 @@ def select_action(state, policy, model, num_actions,
     Selects whether the next action is choosen by our model or randomly
     """
     with torch.no_grad():
-        state = torch.tensor(state).float()
-        print(state.type())
-        state.to(device)
+        state = torch.tensor(state).float().to(device)
     Q = model(state)
     # pi_0
     pi0 = policy(state)

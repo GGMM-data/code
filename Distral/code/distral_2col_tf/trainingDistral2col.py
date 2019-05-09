@@ -11,6 +11,7 @@ import sys
 sys.path.append('../')
 from envs.gridworld_env import GridworldEnv
 from utils import plot_rewards, plot_durations, plot_state, get_screen
+from ops import select_action
 import gym
 
 def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
@@ -37,7 +38,7 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
     # pi_0
     policy = Policy(list_of_envs[0], num_envs, alpha, beta)
     # Q value, every environment has one, used to calculate A_i,
-    models = [DQN(list_of_envs[i], policy, alpha, beta, "model"+str(i)) for i in range(0, num_envs)]
+    models = [DQN(list_of_envs[i], policy, alpha, beta, model_name="model_"+str(i)) for i in range(0, num_envs)]
     policy.add_models(models)
 
     # info list for each environment
@@ -57,6 +58,7 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
             # state
             state = current_screen # - last_screen
             # action chosen by pi_1~pi_i
+            # action = select_action()
             action = policy.models[i].action(state)
 
             # global_steps
