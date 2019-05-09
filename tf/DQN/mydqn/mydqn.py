@@ -70,6 +70,7 @@ class DQN:
         # model layers
         with tf.variable_scope('prediction'):
             # state
+            tf.image.crop_and_resize()
             self.state_input = tf.placeholder('float32', (None, ) + self.state_dim, name='s_t')
             self.state = tf.image.resize_images(self.state_input, [84, 64])
             self.state = tf.image.pad_to_bounding_box(self.state, 0, 10, self.height, self.width)
@@ -253,5 +254,5 @@ class DQN:
 
 if __name__ == "__main__":
     env = gym.make(ENV_NAME)
-    model = DQN(env=env,env_name=ENV_NAME)
+    model = DQN(env=env, env_name=ENV_NAME)
     model.train()
