@@ -104,7 +104,7 @@ class DQN:
             # true value
             self.y = []
             for i in range(self.batch_size):
-                if self.done[i]:
+                if self.done[i] != 0:
                     self.y.append(self.reward[i])
                 else:
                     self.y.append(self.reward[i] + self.gamma * self.v[i])
