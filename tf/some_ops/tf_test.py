@@ -1,17 +1,28 @@
 import tensorflow as tf
 import numpy as np
 
-x = tf.placeholder(tf.int32, [10,])
-y = tf.constant([10, 3.2])
 
-for i in range(10):
-   if x[i] != 0 :
-      tf.add(y, 1)
-   else:
-      tf.sub(y, 1) 
-   
-add = tf.log(y)
+def some_func(sess):
 
-with tf.Session() as sess:
-   inputs = np.array([1, 2,3,4,5,6,7,8,9,0])
-   print(sess.run(add, feed_dict={x: inputs}))
+
+   x = tf.placeholder(tf.int32, [10])
+   y = tf.constant([10, 3.2])
+
+   inputs = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+   for i in range(10):
+      print(sess.run(tf.equal(x[i], 0), feed_dict={x: inputs}))
+      if tf.equal(x[i], 0):
+         print(True)
+         y = tf.add(y, 1)
+      else:
+         print(False)
+         y = tf.add(y, 10)
+
+   result = tf.log(y)
+
+   sess.run(result, feed_dict={x: inputs})
+
+
+sess = tf.Session()
+some_func(sess)
+
