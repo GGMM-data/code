@@ -24,7 +24,6 @@ l = [2, 4, 6, 8, 10]
 m = list(map(lambda x: x*x, l))
 print(m)
 
-
 # 
 add = lambda x,y: x+y
 print(add(1,3))

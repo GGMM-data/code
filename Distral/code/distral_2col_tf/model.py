@@ -85,7 +85,8 @@ class DQN:
                                                              activation_fn=self.activation_fn,
                                                              name='l3', reuse=False)
             shape = self.l3.get_shape().as_list()
-            self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
+            self.l3_flat = tf.reshape(self.l3, [-1, reduce(lambda x, y: x * y, shape[1:])])
+            # self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
 
             # fc layers
             self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q', reuse=False)
@@ -128,7 +129,9 @@ class DQN:
             self.optimizer = tf.train.RMSPropOptimizer(
                 self.learning_rate_op, momentum=0.95, epsilon=0.01).minimize(self.loss)
 
-        self.sess.run(tf.global_variables_initializer())
+        tf.global_variables_initializer().run()
+        # self.sess.run(tf.global_variables_initializer())
+        # self.sess.run(tf.local_variables_initializer())
 
     def experience(self, state, action, reward, next_state, done, time):
         # add to model buffer
@@ -142,20 +145,26 @@ class DQN:
         self.shared_policy.experience(state, action, reward, next_state, done, time)
 
     def select_action(self, state):
+        if len(state.shape) == 3:
+            shapes = state.shape
+            state = np.reshape(state, (1, ) + shapes)
         # 计算当前状态的Q值
-        Q = self.q.eval(feed_dict={state: state})
+        Q = self.q.eval(feed_dict={self.state: state})
         # pi_0
         # 计算当前状态的action分布
-        prob = self.shared_policy.action.eval(feed_dict={state: state})
+        prob = self.shared_policy.action.eval(feed_dict={self.shared_policy.state: state})
         # 根据公式计算V值，V = tf.pow(pi0, alpha) * tf.exp(beta * Q))
-        V = tf.log((tf.pow(prob, self.alpha) * tf.exp(self.beta * Q)).sum(1)) / self.beta
+        V = tf.reduce_sum(tf.log((tf.pow(prob, self.alpha) * tf.exp(self.beta * Q))), 1) / self.beta
         # 根据公式2计算pi_i
         pi_i = tf.pow(prob, self.alpha) * tf.exp(self.beta * (Q - V))
-        if sum(pi_i.data.numpy()[0] < 0) > 0:
-            print("Warning!!!: pi_i has negative values: pi_i", pi_i.data.numpy()[0])
+        pi_i = pi_i.eval()
+        count = tf.ones_like(pi_i)
+        hhh = tf.boolean_mask(count, pi_i < 0)
+        if tf.greater(tf.reduce_sum(hhh), 0).eval():
+            print("Warning!!!: pi_i has negative values: pi_i", pi_i[0])
         pi_i = tf.maximum(tf.zeros(pi_i.shape) + 1e-15, pi_i)
         # 根据pi_i进行采样
-        action_sample = tf.multinomial([pi_i], 1)
+        action_sample = tf.multinomial(pi_i, 1).eval()
         return action_sample
 
     def optimize_step(self):

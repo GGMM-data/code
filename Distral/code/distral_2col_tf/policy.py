@@ -61,7 +61,6 @@ class Policy:
         self.activation_fn = tf.nn.relu
         # store pi_1, ..., pi_i
 
-
         # build dqn model
         self.w = {}
         self.build_model()
@@ -87,7 +86,8 @@ class Policy:
                                                              activation_fn=self.activation_fn,
                                                              name='l3', reuse=reuse)
             shape = self.l3.get_shape().as_list()
-            self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
+            self.l3_flat = tf.reshape(self.l3, [-1, reduce(lambda x, y: x * y, shape[1:])])
+            # self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
 
             # fc layers
             self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q', reuse=reuse)
@@ -101,12 +101,13 @@ class Policy:
 
             # input action (one hot)
             n = self.n_model
+            # list of placeholder
             self.states = [tf.placeholder('float32', [None, 84, 84, 3], name='s_t') for _ in range(n)]
             self.action_one_hot = [tf.placeholder("float", [None, self.action_dim]) for _ in range(n)]
-            self.next_state = [tf.placeholder('float32', (None, 84, 84, 3), name='s_t_1') for _ in range(n)]
-            self.reward = [tf.placeholder('float32', (None,), name='reward') for _ in range(n)]
-            self.done = [tf.placeholder('int32', (None,), name='done') for _ in range(n)]
-            self.times = [tf.placeholder('float32', (None,), name='timesteps') for _ in range(n)]
+            self.next_state = [tf.placeholder('float32', [None, 84, 84, 3], name='s_t_1') for _ in range(n)]
+            self.reward = [tf.placeholder('float32', [None, ], name='reward') for _ in range(n)]
+            self.done = [tf.placeholder('int32', [None, ], name='done') for _ in range(n)]
+            self.times = [tf.placeholder('float32', [None, ], name='timesteps') for _ in range(n)]
 
             reuse = True
             for i in range(self.n_model):
@@ -120,7 +121,8 @@ class Policy:
                                                                  activation_fn=self.activation_fn,
                                                                  name='l3', reuse=reuse)
                 shape = self.l3.get_shape().as_list()
-                self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
+                # self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
+                self.l3_flat = tf.reshape(self.l3, [-1, reduce(lambda x, y: x * y, shape[1:])])
 
                 # fc layers
                 self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q', reuse=reuse)
@@ -167,7 +169,7 @@ class Policy:
         action = self.sess.run(self.action, feed_dict={self.state: state})
         return action
 
-    def optimize_step(self):
+    def optimize_step(self, policy_step):
         state = []
         action = []
         reward = []
@@ -178,16 +180,20 @@ class Policy:
             size_to_sample = np.minimum(self.batch_size, len(model.replay_buffer))
             batch = random.sample(model.replay_buffer, size_to_sample)
 
-            state.append([data[0] for data in batch])
-            action.append([data[1] for data in batch])
-            reward.append([data[2] for data in batch])
-            next_state.append([data[3] for data in batch])
-            done.append([data[4] for data in batch])
-            times.append([data[5] for data in batch])
+            state.append(np.array([data[0] for data in batch]))
+            action.append(np.array([data[1] for data in batch]))
+            reward.append(np.array([data[2] for data in batch]))
+            next_state.append(np.array([data[3] for data in batch]))
+            done.append(np.array([data[4] for data in batch]))
+            times.append(np.array([data[5] for data in batch]))
 
-
-        loss, _ = self.sess.run([self.loss, self.optimizer],
-                feed_dict={self.states: state, self.action_one_hot: action, self.reward: reward,
-                    self.next_state: next_state, self.done: done, self.times: times,
-                    self.learning_rate_step: self.global_step,})
+        loss, _ = self.sess.run([self.loss, self.optimizer], feed_dict={
+                        self.learning_rate_step: policy_step,
+                        self.states: state,
+                        self.action_one_hot: action,
+                        self.reward: reward,
+                        self.next_state: next_state,
+                        self.done: done,
+                        self.times: times
+                        })
         return loss
