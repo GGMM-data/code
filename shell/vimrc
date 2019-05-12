@@ -1,10 +1,60 @@
-syntax enable
-set number
+" 打开文件类型检测
+filetype on
+" 根据不同的文件类型加载插件
+filetype plugin on
+
+" 定义前缀键
+" let mappleader=";"
+
+" 设置复制和粘贴到系统粘贴板的快捷键
+vnoremap ; "+
+nnoremap ; "+
+nmap ;p "+p
+
+
+""" 状态栏设置
+" 总是显示状态栏
+set laststatus=2
+" 状态信息
+set statusline=%f%m%r%h%w\ %=#%n\ [%{&fileformat}:%{(&fenc==\"\"?&enc:&fenc).((exists(\"\+bomb\")\ &&\ &bomb)?\"\+B\":\"\").\"\"}:%{strlen(&ft)?&ft:'**'}]\ [%c,%l/%L]\ %p%%
+"set statusline=%l/%L\L
+"set statusline=%F\ %l,%c %L
+"set statusline=%<%F\ %h%m%r%y%=%-14.(%l,%c%V%)\ %P,%L 
+"set statusline=%<%f%=\ [%1*%M%*%n%R%H]\ %-19(%3l,%02c%03V%)%O'%02b'
+
+"""光标设置
+" 设置显示光标当前位置
 set ruler
-set shiftwidth=4
+" 光标信息
+" set rulerformat=%43(%=%m%r%h%w#%n\ [%{&fileformat}:%{(&fenc==\"\"?&enc:&fenc).((exists(\"\+bomb\")\ &&\ &bomb)?\"\+B\":\"\").\"\"}:%{strlen(&ft)?&ft:'**'}]\ [%L\\%l,%c]\ %p%%%)
+
+
+" 开启行号显示
+set number
+" 高亮显示当前行/列
+set cursorline
+" set cursorcolumn
+" 高亮显示搜索结果
+set hlsearch
+" 显示文件名
+
+" 开启语法高亮
+syntax enable
+" 允许用指定语法高亮配色方案替换默认方案
+syntax on
+" 自适应不同语言的智能缩进
+filetype indent on
+" 将制表符扩展为空格
+set expandtab
+" 设置编辑时制表符占用空格数
 set tabstop=4
-set et
+" 设置格式化时制表符占用空格数
+set shiftwidth=4
+" 让 vim 把连续数量的空格视为一个制表符
 set softtabstop=4
+
 set completeopt=longest,menu
 set paste
-" set clipboard=unnamed
+
+
+set clipboard=unnamed

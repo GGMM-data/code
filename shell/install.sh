@@ -1,4 +1,4 @@
-sudo apt install -y make vim gcc g++
+sudo apt install -y make vim-gtk3 gcc g++
 sudo apt update
 sudo apt -y upgrade
 sudo apt install  -y python-pip python3-pip python3-tk
