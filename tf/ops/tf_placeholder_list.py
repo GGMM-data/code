@@ -17,6 +17,6 @@ if __name__ == "__main__":
     for _ in range(n):
         x = np.random.rand(16, 10)
         inputs.append(x)
-    print(sess.run(hhhh, feed_dict={ph_list: inputs}))
-    # print(sess.run(hhhh, feed_dict={k: v for k, v in zip(ph_list, inputs)}).shape)
+    # print(sess.run(hhhh, feed_dict={ph_list: inputs}))
+    print(sess.run(hhhh, feed_dict={k: v for k, v in zip(ph_list, inputs)}).shape)
    
