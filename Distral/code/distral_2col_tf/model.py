@@ -9,13 +9,15 @@ import gym
 from gym import spaces
 import time
 
+# 如何优化pii
+#
 
 scale = 10
 
 ENV_NAME = "Breakout-v4"
 GAMMA = 0.9
 REPLAY_BUFFER_SIZE = 100 * scale
-BATCH_SIZE = 32
+BATCH_SIZE = 2
 EPSILON = 0.01
 HIDDEN_UNITS = 512
 
@@ -62,10 +64,7 @@ class DQN:
 
     def build_model(self):
         # model layers
-        scope = self.model_name + "_" + 'prediction'
-        with tf.variable_scope(scope):
-            # state
-
+        with tf.variable_scope(self.model_name + "_" + 'prediction'):
             self.state = tf.placeholder('float32', [None, 84, 84, 3], name='s_t')
             # input action (one hot)
             self.action_one_hot = tf.placeholder("float", [None, self.action_dim])
@@ -94,7 +93,10 @@ class DQN:
         # optimizer
         with tf.variable_scope(self.model_name + 'optimizer'):
             # predicted q value, action is one hot representation
+            # 预测值q
             self.predicted_q = tf.boolean_mask(self.q, self.action_one_hot)
+            
+            # 用pi0和pii的q值计算v
             # pi0 = self.shared_policy.select_action(self.next_state)
             self.pi0_prob = tf.placeholder(tf.float32, [None, ], name="pi0")
             self.next_q = tf.placeholder(tf.float32, [None, ], name="next_q")
@@ -102,7 +104,7 @@ class DQN:
                             tf.exp(self.beta * self.next_q)
                             ) / self.beta
 
-            # true value
+            # 目标值(true value)
             self.y = []
             for i in range(self.batch_size):
                 if self.done[i] != 0:
@@ -129,7 +131,9 @@ class DQN:
             self.optimizer = tf.train.RMSPropOptimizer(
                 self.learning_rate_op, momentum=0.95, epsilon=0.01).minimize(self.loss)
 
-        tf.global_variables_initializer().run()
+        # tf.global_variables_initializer().run()
+        # self.sess.run(tf.global_variables_initializer())
+        # self.sess.run(tf.local_variables_initializer())
         # self.sess.run(tf.global_variables_initializer())
         # self.sess.run(tf.local_variables_initializer())
 
@@ -159,12 +163,12 @@ class DQN:
         pi_i = tf.pow(prob, self.alpha) * tf.exp(self.beta * (Q - V))
         pi_i = pi_i.eval()
         count = tf.ones_like(pi_i)
-        hhh = tf.boolean_mask(count, pi_i < 0)
+        hhh = tf.boolean_mask(count, tf.less(pi_i, 0))
         if tf.greater(tf.reduce_sum(hhh), 0).eval():
             print("Warning!!!: pi_i has negative values: pi_i", pi_i[0])
         pi_i = tf.maximum(tf.zeros(pi_i.shape) + 1e-15, pi_i)
         # 根据pi_i进行采样
-        action_sample = tf.multinomial(pi_i, 1).eval()
+        action_sample = tf.random.categorical(pi_i, 1).eval()
         return action_sample
 
     def optimize_step(self):
@@ -172,18 +176,25 @@ class DQN:
             return
 
         batch = random.sample(self.replay_buffer, self.batch_size)
-        state = [data[0] for data in batch]
-        action = [data[1] for data in batch]
-        reward = [data[2] for data in batch]
-        next_state = [data[3] for data in batch]
-        done = [data[4] for data in batch]
+        state = np.array([data[0] for data in batch])
+        action = np.array([data[1] for data in batch])
+        reward = np.array([data[2] for data in batch])
+        next_state = np.array([data[3] for data in batch])
+        done = np.array([data[4] for data in batch])
+        # state = state.reshape((-1,) + state.shape)
+        # action = action.reshape((-1,) + action.shape)
+        # reward = reward.reshape((-1,) + reward.shape)
+        # next_state = next_state.reshape((-1,) + next_state.shape)
+        # done = done.reshape((-1,) + done.shape)
 
-        pi_0 = self.select_action(state)
-        next_q = self.sess.run(self.q, feed_dict={state: next_state})
+        # 用pi0算
+        pi0_prob = self.shared_policy.select_action(state)
+        # 用pii算
+        next_q = self.sess.run(self.q, feed_dict={self.state: next_state})
         # feed data
         loss, _ = self.sess.run([self.loss, self.optimizer],
                                 feed_dict={self.state: state, self.action_one_hot: action, self.reward: reward,
                                            self.next_state: next_state, self.done: done,
-                                           self.pi0_prob: pi_0, self.next_q: next_q,
+                                           self.pi0_prob: pi0_prob, self.next_q: next_q,
                                            self.learning_rate_step: self.global_step, })
         return loss

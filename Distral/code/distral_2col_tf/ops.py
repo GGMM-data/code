@@ -44,22 +44,6 @@ def linear(inputs, output_size, stddev=0.02, bias_start=0.0, activation_fn=None,
     return out, w, b
 
 
-def select_action(policy, model, state, beta, alpha):
-    # 计算当前状态的Q值
-    Q = model.q.eval(feed_dict={state: state})
-    # pi_0
-    # 计算当前状态的action分布
-    prob = policy.action.eval(feed_dict={state: state})
-    # 根据公式计算V值，V = tf.pow(pi0, alpha) * tf.exp(beta * Q))
-    V = tf.log((tf.pow(prob, alpha) * tf.exp(beta * Q)).sum(1)) / beta
-    # 根据公式2计算pi_i
-    pi_i = tf.pow(prob, alpha) * tf.exp(beta * (Q - V))
-    if sum(pi_i.data.numpy()[0] < 0) > 0:
-        print("Warning!!!: pi_i has negative values: pi_i", pi_i.data.numpy()[0])
-    pi_i = tf.maximum(tf.zeros(pi_i.shape) + 1e-15, pi_i)
-    # 根据pi_i进行采样
-    action_sample = tf.multinomial([pi_i], 1)
-    return action_sample
 
 
 

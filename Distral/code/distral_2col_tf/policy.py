@@ -9,6 +9,12 @@ import gym
 from gym import spaces
 import time
 
+# 如何优化pi0
+# 初始化策略pi0
+# 然后初始化pii的q网络，用q和pi0表示pii，
+# pii的动作，通过pii的策略选择出来，
+# 计算出pi0策略下选择所有pii动作的概率，然后最大化它来优化pi0
+
 try:
   from scipy.misc import imresize
 except:
@@ -20,7 +26,7 @@ scale = 10
 ENV_NAME = "Breakout-v4"
 GAMMA = 0.9
 REPLAY_BUFFER_SIZE = 100 * scale
-BATCH_SIZE = 32
+BATCH_SIZE = 2
 EPSILON = 0.01
 HIDDEN_UNITS = 512
 
@@ -65,13 +71,12 @@ class Policy:
         self.w = {}
         self.build_model()
 
-
     def build_model(self):
         # model layers
         with tf.variable_scope('prediction'):
             # 1.use to select action model
             reuse = False
-            self.state = tf.placeholder('float32', [None, 84, 84, 3], name='s_t')
+            self.state = tf.placeholder('float32', [None, 84, 84, 3], name='s')
 
             self.l1, self.w['l1_w'], self.w['l1_b'] = conv2d(self.state, 5, [2, 2], [1, 1],
                                                              initializer=self.initializer,
@@ -103,10 +108,10 @@ class Policy:
             n = self.n_model
             # list of placeholder
             self.states = [tf.placeholder('float32', [None, 84, 84, 3], name='s_t') for _ in range(n)]
-            self.action_one_hot = [tf.placeholder("float", [None, self.action_dim]) for _ in range(n)]
+            self.action_one_hot = [tf.placeholder("float", [None, self.action_dim], name="action") for _ in range(n)]
             self.next_state = [tf.placeholder('float32', [None, 84, 84, 3], name='s_t_1') for _ in range(n)]
             self.reward = [tf.placeholder('float32', [None, ], name='reward') for _ in range(n)]
-            self.done = [tf.placeholder('int32', [None, ], name='done') for _ in range(n)]
+            self.done = [tf.placeholder('bool', [None, ], name='done') for _ in range(n)]
             self.times = [tf.placeholder('float32', [None, ], name='timesteps') for _ in range(n)]
 
             reuse = True
@@ -133,11 +138,12 @@ class Policy:
                 # one hot action, [0, ..., 1, ..., 0]
                 one_hot_actions = self.action_one_hot[i]
                 # calculate probability of pi(a|s), since pi is stochastic policy
+                # 计算出pi0策略下选择pii动作的概率
                 prob = tf.boolean_mask(self.action2, one_hot_actions)
 
                 cur_loss = tf.reduce_sum(tf.pow(self.gamma, self.times[i]) * tf.log(prob))
 
-                self.loss -= cur_loss
+            self.loss -= cur_loss
 
             # optimizer
         with tf.variable_scope('optimizer'):
@@ -153,7 +159,7 @@ class Policy:
             self.optimizer = tf.train.RMSPropOptimizer(
                     self.learning_rate_op, momentum=0.95, epsilon=0.01).minimize(self.loss)
 
-        self.sess.run(tf.global_variables_initializer())
+        # self.sess.run(tf.global_variables_initializer())
 
     def add_models(self, models):
         self.models = models
@@ -182,18 +188,26 @@ class Policy:
 
             state.append(np.array([data[0] for data in batch]))
             action.append(np.array([data[1] for data in batch]))
-            reward.append(np.array([data[2] for data in batch]))
             next_state.append(np.array([data[3] for data in batch]))
+            reward.append(np.array([data[2] for data in batch]))
             done.append(np.array([data[4] for data in batch]))
             times.append(np.array([data[5] for data in batch]))
 
-        loss, _ = self.sess.run([self.loss, self.optimizer], feed_dict={
-                        self.learning_rate_step: policy_step,
-                        self.states: state,
-                        self.action_one_hot: action,
-                        self.reward: reward,
-                        self.next_state: next_state,
-                        self.done: done,
-                        self.times: times
-                        })
+        feed_dictionary = {}
+        for k, v in zip(self.states, state):
+            feed_dictionary[k] = v
+        for k, v in zip(self.action_one_hot, action):
+            feed_dictionary[k] = v
+        for k, v in zip(self.reward, reward):
+            feed_dictionary[k] = v.reshape(-1)
+        for k, v in zip(self.next_state, next_state):
+            feed_dictionary[k] = v
+        for k, v in zip(self.done, done):
+            feed_dictionary[k] = v
+        for k, v in zip(self.times, times):
+            feed_dictionary[k] = v.reshape(-1)
+        
+        feed_dictionary[self.learning_rate_step] = policy_step
+        
+        loss, _ = self.sess.run([self.loss, self.optimizer], feed_dict=feed_dictionary)
         return loss

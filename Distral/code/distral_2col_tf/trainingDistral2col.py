@@ -11,7 +11,6 @@ import sys
 sys.path.append('../')
 from envs.gridworld_env import GridworldEnv
 from utils import plot_rewards, plot_durations, plot_state, get_screen
-from ops import select_action
 import gym
 import cv2
 import tensorflow as tf
@@ -37,7 +36,8 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
     # Q value, every environment has one, used to calculate A_i,
     models = [DQN(list_of_envs[i], policy, alpha, beta, sess, model_name="model_"+str(i)) for i in range(0, num_envs)]
     policy.add_models(models)
-
+    sess.run(tf.global_variables_initializer())
+    print(sess.run(tf.report_uninitialized_variables()))
     # info list for each environment
     episode_durations = [[] for _ in range(num_envs)]   # list of local steps
     episode_rewards = [[] for _ in range(num_envs)]     # list of list of episode reward
@@ -69,8 +69,8 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
             time = [current_time[i]]
             # 把states scale 到[84, 84]
 
-            policy.models[i].experience(scale_state, action, cv2.resize(next_state, (84, 84)),
-                                        reward, done, time)
+            policy.models[i].experience(scale_state, action, reward,
+                                        cv2.resize(next_state, (84, 84)), done, time)
             states[i] = next_state      # move to next state
 
             #   2. do one optimization step for each env using "soft-q-learning".
@@ -98,8 +98,8 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
         # after all envs has performed one step, optimize policy
 
         policy_step += 1
-        print(type(policy_step))
-        policy.optimize_step(policy_step)
+        l = policy.optimize_step(policy_step)
+        print("Steps ", policy_step, ", loss : ", l)
 
     print('Complete')
     # env.render(close=True)
