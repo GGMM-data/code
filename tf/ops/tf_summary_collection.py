@@ -1,15 +1,13 @@
 import tensorflow as tf
 
-# 函数
+# 函数：定义一个summary标量
 # tf.summary.scalar(name, tensor, collections=None, family=None)
-# 定义一个summary标量
-# 类
-# tf.summary.FileWriter(self, logdir,　graph=None, max_queue=10,flush_secs=120, graph_def=None, filename_suffix=None)
-# 定义将数据写入文件的类
-# 类内函数
-# tf.summary.FileWriter.add_summary(self, summary, global_step=None)
-# 将summary类型变量转换为事件
 
+# 类：将数据写入文件
+# tf.summary.FileWriter(self, logdir,　graph=None, max_queue=10,flush_secs=120, graph_def=None, filename_suffix=None)
+# 类内函数：将summary类型变量转换为事件
+# tf.summary.FileWriter.add_summary(self, summary, global_step=None)
+# 
 # 使用tensorboard --logdir ./summary/打开tensorboard
 
 # summary_loss = tf.summary.scalar('loss', loss)
@@ -20,9 +18,9 @@ import tensorflow as tf
 # writer.add_summary(loss_)
 # writer.add_summary(weights_)
 # 或者
-# 先把loss和weights merge 一下，然后再run
-# merged = tf.summary.merge_all()
-# merged_ = sess.rum([merged], feed_dict={})
+# 先把loss和weights merge 一下，然后再run，这样子就不用写那么多op了
+# merged = tf.summary.merge_all() 
+# merged_ = sess.rum([merged], feed_dict={}) # 这里的merged相当于summary_weight和summary_loss
 # writer.add_summary(merged_, global_step)
 
 graph = tf.Graph()
@@ -59,8 +57,12 @@ with tf.Session(graph=graph) as sess:
     init_op = tf.global_variables_initializer()
     sess.run(init_op)
     for i in range(5000):
-        _, sum = sess.run([train, merged], feed_dict={x: inputs, y: outputs})
-        writer.add_summary(sum, global_step=i)
+        _, summ = sess.run([train, merged], feed_dict={x: inputs, y: outputs})
+        writer.add_summary(summ, global_step=i)
 
     w_, b_, l_ = sess.run([w, b, loss], feed_dict={x: inputs, y: outputs})
     print("w: ", w_, "b: ", b_, "loss: ", l_)
+    for var in tf.get_collection(tf.GraphKeys.SUMMARIES):
+    #for var in tf.get_collection(tf.GraphKeys.MODEL_VARIABLES):
+        print(var)
+
