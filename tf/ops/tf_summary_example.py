@@ -126,14 +126,14 @@ def train():
 """
   ## 查看graph的一些collection
   为什么在这个位置加，不在开头或者结尾加这一部分，在开头，还没有构建图，在结尾，还需要运行整个程序之后才能看到。
+  print("=====trainable=====")
+  for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+     print(var)
   print("=====global=====")
   for var in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES):
      print(var)
   print("=====model=====")
   for var in tf.get_collection(tf.GraphKeys.MODEL_VARIABLES):
-     print(var)
-  print("=====trainable=====")
-  for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
      print(var)
   print("=====summaries=====")
   for var in tf.get_collection(tf.GraphKeys.SUMMARIES):
@@ -141,6 +141,12 @@ def train():
   return 
 
 # 输出
+=====trainable=====
+<tf.Variable 'layer1/weights/Variable:0' shape=(784, 500) dtype=float32_ref>
+<tf.Variable 'layer1/biases/Variable:0' shape=(500,) dtype=float32_ref>
+<tf.Variable 'layer2/weights/Variable:0' shape=(500, 10) dtype=float32_ref>
+<tf.Variable 'layer2/biases/Variable:0' shape=(10,) dtype=float32_ref>
+=====global=====
 <tf.Variable 'layer1/weights/Variable:0' shape=(784, 500) dtype=float32_ref>
 <tf.Variable 'layer1/biases/Variable:0' shape=(500,) dtype=float32_ref>
 <tf.Variable 'layer2/weights/Variable:0' shape=(500, 10) dtype=float32_ref>
@@ -157,11 +163,6 @@ def train():
 <tf.Variable 'layer2/biases/Variable/Adam:0' shape=(10,) dtype=float32_ref>
 <tf.Variable 'layer2/biases/Variable/Adam_1:0' shape=(10,) dtype=float32_ref>
 =====model=====
-=====trainable=====
-<tf.Variable 'layer1/weights/Variable:0' shape=(784, 500) dtype=float32_ref>
-<tf.Variable 'layer1/biases/Variable:0' shape=(500,) dtype=float32_ref>
-<tf.Variable 'layer2/weights/Variable:0' shape=(500, 10) dtype=float32_ref>
-<tf.Variable 'layer2/biases/Variable:0' shape=(10,) dtype=float32_ref>
 =====summaries=====
 Tensor("input_reshape/input:0", shape=(), dtype=string)
 Tensor("layer1/weights/summaries/mean_1:0", shape=(), dtype=string)
@@ -191,8 +192,6 @@ Tensor("layer2/Wx_plus_b/pre_activations:0", shape=(), dtype=string)
 Tensor("layer2/activations:0", shape=(), dtype=string)
 Tensor("cross_entropy_1:0", shape=(), dtype=string)
 Tensor("accuracy_1:0", shape=(), dtype=string)
-
-
   """
 
   # 生成训练数据
