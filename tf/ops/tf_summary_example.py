@@ -139,7 +139,6 @@ def train():
   for var in tf.get_collection(tf.GraphKeys.SUMMARIES):
      print(var)
   return 
-
 # 输出
 =====trainable=====
 <tf.Variable 'layer1/weights/Variable:0' shape=(784, 500) dtype=float32_ref>
@@ -192,7 +191,7 @@ Tensor("layer2/Wx_plus_b/pre_activations:0", shape=(), dtype=string)
 Tensor("layer2/activations:0", shape=(), dtype=string)
 Tensor("cross_entropy_1:0", shape=(), dtype=string)
 Tensor("accuracy_1:0", shape=(), dtype=string)
-  """
+"""
 
   # 生成训练数据
   def feed_dict(train):
