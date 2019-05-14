@@ -14,14 +14,16 @@ import tensorflow as tf
 # summary_weights = tf.summary.scalar('weights', weights)
 # writer = tf.summary.FileWriter("./summary/")
 # sess = tf.Session()
+#
 # loss_, weights_ = sess.run([summary_loss, summary_weights], feed_dict={})
 # writer.add_summary(loss_)
 # writer.add_summary(weights_)
-# 或者
-# 先把loss和weights merge 一下，然后再run，这样子就不用写那么多op了
+# 或者先把loss和weights merge 一下，然后再run，这样子就不用写那么多op了
+# 下面和上面三行是一样的
 # merged = tf.summary.merge_all() 
 # merged_ = sess.rum([merged], feed_dict={}) # 这里的merged相当于summary_weight和summary_loss
 # writer.add_summary(merged_, global_step)
+# writer.close()
 
 graph = tf.Graph()
 
@@ -62,7 +64,9 @@ with tf.Session(graph=graph) as sess:
 
     w_, b_, l_ = sess.run([w, b, loss], feed_dict={x: inputs, y: outputs})
     print("w: ", w_, "b: ", b_, "loss: ", l_)
-    for var in tf.get_collection(tf.GraphKeys.SUMMARIES):
     #for var in tf.get_collection(tf.GraphKeys.MODEL_VARIABLES):
+    for var in tf.get_collection(tf.GraphKeys.SUMMARIES):
         print(var)
+    writer.close()
+
 
