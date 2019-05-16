@@ -43,6 +43,7 @@ def linear(inputs, output_size, stddev=0.02, bias_start=0.0, activation_fn=None,
         out = activation_fn(out)
     return out, w, b
 
+# tf.train.RMSPropOptimizer()
 
 
 

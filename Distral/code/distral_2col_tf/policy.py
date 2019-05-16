@@ -77,7 +77,6 @@ class Policy:
             # 1.use to select action model
             reuse = False
             self.state = tf.placeholder('float32', [None, 84, 84, 3], name='s')
-
             self.l1, self.w['l1_w'], self.w['l1_b'] = conv2d(self.state, 5, [2, 2], [1, 1],
                                                              initializer=self.initializer,
                                                              activation_fn=self.activation_fn,
@@ -92,19 +91,13 @@ class Policy:
                                                              name='l3', reuse=reuse)
             shape = self.l3.get_shape().as_list()
             self.l3_flat = tf.reshape(self.l3, [-1, reduce(lambda x, y: x * y, shape[1:])])
-            # self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
-
             # fc layers
             self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q', reuse=reuse)
-
             # output a softmax, stochastic policy
             self.action = tf.nn.log_softmax(self.q)
 
-
             # 2.use to optimize
             self.loss = 0.0
-
-            # input action (one hot)
             n = self.n_model
             # list of placeholder
             self.states = [tf.placeholder('float32', [None, 84, 84, 3], name='s_t') for _ in range(n)]
@@ -115,6 +108,10 @@ class Policy:
             self.times = [tf.placeholder('float32', [None, ], name='timesteps') for _ in range(n)]
 
             reuse = True
+            self.cur_loss_list = []
+            self.prob_list = []
+            self.action_list = []
+            self.q_list = []
             for i in range(self.n_model):
                 self.l1, self.w['l1_w'], self.w['l1_b'] = conv2d(self.states[i], 5, [2, 2], [1, 1], initializer=self.initializer,
                                                                  activation_fn=self.activation_fn,
@@ -126,26 +123,22 @@ class Policy:
                                                                  activation_fn=self.activation_fn,
                                                                  name='l3', reuse=reuse)
                 shape = self.l3.get_shape().as_list()
-                # self.l3_flat = tf.reshape(self.l3, [-1, 200])  #
                 self.l3_flat = tf.reshape(self.l3, [-1, reduce(lambda x, y: x * y, shape[1:])])
-
                 # fc layers
                 self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q', reuse=reuse)
-
-                # output a softmax, stochastic policy
-                # [0.x, ..., 0.x, ..., 0.x]
-                self.action2 = tf.nn.log_softmax(self.q)
+                self.q_list.append(self.q)
+                # output a softmax, stochastic policy [0.x, ..., 0.x, ..., 0.x]
+                self.action2 = tf.nn.softmax(self.q)
+                self.action_list.append(self.action2)
                 # one hot action, [0, ..., 1, ..., 0]
                 one_hot_actions = self.action_one_hot[i]
-                # calculate probability of pi(a|s), since pi is stochastic policy
-                # 计算出pi0策略下选择pii动作的概率
+                # 计算出pi0策略下选择pii动作的概率pi(a|s)
                 prob = tf.boolean_mask(self.action2, one_hot_actions)
-
+                self.prob_list.append(prob)
                 cur_loss = tf.reduce_sum(tf.pow(self.gamma, self.times[i]) * tf.log(prob))
-
+                self.cur_loss_list.append(cur_loss)
             self.loss -= cur_loss
-
-            # optimizer
+        # optimizer
         with tf.variable_scope('optimizer'):
             self.global_step = tf.Variable(0, trainable=False)
             self.learning_rate = learning_rate
@@ -158,8 +151,6 @@ class Policy:
                                 self.learning_rate_decay_step, self.learning_rate_decay, staircase=True))
             self.optimizer = tf.train.RMSPropOptimizer(
                     self.learning_rate_op, momentum=0.95, epsilon=0.01).minimize(self.loss)
-
-        # self.sess.run(tf.global_variables_initializer())
 
     def add_models(self, models):
         self.models = models
@@ -206,8 +197,8 @@ class Policy:
             feed_dictionary[k] = v
         for k, v in zip(self.times, times):
             feed_dictionary[k] = v.reshape(-1)
-        
         feed_dictionary[self.learning_rate_step] = policy_step
-        
-        loss, _ = self.sess.run([self.loss, self.optimizer], feed_dict=feed_dictionary)
+        loss, loss_list, prob_list, action_list, q_list, _ = self.sess.run([self.loss,
+                                    self.cur_loss_list, self.prob_list, self.action_list,
+                                                                    self.q_list, self.optimizer], feed_dict=feed_dictionary)
         return loss

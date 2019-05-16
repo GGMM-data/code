@@ -30,14 +30,15 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
     list_of_envs = []
     for i in range(num_envs):
         list_of_envs.append(gym.make('Breakout-v4'))
-    sess = tf.Session()
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
     # pi_0
     policy = Policy(list_of_envs[0], num_envs, alpha, beta, sess)
     # Q value, every environment has one, used to calculate A_i,
     models = [DQN(list_of_envs[i], policy, alpha, beta, sess, model_name="model_"+str(i)) for i in range(0, num_envs)]
     policy.add_models(models)
     sess.run(tf.global_variables_initializer())
-    print(sess.run(tf.report_uninitialized_variables()))
     # info list for each environment
     episode_durations = [[] for _ in range(num_envs)]   # list of local steps
     episode_rewards = [[] for _ in range(num_envs)]     # list of list of episode reward
@@ -61,8 +62,8 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
             reward = [reward]
             episode_total_rewards[i] += reward
 
-            if done:
-                next_state = None
+            # if done:
+            #     next_state = None
 
             steps_done[i] += 1      # global_steps
             current_time[i] += 1    # local steps
@@ -99,7 +100,7 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
 
         policy_step += 1
         l = policy.optimize_step(policy_step)
-        print("Steps ", policy_step, ", loss : ", l)
+        print("Policy steps ", policy_step, ", loss : ", l)
 
     print('Complete')
     # env.render(close=True)
