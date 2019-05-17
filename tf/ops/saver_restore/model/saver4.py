@@ -18,8 +18,6 @@ with graph.as_default():
     optimizer = tf.train.GradientDescentOptimizer(0.01)
     train_op = optimizer.minimize(loss)
 
-# inputs = tf.Variable([1, 2, 3, 4], dtype=tf.float32)
-# outputs = tf.Variable([2, 3, 4, 5], dtype=tf.float32)
 inputs = [1, 2, 3, 4]
 outputs = [2, 3, 4, 5]
 

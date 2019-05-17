@@ -1,4 +1,6 @@
 import tensorflow as tf
+from tensorflow.python.tools import inspect_checkpoint as ckpt
+
 # https://cv-tricks.com/tensorflow-tutorial/save-restore-tensorflow-models-quick-complete-tutorial/
 graph = tf.Graph()
 with graph.as_default():
@@ -8,7 +10,7 @@ with graph.as_default():
     # input and output
     x = tf.placeholder(tf.float32)
     y = tf.placeholder(tf.float32)
-    predicted_y = W*x+b
+    predicted_y = W * x + b
     # MSE loss
     loss = tf.reduce_mean(tf.square(y - predicted_y))
     # optimizer
@@ -26,7 +28,7 @@ with tf.Session(graph=graph) as sess:
         sess.run(train_op, feed_dict={x: inputs, y: outputs})
     l_, W_, b_ = sess.run([loss, W, b], feed_dict={x: inputs, y: outputs})
     print("loss: ", l_, "w: ", W_, "b:", b_)
-    checkpoint = "./checkpoint/saver1.ckpt"
+    checkpoint = "saver/models/saver1.ckpt"
     save_path = saver.save(sess, checkpoint)
     print("Model has been saved in %s." % save_path)
 
@@ -36,4 +38,4 @@ with tf.Session(graph=graph) as sess:
     l_, W_, b_ = sess.run([loss, W, b], feed_dict={x: inputs, y: outputs})
     print("loss: ", l_, "w: ", W_, "b:", b_)
     print("Model has been restored.")
-
+    ckpt.print_tensors_in_checkpoint_file("saver/variables/all_variables.ckpt", tensor_name='', all_tensors=True)
