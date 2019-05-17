@@ -123,76 +123,6 @@ def train():
   # 初始化变量
   tf.global_variables_initializer().run()
 
-"""
-  ## 查看graph的一些collection
-  为什么在这个位置加，不在开头或者结尾加这一部分，在开头，还没有构建图，在结尾，还需要运行整个程序之后才能看到。
-  print("=====trainable=====")
-  for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-     print(var)
-  print("=====global=====")
-  for var in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES):
-     print(var)
-  print("=====model=====")
-  for var in tf.get_collection(tf.GraphKeys.MODEL_VARIABLES):
-     print(var)
-  print("=====summaries=====")
-  for var in tf.get_collection(tf.GraphKeys.SUMMARIES):
-     print(var)
-  return 
-# 输出
-=====trainable=====
-<tf.Variable 'layer1/weights/Variable:0' shape=(784, 500) dtype=float32_ref>
-<tf.Variable 'layer1/biases/Variable:0' shape=(500,) dtype=float32_ref>
-<tf.Variable 'layer2/weights/Variable:0' shape=(500, 10) dtype=float32_ref>
-<tf.Variable 'layer2/biases/Variable:0' shape=(10,) dtype=float32_ref>
-=====global=====
-<tf.Variable 'layer1/weights/Variable:0' shape=(784, 500) dtype=float32_ref>
-<tf.Variable 'layer1/biases/Variable:0' shape=(500,) dtype=float32_ref>
-<tf.Variable 'layer2/weights/Variable:0' shape=(500, 10) dtype=float32_ref>
-<tf.Variable 'layer2/biases/Variable:0' shape=(10,) dtype=float32_ref>
-## 下面10行都是Adam Optimizer生成的Variable，如果把Adam Optimizer注释掉，那么就不会有下面这些行了，只会有上面四行，和TRAINABLE_VARIABLES内容一样。
-<tf.Variable 'train/beta1_power:0' shape=() dtype=float32_ref>
-<tf.Variable 'train/beta2_power:0' shape=() dtype=float32_ref>
-<tf.Variable 'layer1/weights/Variable/Adam:0' shape=(784, 500) dtype=float32_ref>
-<tf.Variable 'layer1/weights/Variable/Adam_1:0' shape=(784, 500) dtype=float32_ref>
-<tf.Variable 'layer1/biases/Variable/Adam:0' shape=(500,) dtype=float32_ref>
-<tf.Variable 'layer1/biases/Variable/Adam_1:0' shape=(500,) dtype=float32_ref>
-<tf.Variable 'layer2/weights/Variable/Adam:0' shape=(500, 10) dtype=float32_ref>
-<tf.Variable 'layer2/weights/Variable/Adam_1:0' shape=(500, 10) dtype=float32_ref>
-<tf.Variable 'layer2/biases/Variable/Adam:0' shape=(10,) dtype=float32_ref>
-<tf.Variable 'layer2/biases/Variable/Adam_1:0' shape=(10,) dtype=float32_ref>
-=====model=====
-=====summaries=====
-Tensor("input_reshape/input:0", shape=(), dtype=string)
-Tensor("layer1/weights/summaries/mean_1:0", shape=(), dtype=string)
-Tensor("layer1/weights/summaries/stddev_1:0", shape=(), dtype=string)
-Tensor("layer1/weights/summaries/max_1:0", shape=(), dtype=string)
-Tensor("layer1/weights/summaries/min_1:0", shape=(), dtype=string)
-Tensor("layer1/weights/summaries/histogram:0", shape=(), dtype=string)
-Tensor("layer1/biases/summaries/mean_1:0", shape=(), dtype=string)
-Tensor("layer1/biases/summaries/stddev_1:0", shape=(), dtype=string)
-Tensor("layer1/biases/summaries/max_1:0", shape=(), dtype=string)
-Tensor("layer1/biases/summaries/min_1:0", shape=(), dtype=string)
-Tensor("layer1/biases/summaries/histogram:0", shape=(), dtype=string)
-Tensor("layer1/Wx_plus_b/pre_activations:0", shape=(), dtype=string)
-Tensor("layer1/activations:0", shape=(), dtype=string)
-Tensor("dropout/dropout_keep_probability:0", shape=(), dtype=string)
-Tensor("layer2/weights/summaries/mean_1:0", shape=(), dtype=string)
-Tensor("layer2/weights/summaries/stddev_1:0", shape=(), dtype=string)
-Tensor("layer2/weights/summaries/max_1:0", shape=(), dtype=string)
-Tensor("layer2/weights/summaries/min_1:0", shape=(), dtype=string)
-Tensor("layer2/weights/summaries/histogram:0", shape=(), dtype=string)
-Tensor("layer2/biases/summaries/mean_1:0", shape=(), dtype=string)
-Tensor("layer2/biases/summaries/stddev_1:0", shape=(), dtype=string)
-Tensor("layer2/biases/summaries/max_1:0", shape=(), dtype=string)
-Tensor("layer2/biases/summaries/min_1:0", shape=(), dtype=string)
-Tensor("layer2/biases/summaries/histogram:0", shape=(), dtype=string)
-Tensor("layer2/Wx_plus_b/pre_activations:0", shape=(), dtype=string)
-Tensor("layer2/activations:0", shape=(), dtype=string)
-Tensor("cross_entropy_1:0", shape=(), dtype=string)
-Tensor("accuracy_1:0", shape=(), dtype=string)
-"""
-
   # 生成训练数据
   def feed_dict(train):
     """Make a TensorFlow feed_dict: maps data onto Tensor placeholders."""
@@ -256,14 +186,14 @@ if __name__ == '__main__':
       '--data_dir',
       type=str,
       #default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
-      default=os.path.join('tmp',
+      default=os.path.join('summary',
                            'tensorflow/mnist/input_data'),
       help='Directory for storing input data')
   parser.add_argument(
       '--log_dir',
       type=str,
       # default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
-      default=os.path.join('tmp',
+      default=os.path.join('summary',
                            'tensorflow/mnist/logs/mnist_with_summaries'),
       help='Summaries log directory')
   FLAGS, unparsed = parser.parse_known_args()

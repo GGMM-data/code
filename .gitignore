@@ -10,7 +10,6 @@ pytorch/tutorials/venv/
 Distral/code/envs/.ipynb_checkpoints/*
 tf/ops/summary/
 tf/op/saver_restore/checkpoint/
-tf/ops/tmp/
 tf/model/MNIST-data/
 # delete all .idea files
 **/.idea/
