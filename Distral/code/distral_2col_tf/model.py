@@ -130,12 +130,6 @@ class DQN:
             self.optimizer = tf.train.RMSPropOptimizer(
                 self.learning_rate_op, momentum=0.95, epsilon=0.01).minimize(self.loss)
 
-        # tf.global_variables_initializer().run()
-        # self.sess.run(tf.global_variables_initializer())
-        # self.sess.run(tf.local_variables_initializer())
-        # self.sess.run(tf.global_variables_initializer())
-        # self.sess.run(tf.local_variables_initializer())
-
     def experience(self, state, action, reward, next_state, done, time):
         # add to model buffer
         one_hot_action = np.zeros(self.action_dim)

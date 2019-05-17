@@ -175,7 +175,6 @@ class Agent(BaseModel):
 			self.s_t: s_t,
 			self.learning_rate_step: self.step,
 		})
-		print(summary_str)
 		
 		self.writer.add_summary(summary_str, self.step)
 		self.total_loss += loss

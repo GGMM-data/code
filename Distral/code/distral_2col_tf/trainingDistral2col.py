@@ -16,29 +16,27 @@ import cv2
 import tensorflow as tf
 
 
-def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
-            GridworldEnv(5)], batch_size=128, gamma=0.999, alpha=0.9,
+def trainD(file_name="Distral_1col", batch_size=128, gamma=0.999, alpha=0.9,
             beta=5, eps_start=0.9, eps_end=0.05, eps_decay=5,
             is_plot=False, num_episodes=200,
             max_num_steps_per_episode=1000, learning_rate=0.001,
             memory_replay_size=10000, memory_policy_size=1000):
-    """
-    Soft Q-learning training routine. Retuns rewards and durations logs.
-    Plot environment screen
-    """
     num_envs = 4
     list_of_envs = []
     for i in range(num_envs):
         list_of_envs.append(gym.make('Breakout-v4'))
+
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     sess = tf.Session(config=config)
+
     # pi_0
-    policy = Policy(list_of_envs[0], num_envs, alpha, beta, sess)
+    policy = Policy(list_of_envs[0].action_space.n, num_envs, alpha, beta, sess)
     # Q value, every environment has one, used to calculate A_i,
     models = [DQN(list_of_envs[i], policy, alpha, beta, sess, model_name="model_"+str(i)) for i in range(0, num_envs)]
     policy.add_models(models)
     sess.run(tf.global_variables_initializer())
+
     # info list for each environment
     episode_durations = [[] for _ in range(num_envs)]   # list of local steps
     episode_rewards = [[] for _ in range(num_envs)]     # list of list of episode reward
@@ -97,19 +95,15 @@ def trainD(file_name="Distral_1col", list_of_envs=[GridworldEnv(4),
 
         #   3. do one optimization step for the policy
         # after all envs has performed one step, optimize policy
-
         policy_step += 1
         l = policy.optimize_step(policy_step)
         print("Policy steps ", policy_step, ", loss : ", l)
 
     print('Complete')
-    # env.render(close=True)
-    # env.close()
     if is_plot:
         plt.ioff()
         plt.show()
 
-    # Store Results
     np.save(file_name + '-distral-2col-rewards', episode_rewards)
     np.save(file_name + '-distral-2col-durations', episode_durations)
 

@@ -43,36 +43,32 @@ test_steps = 300
 
 class Policy:
     """Output action"""
-    def __init__(self, env, n_model, alpha, beta, sess=tf.InteractiveSession()):
+    def __init__(self, action_dim, n_model, alpha, beta, sess=tf.InteractiveSession()):
         self.sess = sess
-        self.env = env
         self.n_model = n_model
-        # action space of env
-        self.action_dim = self.env.action_space.n
-        # buffer
-        self.replay_buffer = deque()
-        self.alpha = alpha
-        self.beta = beta
+        self.action_dim = action_dim    # action space of env
 
+        self.replay_buffer = deque()    # buffer
         self.replay_buffer_size = REPLAY_BUFFER_SIZE
         self.batch_size = BATCH_SIZE
+
         self.episodes = episodes
         self.test_episodes = test_episodes
         self.episode_steps = steps
         self.test_episode_steps = test_steps
-        self.gamma = GAMMA
 
-        # create model
+        self.gamma = GAMMA
+        self.alpha = alpha
+        self.beta = beta
+
+        self.writer = tf.summary.FileWriter("./logs/")
+
         self.initializer = tf.truncated_normal_initializer(0, 0.02)
         self.activation_fn = tf.nn.relu
-        # store pi_1, ..., pi_i
+
+        self.w = {}     # 记录权重
 
         # build dqn model
-        self.w = {}
-        self.build_model()
-
-    def build_model(self):
-        # model layers
         with tf.variable_scope('prediction'):
             # 1.use to select action model
             reuse = False
@@ -93,8 +89,7 @@ class Policy:
             self.l3_flat = tf.reshape(self.l3, [-1, reduce(lambda x, y: x * y, shape[1:])])
             # fc layers
             self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q', reuse=reuse)
-            # output a softmax, stochastic policy
-            self.action = tf.nn.log_softmax(self.q)
+            self.action = tf.nn.log_softmax(self.q)     # output a softmax, stochastic policy
 
             # 2.use to optimize
             self.loss = 0.0
@@ -108,7 +103,7 @@ class Policy:
             self.times = [tf.placeholder('float32', [None, ], name='timesteps') for _ in range(n)]
 
             reuse = True
-            self.cur_loss_list = []
+            self.cur_loss_list = []     # help debug
             self.prob_list = []
             self.action_list = []
             self.q_list = []
@@ -126,16 +121,17 @@ class Policy:
                 self.l3_flat = tf.reshape(self.l3, [-1, reduce(lambda x, y: x * y, shape[1:])])
                 # fc layers
                 self.q, self.w['l4_w'], self.w['l4_b'] = linear(self.l3_flat, self.action_dim, name='q', reuse=reuse)
-                self.q_list.append(self.q)
                 # output a softmax, stochastic policy [0.x, ..., 0.x, ..., 0.x]
                 self.action2 = tf.nn.softmax(self.q)
-                self.action_list.append(self.action2)
+
                 # one hot action, [0, ..., 1, ..., 0]
                 one_hot_actions = self.action_one_hot[i]
                 # 计算出pi0策略下选择pii动作的概率pi(a|s)
                 prob = tf.boolean_mask(self.action2, one_hot_actions)
-                self.prob_list.append(prob)
                 cur_loss = tf.reduce_sum(tf.pow(self.gamma, self.times[i]) * tf.log(prob))
+                self.q_list.append(self.q)
+                self.action_list.append(self.action2)
+                self.prob_list.append(prob)
                 self.cur_loss_list.append(cur_loss)
             self.loss -= cur_loss
         # optimizer
@@ -146,9 +142,14 @@ class Policy:
             self.learning_rate_decay_step = learning_rate_decay_step
             self.learning_rate_decay = learning_rate_decay
             self.learning_rate_minimum = learning_rate_minimum
-            self.learning_rate_op = tf.maximum(self.learning_rate_minimum,
-                            tf.train.exponential_decay(self.learning_rate, self.learning_rate_step,
-                                self.learning_rate_decay_step, self.learning_rate_decay, staircase=True))
+            self.learning_rate_op = tf.maximum(
+                    self.learning_rate_minimum,
+                    tf.train.exponential_decay(self.learning_rate,
+                                               self.learning_rate_step,
+                                               self.learning_rate_decay_step,
+                                               self.learning_rate_decay,
+                                               staircase=True)
+                    )
             self.optimizer = tf.train.RMSPropOptimizer(
                     self.learning_rate_op, momentum=0.95, epsilon=0.01).minimize(self.loss)
 
@@ -198,7 +199,11 @@ class Policy:
         for k, v in zip(self.times, times):
             feed_dictionary[k] = v.reshape(-1)
         feed_dictionary[self.learning_rate_step] = policy_step
-        loss, loss_list, prob_list, action_list, q_list, _ = self.sess.run([self.loss,
-                                    self.cur_loss_list, self.prob_list, self.action_list,
-                                                                    self.q_list, self.optimizer], feed_dict=feed_dictionary)
+        loss, _, loss_list, prob_list, action_list, q_list = self.sess.run(
+            [self.loss, self.optimizer,
+             self.cur_loss_list, self.prob_list,
+             self.action_list, self.q_list],
+            feed_dict=feed_dictionary
+        )
+
         return loss
