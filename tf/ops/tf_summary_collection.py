@@ -47,5 +47,3 @@ with tf.Session(graph=graph) as sess:
     for var in tf.get_collection(tf.GraphKeys.SUMMARIES):
         print(var)
     writer.close()
-
-
