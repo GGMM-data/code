@@ -17,7 +17,7 @@ echo $c
 cat $(ls file[0-9]) > file
 
 # print the concatenate file
-all = `cat file`
+all=`cat file`
 echo $all
 
 # delete these files

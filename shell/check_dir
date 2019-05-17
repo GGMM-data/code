@@ -1,8 +1,13 @@
 #! /bin/bash
-if [ -d "test" ]	# the space in [] must exists; -f check the if the file exists
-then
-  echo "directory test has already exists."
-else
-  echo "Create test dir."
-  mkdir test
-fi
+echo "please input a dir name"
+while read dir
+do
+	if [ -d $dir ]	# the space in [] must exists; -f check the if the file exists
+	then
+  		echo "directory "$dir" has already exists."
+	else
+		echo "Create "$dir" dir."
+		mkdir $dir
+	fi
+	echo "please input a dir name"
+done
