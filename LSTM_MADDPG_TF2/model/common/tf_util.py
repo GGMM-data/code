@@ -160,10 +160,13 @@ def get_session():
 
 def make_session(num_cpu):
     """Returns a session that will use <num_cpu> CPU's only"""
-    tf_config = tf.ConfigProto(
-        inter_op_parallelism_threads=num_cpu,
-        intra_op_parallelism_threads=num_cpu)
-    return tf.Session(config=tf_config)
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+
+    # config = tf.ConfigProto(
+    #     inter_op_parallelism_threads=num_cpu,
+    #     intra_op_parallelism_threads=num_cpu)
+    return tf.Session(config=config)
 
 
 def single_threaded_session():
@@ -243,11 +246,14 @@ def save_state(fname, saver=None):
     saver.save(get_session(), fname)
     return saver
 
+
 # ================================================================
 # Theano-like Function
 # ================================================================
 
-
+# 必选参数:inputs,outputs
+# 可选参数:updates, givens
+# 输入是一个placeholder的list，输出是一个Variable的list或者一个Variable，为什么呢？因为sess.run([])，如果是多个op的话，就需要传入一个list。
 def function(inputs, outputs, updates=None, givens=None):
     """Just like Theano function. Take a bunch of tf placeholders and expersions
     computed based on those placeholders and produces f(inputs) -> outputs. Function f takes
@@ -290,6 +296,8 @@ def function(inputs, outputs, updates=None, givens=None):
 
 
 class _Function(object):
+    # 必选参数：
+    # 可选参数：
     def __init__(self, inputs, outputs, updates, givens, check_nan=False):
         for inpt in inputs:
             if not issubclass(type(inpt), TfInput):
@@ -308,8 +316,8 @@ class _Function(object):
             feed_dict[inpt] = value
 
     def __call__(self, *args, **kwargs):
-        print(type(args))
-        print(type(self.inputs))
+        # print(type(args))
+        # print(type(self.inputs))
         assert len(args) <= len(self.inputs), "Too many arguments provided"
         feed_dict = {}
         # Update the args

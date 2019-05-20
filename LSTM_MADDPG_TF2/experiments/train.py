@@ -3,14 +3,15 @@ import numpy as np
 import tensorflow as tf
 import time
 import pickle
-from tensorflow.contrib import rnn
+import tensorflow.nn.rnn_cell as rnn
+import tensorflow.contrib.layers as layers
 
 import LSTM_MADDPG_TF2.model.common.tf_util as U
 from LSTM_MADDPG_TF2.model.trainer.maddpg import MADDPGAgentTrainer
 from LSTM_MADDPG_TF2.model.trainer.history import History
-import tensorflow.contrib.layers as layers
 from LSTM_MADDPG_TF2.experiments.uav_statistics import draw_util
 from LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+
 
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
@@ -61,6 +62,8 @@ def parse_args():
     return parser.parse_args()
 
 
+# lstm模型
+# inputs: list of [batch_size, dim, time_step]
 def lstm_model(inputs, history_length, batch_size, reuse=False, layers_number=2, scope="l", rnn_cell=None):
     shape = inputs[0].shape
     lstm_size = shape[1]
@@ -72,25 +75,18 @@ def lstm_model(inputs, history_length, batch_size, reuse=False, layers_number=2,
                 reuse = False
             else:
                 reuse = True
-
         with tf.variable_scope(scope, reuse=reuse):
             x = obs
-            # (time_steps, batch_size,, input_size)
-            x = tf.transpose(x, (0, 2, 1))
-            # (time_steps * batch_size, lstm_size)
-            # x = tf.reshape(x, (-1, lstm_size))
-            # [[batch_size, lstm_size],..., [batch_size, lstm_size]]
-            # x = tf.split(x, time_steps, 0)
-
+            x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size,state_size)
             lstm_cell = rnn.BasicLSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
             cell = rnn.MultiRNNCell([lstm_cell] * layers_number, state_is_tuple=True)
-            # state = cell.zero_state(batch_size, dtype=tf.float32)
-            outputs = []
             with tf.variable_scope("Multi_Layer_RNN"):
-                cell_outputs, states = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32, sequence_length=batch_size)
-            cell_outputs = tf.transpose(cell_outputs, [0, 2, 1])
-            observation_n.append(cell_outputs[-1])
+                cell_outputs, states = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
+            outputs = cell_outputs[-1:, :, :]
+            outputs = tf.squeeze(outputs, 0)
+            observation_n.append(outputs)
     return observation_n
+
 
 def q_model(inputs, num_outputs, scope, reuse=False,  num_units=64):
 
@@ -102,6 +98,8 @@ def q_model(inputs, num_outputs, scope, reuse=False,  num_units=64):
         out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
         return out
 
+
+# multi perception layers
 def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=None):
     # This model takes as input an observation and returns values of all actions
     with tf.variable_scope(scope, reuse=reuse):
@@ -171,7 +169,7 @@ def train(arglist):
         agent_info = [[[]]]  # placeholder for benchmarking info
         model_number = int(arglist.num_episodes / arglist.save_rate)
         saver = tf.train.Saver(max_to_keep=model_number)
-        obs_n = env.reset()
+        obs_n = env.reset()     # n个智能体的观测
         episode_step = 0
         train_step = 0
         t_start = time.time()
@@ -202,15 +200,13 @@ def train(arglist):
 
         episode_reward_step = 0
 
-
         # add by mxx
         history_n = []
-        for i in range(len(obs_n)):
+        for i in range(len(obs_n)):     # 生成每个智能体长度为history_length的观测
             history = History(arglist, obs_shape_n[0])
             history_n.append(history)
             for _ in range(arglist.history_length):
                 history_n[i].add(obs_n[i])
-
 
         model_name = arglist.load_dir.split('/')[-3] + '/' + arglist.load_dir.split('/')[-2] + '/'
         if FLAGS.greedy_action:
@@ -221,10 +217,10 @@ def train(arglist):
         print('Starting iterations...')
         while True:
             # get action
-            action_n = []
+            action_n = []   # 获得n个智能体的动作
             for agent, his in zip(trainers, history_n):
                 hiss = his.get().reshape(1, obs_shape_n[0][0], arglist.history_length)
-                action = agent.action([hiss], [[1]])
+                action = agent.action([hiss], [1])    # 这里打印的class tuple, class list
                 action_n.append(action)
 
             # environment step

@@ -31,7 +31,7 @@ outputs = [2, 3, 4, 5]
 with tf.Session(graph=graph) as sess:
     sess.run(tf.global_variables_initializer())
 
-    writer = tf.summary.FileWriter("./summary/", graph)
+    writer = tf.summary.FileWriter("./tf_summary/", graph)
     # merged = tf.summary.merge_all()
 
     for i in range(100):

@@ -58,7 +58,6 @@ class MADDPGAgentTrainer(AgentTrainer):
     def action(self, obs, batch_size):
         return self.act(*(obs + batch_size))[0]
 
-
     def experience(self, obs, act, rew, done, terminal):
         # Store transition in the replay buffer.
         self.replay_buffer.add(obs, act, rew, float(done), terminal)
@@ -75,8 +74,8 @@ class MADDPGAgentTrainer(AgentTrainer):
         #     return
 
         # collect replay sample from all agents
-        obs_n = []
-        obs_next_n = []
+        obs_n = []  # 长度为n的list，list每隔元素为[batch_size, state_size, history_length]
+        obs_next_n = []     # list的每个元素是[bath_size, action_dim]
         act_n = []
         for i in range(self.n):
             obs, act, rew, obs_next, done = agents[i].replay_buffer.sample()
@@ -89,14 +88,14 @@ class MADDPGAgentTrainer(AgentTrainer):
         num_sample = 1
         target_q = 0.0
         for i in range(num_sample):
-            target_act_next_n = [agents[i].p_debug['target_act'](*([obs_next_n[i]] + [[self.args.batch_size]])) for i in range(self.n)]
-            target_q_next = self.q_debug['target_q_values'](*(obs_next_n + target_act_next_n + self.args.batch_size))
+            target_act_next_n = [agents[j].p_debug['target_act'](*([obs_next_n[i]] + [self.args.batch_size])) for j in range(self.n)]
+            target_q_next = self.q_debug['target_q_values'](*(obs_next_n + target_act_next_n + [self.args.batch_size]))
             target_q += rew + self.args.gamma * (1.0 - done) * target_q_next
         target_q /= num_sample
 
-        q_loss = self.q_train(*(obs_n + act_n + [target_q] + self.args.batch_size))
+        q_loss = self.q_train(*(obs_n + act_n + [target_q] + [self.args.batch_size]))
         # train p network
-        p_loss = self.p_train(*(obs_n + act_n + self.args.batch_size))
+        p_loss = self.p_train(*(obs_n + act_n + [self.args.batch_size]))
 
         self.p_update()
         self.q_update()

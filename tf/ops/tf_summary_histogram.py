@@ -24,7 +24,7 @@ tf.summary.histogram("normal_1000/moving_mean_50", mean_moving_normal)
 
 # Setup a session and summary writer
 sess = tf.Session()
-writer = tf.summary.FileWriter("summary/histogram/")
+writer = tf.summary.FileWriter("tf_summary/histogram/")
 
 summaries = tf.summary.merge_all()
 

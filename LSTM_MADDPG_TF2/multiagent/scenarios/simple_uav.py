@@ -1,6 +1,6 @@
 import numpy as np
-from myown.LSTM_MADDPG_TF.multiagent.core import World, Agent
-from myown.LSTM_MADDPG_TF.multiagent.scenario import BaseScenario
+from LSTM_MADDPG_TF2.multiagent.core import World, Agent
+from LSTM_MADDPG_TF2.multiagent.scenario import BaseScenario
 from PIL import Image, ImageDraw
 from LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
 

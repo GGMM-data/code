@@ -186,14 +186,14 @@ if __name__ == '__main__':
       '--data_dir',
       type=str,
       #default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
-      default=os.path.join('summary',
+      default=os.path.join('tf_summary',
                            'tensorflow/mnist/input_data'),
       help='Directory for storing input data')
   parser.add_argument(
       '--log_dir',
       type=str,
       # default=os.path.join(os.getenv('TEST_TMPDIR', '/tmp'),
-      default=os.path.join('summary',
+      default=os.path.join('tf_summary',
                            'tensorflow/mnist/logs/mnist_with_summaries'),
       help='Summaries log directory')
   FLAGS, unparsed = parser.parse_known_args()

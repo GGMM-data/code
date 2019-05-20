@@ -1,2 +1,0 @@
-LSTM:
-https://www.cnblogs.com/wuzhitj/p/6297992.html
