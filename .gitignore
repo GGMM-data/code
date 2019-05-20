@@ -8,7 +8,7 @@ pytorch/tutorials/hymenoptera_data/
 pytorch/tutorials/saving_model/
 pytorch/tutorials/venv/
 Distral/code/envs/.ipynb_checkpoints/*
-tf/ops/summary/
+tf/ops/tf_summary/
 tf/op/saver_restore/checkpoint/
 tf/model/MNIST-data/
 # delete all .idea files
