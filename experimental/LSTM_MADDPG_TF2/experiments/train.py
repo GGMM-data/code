@@ -3,14 +3,16 @@ import numpy as np
 import tensorflow as tf
 import time
 import pickle
-import tensorflow.nn.rnn_cell as rnn
-import tensorflow.contrib.layers as layers
+import sys
+sys.path.append("/home/mxxmhh/mxxhcm/code/experimental/LSTM_MADDPG_TF2")
+
 
 import LSTM_MADDPG_TF2.model.common.tf_util as U
-from LSTM_MADDPG_TF2.model.trainer.maddpg import MADDPGAgentTrainer
+
 from LSTM_MADDPG_TF2.model.trainer.history import History
 from LSTM_MADDPG_TF2.experiments.uav_statistics import draw_util
 from LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+from  experiments.ops import make_env, lstm_model, q_model, mlp_model, get_trainers
 
 
 def parse_args():
@@ -62,94 +64,23 @@ def parse_args():
     return parser.parse_args()
 
 
-# lstm模型
-# inputs: list of [batch_size, dim, time_step]
-def lstm_model(inputs, history_length, batch_size, reuse=False, layers_number=2, scope="l", rnn_cell=None):
-    shape = inputs[0].shape
-    lstm_size = shape[1]
-    observation_n = []
-    for i in range(len(inputs)):
-        obs = inputs[i]
-        if not reuse:
-            if i == 0:
-                reuse = False
-            else:
-                reuse = True
-        with tf.variable_scope(scope, reuse=reuse):
-            x = obs
-            x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size,state_size)
-            lstm_cell = rnn.BasicLSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
-            cell = rnn.MultiRNNCell([lstm_cell] * layers_number, state_is_tuple=True)
-            with tf.variable_scope("Multi_Layer_RNN"):
-                cell_outputs, states = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
-            outputs = cell_outputs[-1:, :, :]
-            outputs = tf.squeeze(outputs, 0)
-            observation_n.append(outputs)
-    return observation_n
-
-
-def q_model(inputs, num_outputs, scope, reuse=False,  num_units=64):
-
-    # This model takes as input an observation and returns values of all actions
-    with tf.variable_scope(scope, reuse=reuse):
-        out = inputs
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
-        return out
-
-
-# multi perception layers
-def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=None):
-    # This model takes as input an observation and returns values of all actions
-    with tf.variable_scope(scope, reuse=reuse):
-        out = input
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
-        return out
-
-
-def make_env(scenario_name, arglist, benchmark=False):
-    from LSTM_MADDPG_TF2.multiagent.environment_uav import MultiAgentEnv
-    import LSTM_MADDPG_TF2.multiagent.scenarios as scenarios
-
-    # load scenario from script
-    scenario = scenarios.load(scenario_name + ".py").Scenario()
-    # create world
-    world = scenario.make_world()
-    # create multiagent environment
-    if benchmark:
-        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
-    else:
-        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
-    return env
-
-
-def get_trainers(env, num_adversaries, obs_shape_n, arglist):
-    trainers = []
-    model = mlp_model
-    lstm = lstm_model
-    trainer = MADDPGAgentTrainer
-    for i in range(num_adversaries):
-        trainers.append(trainer(
-            "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
-            local_q_func=(arglist.adv_policy=='ddpg')))
-    for i in range(num_adversaries, env.n):
-        trainers.append(trainer(
-            "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
-            local_q_func=(arglist.good_policy=='ddpg')))
-    return trainers
-
-
 def train(arglist):
     with U.single_threaded_session():
         # Create environment
-        env = make_env(arglist.scenario, arglist, arglist.benchmark)
-        # Create agent trainers
-        obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
-        num_adversaries = min(env.n, arglist.num_adversaries)
-        trainers = get_trainers(env, num_adversaries, obs_shape_n, arglist)
+        num_envs = 4
+        list_of_envs = []
+        
+        models = []
+        for i in range(num_envs):
+            env = make_env(arglist.scenario, arglist, arglist.benchmark)
+            list_of_envs.append()
+
+            # Create agent trainers
+            obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
+            num_adversaries = min(env.n, arglist.num_adversaries)
+            trainers = get_trainers(env, num_adversaries, obs_shape_n, arglist)
+            models.append(trainers)
+        policy = get_trainers(env, num_adversaries, obs_shape_n, arglist)
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 
         # Initialize
