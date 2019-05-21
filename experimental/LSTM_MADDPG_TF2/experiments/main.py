@@ -67,30 +67,36 @@ def parse_args():
 
 def train(arglist):
 	with U.single_threaded_session():
-		# 总共有多少个任务
-		num_tasks = 2
-		list_of_taskenv = []
+		num_tasks = 2		# 总共有多少个任务
+		list_of_taskenv = []		# env list
+		model_list = []		# 所有任务模型的list
 		
-		# 所有任务模型的list
-		model_list = []
-		obs_shape_n_list = []
+		env = make_env(arglist.scenario, arglist, arglist.benchmark)
+		obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
+		num_adversaries = min(env.n, arglist.num_adversaries)
+		# 创建一个actor
+		policy = get_trainers(env, "pi_0_", num_adversaries, obs_shape_n, arglist, is_actor=True, acotr=None)
+		
+		# 创建每个任务的critic智能体
 		for i in range(num_tasks):
 			# 创建每个任务的env
-			env = make_env(arglist.scenario, arglist, arglist.benchmark)
+			list_of_taskenv.append(make_env(arglist.scenario, arglist, arglist.benchmark))
 			# 从env中获得每个agent的observation space
-			obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
-			obs_shape_n_list.append(obs_shape_n)
-			num_adversaries = min(env.n, arglist.num_adversaries)
-			# 创建每个任务的智能体
-			trainers = get_trainers(env, "task_"+str(i)+"_", num_adversaries, obs_shape_n, arglist)
+			trainers = get_trainers(list_of_taskenv[i], "task_"+str(i+1)+"_", num_adversaries,
+										obs_shape_n,  arglist, is_actor=False, acotr=policy)
 			model_list.append(trainers)
-			list_of_taskenv.append(env)
-		policy = get_trainers(env, "pi_0_", num_adversaries, obs_shape_n, arglist)
+		# for agent in policy:
+		# 	agent.add_critic(model_list)
+		
 		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 		
 		U.initialize()
-		
-		#
+		for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+			print(var)
+		for var in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES):
+			print(var)
+		print(len(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)))
+		print(len(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)))
 		global_steps = np.zeros(num_tasks)  # global timesteps for each env
 		local_steps = np.zeros(num_tasks)  # local timesteps for each env
 		policy_step = 0
@@ -112,7 +118,7 @@ def train(arglist):
 		history_n = [[] for _ in range(num_tasks)]
 		for i in range(num_tasks):
 			for j in range(len(obs_n_list[i])):  # 生成每个智能体长度为history_length的观测
-				history = History(arglist, [obs_shape_n_list[i][j][0]])
+				history = History(arglist, [obs_shape_n[j][0]])
 				history_n[i].append(history)
 				for _ in range(arglist.history_length):
 					history_n[i][j].add(obs_n_list[i][j])
@@ -120,25 +126,26 @@ def train(arglist):
 		print('Starting iterations...')
 		while True:
 			# 第1步，分别在num_tasks个任务上进行采样
-			for index in range(num_tasks):
+			for task_index in range(num_tasks):
 				action_n = []
-				for agent, his in zip(model_list[index], history_n[index]):
+				# 用policy来采样
+				for agent, his in zip(policy, history_n[task_index]):
 					# [1, state_dim, length]
-					hiss = his.obtain().reshape(1, obs_shape_n_list[index][0][0], arglist.history_length)
+					hiss = his.obtain().reshape(1, obs_shape_n[0][0], arglist.history_length)
 					action = agent.action([hiss], [1])
 					action_n.append(action)
 				
 				# environment step
-				new_obs_n, rew_n, done_n, info_n = env.step(action_n)
+				new_obs_n, rew_n, done_n, info_n = list_of_taskenv[task_index].step(action_n)
 				local_steps[i] += 1		# 局部计数器
 				global_steps[i] += 1		# 全局计数器
 				
 				done = all(done_n)
-				terminal = (local_steps[index] >= arglist.max_episode_len)
+				terminal = (local_steps[task_index] >= arglist.max_episode_len)
 				# 收集experience
-				for i, agent in enumerate(model_list[index]):
-					agent.experience(obs_n_list[index][i], action_n[i], rew_n[i], done_n[i], terminal)
-				obs_n_list[index] = new_obs_n
+				for i, agent in enumerate(model_list[task_index]):
+					agent.experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
+				obs_n_list[task_index] = new_obs_n
 				
 				# 第2步，优化每一个任务的critic
 				for i, rew in enumerate(rew_n):
@@ -146,15 +153,31 @@ def train(arglist):
 					agent_rewards[i][-1] += rew
 				
 				if done or terminal:
-					obs_n_list[index] = env.reset()
-					local_steps[index] = 0
+					obs_n_list[task_index] = env.reset()
+					local_steps[task_index] = 0
 					episode_rewards.append(0)
 				
 				loss = None
-				for agent in model_list[index]:
-					agent.preupdate()
-				for agent in model_list[index]:
-					loss = agent.update(model_list[index], global_steps[i])
+				for critic in model_list[task_index]:
+					critic.preupdate()
+				for critic in model_list[task_index]:
+					loss = critic.update(model_list[task_index], global_steps[i])
+				
+				# 第3步，优化actor
+				policy_step += 1
+				print("policy steps: ", policy_step)
+				for actor, critic in zip(policy, model_list[task_index]):
+					actor.add_critic(critic.name)
+					actor.update(policy, policy_step)
+				
+				# for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+				# 	print(var)
+				# for var in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES):
+				# 	print(var)
+				# print(len(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)))
+				# print(len(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)))
+				# if policy_step == 2:
+				# 	return
 				
 				# save model, display training output
 				if terminal and (len(episode_rewards) % arglist.save_rate == 0):
@@ -187,12 +210,7 @@ def train(arglist):
 					print('...Finished total of {} episodes.'.format(len(episode_rewards)))
 					break
 					
-			# 第3步，训练actor
-			policy_step += 1
-			for agent in policy:
-				agent.update(policy, policy_step)
-		
-			
+
 if __name__ == '__main__':
 	arglist = parse_args()
 	train(arglist)

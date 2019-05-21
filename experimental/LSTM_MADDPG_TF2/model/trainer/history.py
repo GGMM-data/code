@@ -17,7 +17,7 @@ class History:
   def reset(self):
     self.history *= 0
 
-  def get(self):
+  def obtain(self):
     if self.cnn_format == 'NHWC':
       return np.transpose(self.history, (1, 0))
     else:

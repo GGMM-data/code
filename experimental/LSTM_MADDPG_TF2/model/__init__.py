@@ -2,7 +2,7 @@ class AgentTrainer(object):
     def __init__(self, name, model, obs_shape, act_space, args):
         raise NotImplemented()
 
-    def action(self, obs):
+    def action(self, obs, batch_size):
         raise NotImplemented()
 
     def process_experience(self, obs, act, rew, new_obs, done, terminal):
@@ -11,5 +11,5 @@ class AgentTrainer(object):
     def preupdate(self):
         raise NotImplemented()
 
-    def update(self, agents):
+    def update(self, agents, t):
         raise NotImplemented()

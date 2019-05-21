@@ -154,7 +154,10 @@ def train(arglist):
 
         # Initialize
         U.initialize()
-
+        for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+            print(var)
+        
+        return
         # Load previous results, if necessary
         if arglist.load_dir == "":
             arglist.load_dir = arglist.save_dir
@@ -219,7 +222,7 @@ def train(arglist):
             # get action
             action_n = []   # 获得n个智能体的动作
             for agent, his in zip(trainers, history_n):
-                hiss = his.get().reshape(1, obs_shape_n[0][0], arglist.history_length)
+                hiss = his.obtain().reshape(1, obs_shape_n[0][0], arglist.history_length)
                 action = agent.action([hiss], [1])    # 这里打印的class tuple, class list
                 action_n.append(action)
 

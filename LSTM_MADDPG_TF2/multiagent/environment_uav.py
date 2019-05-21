@@ -2,10 +2,10 @@ import gym
 import numpy as np
 from gym import spaces
 import networkx as nx
-from LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
 
 
-# environment for all agents in the multiagent world
+# environment for all  in the multiagent world
 # currently code assumes that no agents will be created/destroyed at runtime!
 
 

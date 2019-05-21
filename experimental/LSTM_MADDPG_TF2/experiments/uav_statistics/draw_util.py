@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import os
-from LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
 import numpy as np
 
 

@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-import LSTM_MADDPG_TF2.model.common.tf_util as U
+import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
 from tensorflow.python.ops import math_ops
 
 
