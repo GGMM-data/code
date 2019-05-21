@@ -5,14 +5,12 @@ import time
 import pickle
 import sys
 
-sys.path.append("/home/mxxmhh/mxxhcm/code/experimental/LSTM_MADDPG_TF2")
+sys.path.append("/home/mxxmhh/mxxhcm/code/experimental/")
 
-import LSTM_MADDPG_TF2.model.common.tf_util as U
-
-from LSTM_MADDPG_TF2.model.trainer.history import History
-from LSTM_MADDPG_TF2.experiments.uav_statistics import draw_util
-from LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
-from experiments.ops import make_env, lstm_model, q_model, mlp_model, get_trainers
+import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
+from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
+from experimental.LSTM_MADDPG_TF2.experiments.uav_statistics import draw_util
+from experimental.LSTM_MADDPG_TF2.experiments.ops import make_env, lstm_model, q_model, mlp_model, get_trainers
 
 
 def parse_args():
@@ -70,25 +68,39 @@ def parse_args():
 def train(arglist):
 	with U.single_threaded_session():
 		# 总共有多少个任务
-		num_tasks = 4
+		num_tasks = 2
 		list_of_taskenv = []
 		
 		# 所有任务模型的list
-		models = []
+		model_list = []
+		obs_shape_n_list = []
 		for i in range(num_tasks):
 			# 创建每个任务的env
 			env = make_env(arglist.scenario, arglist, arglist.benchmark)
 			# 从env中获得每个agent的observation space
 			obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
+			obs_shape_n_list.append(obs_shape_n)
 			num_adversaries = min(env.n, arglist.num_adversaries)
 			# 创建每个任务的智能体
 			trainers = get_trainers(env, "task_"+str(i)+"_", num_adversaries, obs_shape_n, arglist)
-			models.append(trainers)
+			model_list.append(trainers)
 			list_of_taskenv.append(env)
 		policy = get_trainers(env, "pi_0_", num_adversaries, obs_shape_n, arglist)
 		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 		
 		U.initialize()
+		
+		#
+		global_steps = np.zeros(num_tasks)  # global timesteps for each env
+		local_steps = np.zeros(num_tasks)  # local timesteps for each env
+		policy_step = 0
+		
+		episode_rewards = [0.0]  # sum of rewards for all agents
+		agent_rewards = [[0.0] for _ in range(env.n)]  # individual agent reward
+		final_ep_rewards = []  # sum of rewards for training curve
+		final_ep_ag_rewards = []  # agent rewards for training curve
+		model_number = int(arglist.num_episodes / arglist.save_rate)
+		saver = tf.train.Saver(max_to_keep=model_number)
 		
 		# 多个任务智能体的obs
 		obs_n_list = []
@@ -96,99 +108,73 @@ def train(arglist):
 			obs_n = list_of_taskenv[i].reset()
 			obs_n_list.append(obs_n)
 		
+		# 记录每个任务的当前state batch
 		history_n = [[] for _ in range(num_tasks)]
 		for i in range(num_tasks):
 			for j in range(len(obs_n_list[i])):  # 生成每个智能体长度为history_length的观测
-				history = History(arglist, obs_shape_n[0])
+				history = History(arglist, [obs_shape_n_list[i][j][0]])
 				history_n[i].append(history)
 				for _ in range(arglist.history_length):
-					history_n[i][j].add(obs_n_list[i])
+					history_n[i][j].add(obs_n_list[i][j])
 				
 		print('Starting iterations...')
 		while True:
-			# n个task
-			for i in range(num_tasks):
-				# get action
-				action_n = []  # 获得n个智能体的动作
-				for agent, his in zip(trainers, history_n):
-					hiss = his.get().reshape(1, obs_shape_n[0][0], arglist.history_length)
-					action = agent.action([hiss], [1])  # 这里打印的class tuple, class list
+			# 第1步，分别在num_tasks个任务上进行采样
+			for index in range(num_tasks):
+				action_n = []
+				for agent, his in zip(model_list[index], history_n[index]):
+					# [1, state_dim, length]
+					hiss = his.obtain().reshape(1, obs_shape_n_list[index][0][0], arglist.history_length)
+					action = agent.action([hiss], [1])
 					action_n.append(action)
 				
 				# environment step
 				new_obs_n, rew_n, done_n, info_n = env.step(action_n)
-				episode_step += 1
-				done = all(done_n)
-				terminal = (episode_step >= arglist.max_episode_len)
-				# collect experience
-				for i, agent in enumerate(trainers):
-					agent.experience(obs_n[i], action_n[i], rew_n[i], done_n[i], terminal)
-				obs_n = new_obs_n
+				local_steps[i] += 1		# 局部计数器
+				global_steps[i] += 1		# 全局计数器
 				
+				done = all(done_n)
+				terminal = (local_steps[index] >= arglist.max_episode_len)
+				# 收集experience
+				for i, agent in enumerate(model_list[index]):
+					agent.experience(obs_n_list[index][i], action_n[i], rew_n[i], done_n[i], terminal)
+				obs_n_list[index] = new_obs_n
+				
+				# 第2步，优化每一个任务的critic
 				for i, rew in enumerate(rew_n):
 					episode_rewards[-1] += rew
 					agent_rewards[i][-1] += rew
 				
 				if done or terminal:
-					# reset custom statistics variabl between episode and epoch---------------------------------------------
-					instantaneous_accmulated_reward.append(accmulated_reward_one_episode[-1])
-					j_index.append(j_index_one_episode[-1])
-					instantaneous_dis.append(disconnected_number_one_episode[-1])
-					instantaneous_out_the_map.append(over_map_one_episode[-1])
-					aver_cover.append(aver_cover_one_episode[-1])
-					energy_consumptions_for_test.append(energy_one_episode[-1])
-					energy_efficiency.append(aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
-					print('Episode: %d - energy_consumptions: %s ' % (train_step / arglist.max_episode_len,
-																	  str(env._get_energy_origin())))
-					obs_n = env.reset()
-					episode_step = 0
+					obs_n_list[index] = env.reset()
+					local_steps[index] = 0
 					episode_rewards.append(0)
-					for a in agent_rewards:
-						a.append(0)
-					agent_info.append([[]])
 				
-				# increment global step counter
-				train_step += 1
-				
-				# for displaying learned policies
-				if arglist.draw_picture_test:
-					if len(episode_rewards) > arglist.num_episodes:
-						break
-					continue
-				
-				# update all trainers, if not in display or benchmark mode
 				loss = None
-				for agent in trainers:
+				for agent in model_list[index]:
 					agent.preupdate()
-				for agent in trainers:
-					loss = agent.update(trainers, train_step)
+				for agent in model_list[index]:
+					loss = agent.update(model_list[index], global_steps[i])
 				
 				# save model, display training output
 				if terminal and (len(episode_rewards) % arglist.save_rate == 0):
-					episode_number_name = train_step / arglist.max_episode_len
+					episode_number_name = global_steps[i] / arglist.max_episode_len
 					save_dir_custom = arglist.save_dir + str(episode_number_name) + '/'
 					U.save_state(save_dir_custom, saver=saver)
 					# print statement depends on whether or not there are adversaries
 					if num_adversaries == 0:
 						print("steps: {}, episodes: {}, mean episode reward: {}, time: {}".format(
-							train_step, len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]),
+							global_steps[i], len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]),
 							round(time.time() - t_start, 3)))
 					else:
 						print("steps: {}, episodes: {}, mean episode reward: {}, agent episode reward: {}, time: {}".format(
-							train_step, len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]),
+							global_steps[i], len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]),
 							[np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards], round(time.time() - t_start, 3)))
 					t_start = time.time()
 					# Keep track of final episode reward
 					final_ep_rewards.append(np.mean(episode_rewards[-arglist.save_rate:]))
 					for rew in agent_rewards:
 						final_ep_ag_rewards.append(np.mean(rew[-arglist.save_rate:]))
-					# draw custom statistics picture when save the model----------------------------------------------------
-					if arglist.draw_picture_train:
-						episode_number_name = train_step / arglist.max_episode_len
-						model_name = arglist.save_dir.split('/')[-2] + '/'
-						draw_util.draw_episode(episode_number_name, arglist.pictures_dir_train + model_name, aver_cover,
-											   j_index, instantaneous_accmulated_reward, instantaneous_dis,
-											   instantaneous_out_the_map, loss_all, len(aver_cover))
 				
 				# saves final episode reward for plotting training curve later
 				if len(episode_rewards) > arglist.num_episodes:
@@ -200,8 +186,13 @@ def train(arglist):
 						pickle.dump(final_ep_ag_rewards, fp)
 					print('...Finished total of {} episodes.'.format(len(episode_rewards)))
 					break
-
-
+					
+			# 第3步，训练actor
+			policy_step += 1
+			for agent in policy:
+				agent.update(policy, policy_step)
+		
+			
 if __name__ == '__main__':
 	arglist = parse_args()
 	train(arglist)
