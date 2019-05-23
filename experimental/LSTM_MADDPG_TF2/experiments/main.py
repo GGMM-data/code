@@ -99,42 +99,38 @@ def train(arglist):
 		
 		# 1.4全局变量初始化
 		global_steps = np.zeros(num_tasks)  # global timesteps for each env
-		policy_step = 0
+		policy_step = 0		# 记录actor训练的步数
 		model_number = int(arglist.num_episodes / arglist.save_rate)
 		saver = tf.train.Saver(max_to_keep=model_number)
+		episode_rewards = [0.0]  # 每个元素为在一个episode中所有agents rewards的和
+		agent_rewards = [[0.0] for _ in range(env.n)]  # agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
+
+		energy_consumptions_for_test = []
+		j_index = []
+		aver_cover = []
+		instantaneous_dis = []
+		instantaneous_out_the_map = []
+		energy_efficiency = []
+		instantaneous_accmulated_reward = []
 		
-		# 1.5局部变量初始化
+		# 1.5 episode局部变量初始化
 		local_steps = np.zeros(num_tasks)  # local timesteps for each env
+		t_start = time.time()
 		
-		episode_rewards = [0.0]  # sum of rewards for all agents
-		agent_rewards = [[0.0] for _ in range(env.n)]  # individual agent reward
 		final_ep_rewards = []  # sum of rewards for training curve
 		final_ep_ag_rewards = []  # agent rewards for training curve
 		
-		t_start = time.time()
-		aver_cover = []
-		j_index = []
-		instantaneous_accmulated_reward = []
-		instantaneous_dis = []
-		instantaneous_out_the_map = []
-		energy_consumptions_for_test = []
-		bl_coverage = 0.8
-		bl_jainindex = 0.8
-		bl_loss = 100
-		energy_efficiency = []
-		
+		energy_one_episode = []
+		j_index_one_episode = []
+		aver_cover_one_episode = []
 		over_map_counter = 0
 		over_map_one_episode = []
-		aver_cover_one_episode = []
-		j_index_one_episode = []
 		disconnected_number_counter = 0
 		disconnected_number_one_episode = []
+		episode_reward_step = 0		# 累加一个episode里每一步的所有智能体的平均reward
 		accmulated_reward_one_episode = []
-		actions = []
-		energy_one_episode = []
 		route = []
 		
-		episode_reward_step = 0
 		
 		# 1.6初始化ENV
 		obs_n_list = []
@@ -151,7 +147,7 @@ def train(arglist):
 				for _ in range(arglist.history_length):
 					history_n[i][j].add(obs_n_list[i][j])
 		
-		# 训练
+		# 2.训练
 		print('Starting iterations...')
 		while True:
 			# 2.1,在num_tasks个任务上进行采样
@@ -166,8 +162,8 @@ def train(arglist):
 				
 				# environment step
 				new_obs_n, rew_n, done_n, info_n = list_of_taskenv[task_index].step(action_n)
-				local_steps[i] += 1		# 局部计数器
-				global_steps[i] += 1		# 全局计数器
+				local_steps[task_index] += 1		# 更新局部计数器
+				global_steps[task_index] += 1		# 更新全局计数器
 				
 				done = all(done_n)
 				terminal = (local_steps[task_index] >= arglist.max_episode_len)
@@ -176,50 +172,74 @@ def train(arglist):
 					agent.experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
 				obs_n_list[task_index] = new_obs_n
 				
-				# 第2步，优化每一个任务的critic
+				# 2.2，优化每一个任务的critic
 				for i, rew in enumerate(rew_n):
 					episode_rewards[-1] += rew
 					agent_rewards[i][-1] += rew
 				
-				# 记录train信息
-				# fair index
+				for critic in model_list[task_index]:
+					critic.preupdate()
+				for critic in model_list[task_index]:
+					critic.update(model_list[task_index], global_steps[i])
+				
+				# 2.3，优化actor
+				policy_step += 1
+				print("policy steps: ", policy_step)
+				for actor, critic in zip(policy, model_list[task_index]):
+					actor.add_critic(critic.name)
+					actor.update(policy, policy_step)
+				
+				# 2.4 记录和更新train信息
+				# - energy
+				energy_one_episode.append(env.get_energy())
+				# - fair index
 				j_index_one_episode.append(env.get_jain_index())
-				# over map counter
+				# - coverage
+				aver_cover_one_episode.append(env.get_aver_cover())
+				# - over map counter
 				over_map_counter += env.get_over_map()
 				over_map_one_episode.append(over_map_counter)
-				# disconnected counter
+				# - disconnected counter
 				disconnected_number_counter += env.get_dis()
 				disconnected_number_one_episode.append(disconnected_number_counter)
-				# coverage
-				aver_cover_one_episode.append(env.get_aver_cover())
-				# energy
-				energy_one_episode.append(env.get_energy())
-				# reward
+				# - reward
 				episode_reward_step += np.mean(rew_n)
 				accmulated_reward_one_episode.append(episode_reward_step)
-				# state
+				# - state
 				s_route = env.get_state()
 				for route_i in range(0, FLAGS.num_uav * 2, 2):
 					tmp = [s_route[route_i], s_route[route_i + 1]]
 					route.append(tmp)
 				
+				# 当前episode结束是否结束
 				if done or terminal:
-					obs_n_list[task_index] = env.reset()
-					local_steps[task_index] = 0
-					episode_rewards.append(0)
+					# 重置局部变量
+					obs_n_list[task_index] = env.reset()		# 重置env
+					local_steps[task_index] = 0		# 重置局部计数器
+					episode_rewards.append(0)		# 添加新的元素
+					for rew in agent_rewards:
+						rew.append(0)
 					
-					# reset custom statistics variabl between episode and epoch---------------------------------------------
-					instantaneous_accmulated_reward.append(accmulated_reward_one_episode[-1])
-					j_index.append(j_index_one_episode[-1])
-					instantaneous_dis.append(disconnected_number_one_episode[-1])
-					instantaneous_out_the_map.append(over_map_one_episode[-1])
-					aver_cover.append(aver_cover_one_episode[-1])
+					# 记录每个episode的变量
+					# - energy
 					energy_consumptions_for_test.append(energy_one_episode[-1])
+					# - fairness index
+					j_index.append(j_index_one_episode[-1])
+					# - coverage
+					aver_cover.append(aver_cover_one_episode[-1])
+					# - disconnected
+					instantaneous_dis.append(disconnected_number_one_episode[-1])
+					# - out of the map
+					instantaneous_out_the_map.append(over_map_one_episode[-1])
+					# - reward
+					instantaneous_accmulated_reward.append(accmulated_reward_one_episode[-1])
+					# - efficiency
 					energy_efficiency.append(
 						aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
 					print('Episode: %d - energy_consumptions: %s ' % (policy_step / arglist.max_episode_len,
 																	  str(env._get_energy_origin())))
 					
+					# 重置每个episode中的局部变量--------------------------------------------
 					energy_one_episode = []
 					j_index_one_episode = []
 					aver_cover_one_episode = []
@@ -231,25 +251,6 @@ def train(arglist):
 					accmulated_reward_one_episode = []
 					route = []
 					
-					# reset custom statistics variabl between episode and epoch---------------------------------------------
-					for i in range(num_tasks):
-						obs_n_list[i] = list_of_taskenv[i].reset()
-					local_steps[i] += 1
-					episode_rewards.append(0)
-					for a in agent_rewards:
-						a.append(0)
-				
-				for critic in model_list[task_index]:
-					critic.preupdate()
-				for critic in model_list[task_index]:
-					critic.update(model_list[task_index], global_steps[i])
-				
-				# 第3步，优化actor
-				policy_step += 1
-				print("policy steps: ", policy_step)
-				for actor, critic in zip(policy, model_list[task_index]):
-					actor.add_critic(critic.name)
-					actor.update(policy, policy_step)
 				
 				# save model, display training output
 				if terminal and (len(episode_rewards) % arglist.save_rate == 0):
