@@ -112,19 +112,19 @@ class MultiAgentEnv(gym.Env):
             self.viewers = [None] * self.n
         self._reset_render()
 
-    def is_covered(self, pos):
+    def _is_covered(self, pos):
         for uav in self.state:
-            if self.get_distance(pos, uav) <= self.radius:
+            if self._get_distance(pos, uav) <= self.radius:
                 return True
         return False
 
-    def is_covered_for_greedy(self, pos, greedy_states_temp):
+    def _is_covered_for_greedy(self, pos, greedy_states_temp):
         for uav in greedy_states_temp:
-            if self.get_distance(pos, uav) <= self.radius:
+            if self._get_distance(pos, uav) <= self.radius:
                 return True
         return False
 
-    def get_distance(self, a, b):
+    def _get_distance(self, a, b):
         delta_pos_x = a[0] - b[0]
         delta_pos_y = a[1] - b[1]
         dist = delta_pos_x ** 2 + delta_pos_y ** 2
@@ -151,7 +151,7 @@ class MultiAgentEnv(gym.Env):
         _j = x
         return matrix[_i][_j]
 
-    def is_disconnected(self, state_current):
+    def _is_disconnected(self, state_current):
         state_current_temp = np.array(state_current).copy()
         dis_con = True
         graph = nx.Graph()
@@ -168,7 +168,7 @@ class MultiAgentEnv(gym.Env):
         for uav_i in range(FLAGS.num_uav):
             for uav_j in range(uav_i + 1, FLAGS.num_uav):
                 connected_constraint = FLAGS.constrain ** 2
-                if self.get_distance(state_current_temp[uav_i], state_current_temp[uav_j]) <= connected_constraint:
+                if self._get_distance(state_current_temp[uav_i], state_current_temp[uav_j]) <= connected_constraint:
                     graph.add_edge(uav_j, uav_i)
         if nx.is_connected(graph):
             dis_con = False
@@ -213,7 +213,7 @@ class MultiAgentEnv(gym.Env):
             state_current.append(location_tem)
             if abs(loc_x) > FLAGS.map_constrain or abs(loc_y) > FLAGS.map_constrain:
                 self.over_map += 1
-        if self.is_disconnected(state_current):
+        if self._is_disconnected(state_current):
             self.dis_flag = True
             self.dis += 1
         else:
@@ -252,7 +252,7 @@ class MultiAgentEnv(gym.Env):
 
         for x in range(self.size):
             for y in range(self.size):
-                cov = self.is_covered(self.PoI[x * self.size + y])
+                cov = self._is_covered(self.PoI[x * self.size + y])
                 if cov > 0:
                     if self.__get_matrix(x, y, self.tmp) != 1:
                         self.__add_matrix(x, y, self.final, 1)
@@ -373,7 +373,7 @@ class MultiAgentEnv(gym.Env):
         delta_energy = self.cost * action_step_dis + self.honor
         for x in range(self.size):
             for y in range(self.size):
-                cov = self.is_covered_for_greedy(self.PoI[x * self.size + y], agent_states)
+                cov = self._is_covered_for_greedy(self.PoI[x * self.size + y], agent_states)
                 if cov > 0:
                     if self.__get_matrix(x, y, tmp) != 1:
                         self.__add_matrix(x, y, final_coverage_num, 1)
@@ -388,7 +388,7 @@ class MultiAgentEnv(gym.Env):
         delta_coverage = delta_num * 1.0 / self.max_epoch
         reward_positive = delta_coverage * jain_index_tem / delta_energy
         result_reward += reward_positive
-        if self.is_disconnected(agent_states):
+        if self._is_disconnected(agent_states):
             result_reward -= FLAGS.penalty_disconnected
         def bound(x):
             if x < 4.5:
@@ -550,40 +550,37 @@ class MultiAgentEnv(gym.Env):
         return dx
 
     # custom return to global train------------------------------------------------------------------------------------
-    def _get_energy(self):
+    def get_energy(self):
         return np.mean(self.energy.copy() / self.SUT_ENERGY)
 
-    def _get_energy_origin(self):
+    def get_energy_origin(self):
         return np.mean(self.energy.copy())
 
-    def _get_jain_index(self):
+    def get_jain_index(self):
         return self.jain_index
+
+    def get_aver_cover(self):
+        total_cover = np.sum(self.M)
+        return total_cover / (self.size ** 2)
 
     def _get_delta_c(self):
         return self.delta
 
-    def _get_dis(self):
+    def get_dis(self):
         return self.dis
 
-    def _get_over_map(self):
+    def get_over_map(self):
         return self.over_map
 
-    def _get_original_r(self):
+    def get_original_r(self):
         return self.o_r
 
-    def _get_aver_cover(self):
-        total_cover = np.sum(self.M)
-        return total_cover / (self.size ** 2)
-
-    def _get_state(self):
+    def get_state(self):
         tmp = []
         for state in self.state:
             tmp.append(state[0])
             tmp.append(state[1])
         return tmp
-
-    def _get_original_r(self):
-        return self.o_r
 
 
 # vectorized wrapper for a batch of multi-agent environments

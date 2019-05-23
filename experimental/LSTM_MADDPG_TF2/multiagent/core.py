@@ -78,6 +78,7 @@ class Agent(Entity):
         # script behavior to execute
         self.action_callback = None
 
+
 # multi-agent world
 class World(object):
     def __init__(self):

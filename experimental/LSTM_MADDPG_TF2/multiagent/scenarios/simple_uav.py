@@ -88,12 +88,10 @@ class Scenario(BaseScenario):
 
         return coverage_size
 
-
     def get_distance(self, agent1, agent2):
         delta_pos = agent1.state.p_pos - agent2.state.p_pos
         dist = np.sqrt(np.sum(np.square(delta_pos)))
         return dist
-
 
     def get_matrix(self, x, y, matrix):
         assert x >= 0
@@ -101,8 +99,6 @@ class Scenario(BaseScenario):
         _i = FLAGS.size_map - y - 1
         _j = x
         return matrix[_i][_j]
-
-
 
     def benchmark_data(self, agent, world):
         rew = 0
