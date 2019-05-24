@@ -6,7 +6,6 @@ x = np.arange(0,10,1)
 y1 = x**2
 y2 = 2*x +5
 
-######
 # figure
 plt.figure()
 plt.plot(x,y1)

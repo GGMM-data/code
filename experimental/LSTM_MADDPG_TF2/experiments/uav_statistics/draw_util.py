@@ -12,6 +12,15 @@ def mkdir(path):
         os.makedirs(path)
 
 
+def draw_reward(path, reward):
+    mkdir(path)
+    ax = plt.gca()
+    ax.xlabel("No. of episodes")
+    ax.ylabel("Mean reward")
+    ax.plot()
+    
+    
+
 def draw(i, path, energy, route, actions, ob_, sqrt_, r_, discon_, over_map, final_steps, Run = False):
     mkdir(path)
     label = 'epoch:' + str(FLAGS.max_epoch) + '\nUAV: ' + str(FLAGS.num_uav) + '\n map size: ' + str(FLAGS.size_map) + '\n sensing range:' + str(FLAGS.radius) \
@@ -133,7 +142,7 @@ def drawTest(i, path, energy, coverage, jainindex, r_, discon_, over_map, final_
     plt.close()
 
 
-def draw_episode(i, path, coverage, j_index, A_reward, A_discon, A_over_map, loss, final_steps):
+def draw_episode(i, path, coverage, j_index, A_reward, A_discon, A_over_map, final_steps):
     mkdir(path)
     label = 'epoch:' + str(FLAGS.max_epoch) + '\nUAV: ' + str(FLAGS.num_uav) + '\n map size: ' + str(
         FLAGS.size_map) + '\n sensing range:' + str(FLAGS.radius) \

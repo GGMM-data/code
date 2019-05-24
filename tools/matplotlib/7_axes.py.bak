@@ -11,8 +11,7 @@ plt.figure(figsize=(10,10))
 plt.plot(x,y1,lw=2,marker='*',ms=8)
 plt.plot(x,y2,lw=3,marker='^',ms=10)
 
-
-# xlim and ylime
+# xlim and ylim
 plt.xlim([-3.8, 3.3])
 plt.ylim([0, 7.2])
 
@@ -31,7 +30,7 @@ ax.xaxis.set_ticks_position("bottom")
 ax.yaxis.set_ticks_position("left")
 ax.spines['bottom'].set_position(('data',0))
 ax.spines['left'].set_position(('data',0))
-ax.legend(['t1','t2'])
+# ax.legend(['t1','t2'])
 
 plt.show()
 

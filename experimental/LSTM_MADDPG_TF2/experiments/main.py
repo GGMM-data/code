@@ -16,15 +16,15 @@ from experimental.LSTM_MADDPG_TF2.experiments.ops import make_env, lstm_model, q
 
 def parse_args():
 	parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
-	
-	parser.add_argument("--model-dir", type=str, default="./tmp/policy_gamma_0.80_batch_1024_neural_160_batch_75/",
-						help="directory in which training state and model should be saved")
+
 	parser.add_argument("--gamma", type=float, default=0.80, help="discount factor")
 	parser.add_argument("--batch-size", type=int, default=1024, help="number of episodes to optimize at the same time")
 	parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
 	parser.add_argument("--buffer-size", type=int, default=100, help="buffer capacity")
-	
-	# --------------------------------------------------------------
+	# rnn 长度
+	parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
+	parser.add_argument("--model-dir", type=str, default="./tmp/policy_gamma_0.80_batch_1024_neural_160_batch_75/",
+						help="directory in which training state and model should be saved")
 	
 	# Environment
 	parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
@@ -58,8 +58,6 @@ def parse_args():
 	parser.add_argument("--pictures-dir-test", type=str, default="./result_pictures/test/",
 						help="directory where result pictures data is saved")
 	
-	### add by mxx
-	parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
 	parser.add_argument("--cnn-format", type=str, default='NHWC', help="cnn_format")
 	
 	# custom parameters for uav
@@ -102,7 +100,7 @@ def train(arglist):
 		policy_step = 0		# 记录actor训练的步数
 		model_number = int(arglist.num_episodes / arglist.save_rate)
 		saver = tf.train.Saver(max_to_keep=model_number)
-		episode_rewards = [0.0]  # 每个元素为在一个episode中所有agents rewards的和
+		episodes_rewards = [0.0]  # 每个元素为在一个episode中所有agents rewards的和
 		agent_rewards = [[0.0] for _ in range(env.n)]  # agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
 
 		energy_consumptions_for_test = []
@@ -170,11 +168,18 @@ def train(arglist):
 				# 收集experience
 				for i, agent in enumerate(model_list[task_index]):
 					agent.experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
+				# 更新obs
 				obs_n_list[task_index] = new_obs_n
+
+				# 用于test
+				if arglist.display:
+					time.sleep(0.1)
+					list_of_taskenv[task_index].render()
+					continue
 				
 				# 2.2，优化每一个任务的critic
 				for i, rew in enumerate(rew_n):
-					episode_rewards[-1] += rew
+					episodes_rewards[-1] += rew
 					agent_rewards[i][-1] += rew
 				
 				for critic in model_list[task_index]:
@@ -216,7 +221,7 @@ def train(arglist):
 					# 重置局部变量
 					obs_n_list[task_index] = env.reset()		# 重置env
 					local_steps[task_index] = 0		# 重置局部计数器
-					episode_rewards.append(0)		# 添加新的元素
+					episodes_rewards.append(0)		# 添加新的元素
 					for rew in agent_rewards:
 						rew.append(0)
 					
@@ -250,39 +255,45 @@ def train(arglist):
 					episode_reward_step = 0
 					accmulated_reward_one_episode = []
 					route = []
-					
 				
 				# save model, display training output
-				if terminal and (len(episode_rewards) % arglist.save_rate == 0):
+				if terminal and (len(episodes_rewards) % arglist.save_rate == 0):
 					episode_number_name = global_steps[i] / arglist.max_episode_len
 					save_dir_custom = arglist.save_dir + str(episode_number_name) + '/'
 					U.save_state(save_dir_custom, saver=saver)
 					# print statement depends on whether or not there are adversaries
 					if num_adversaries == 0:
 						print("steps: {}, episodes: {}, mean episode reward: {}, time: {}".format(
-							global_steps[i], len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]),
+							global_steps[i], len(episodes_rewards), np.mean(episodes_rewards[-arglist.save_rate:]),
 							round(time.time() - t_start, 3)))
 					else:
 						print("steps: {}, episodes: {}, mean episode reward: {}, agent episode reward: {}, time: {}".format(
-							global_steps[i], len(episode_rewards), np.mean(episode_rewards[-arglist.save_rate:]),
+							global_steps[i], len(episodes_rewards), np.mean(episodes_rewards[-arglist.save_rate:]),
 							[np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards], round(time.time() - t_start, 3)))
 					t_start = time.time()
-					# Keep track of final episode reward
-					final_ep_rewards.append(np.mean(episode_rewards[-arglist.save_rate:]))
+					# 最新save_rate个episode的平均reward
+					final_ep_rewards.append(np.mean(episodes_rewards[-arglist.save_rate:]))
 					for rew in agent_rewards:
 						final_ep_ag_rewards.append(np.mean(rew[-arglist.save_rate:]))
+					# 保存训练曲线
+					if arglist.draw_picture_train:
+						episode_number_name = global_steps[task_index] / arglist.max_episode_len
+						model_name = arglist.save_dir.split('/')[-2] + '/'
+						draw_util.draw_episode(
+							episode_number_name,
+							arglist.pictures_dir_train + model_name,
+							aver_cover, j_index,
+							instantaneous_accmulated_reward, instantaneous_dis,
+							instantaneous_out_the_map, len(aver_cover)
+						)
 				
 				# saves final episode reward for plotting training curve later
-				if len(episode_rewards) > arglist.num_episodes:
-					rew_file_name = arglist.plots_dir + arglist.exp_name + '_rewards.pkl'
-					with open(rew_file_name, 'wb') as fp:
-						pickle.dump(final_ep_rewards, fp)
-					agrew_file_name = arglist.plots_dir + arglist.exp_name + '_agrewards.pkl'
-					with open(agrew_file_name, 'wb') as fp:
-						pickle.dump(final_ep_ag_rewards, fp)
-					print('...Finished total of {} episodes.'.format(len(episode_rewards)))
-					break
+				if len(episodes_rewards) > arglist.num_episodes:
+					file_name = "mean_reward"
 					
+					print('...Finished total of {} episodes.'.format(len(episodes_rewards)))
+					break
+				
 
 if __name__ == '__main__':
 	arglist = parse_args()

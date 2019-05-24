@@ -46,7 +46,6 @@ plt.show()
 
 #### 
 # error! ax object has no attributes 
-
 # ax subplot
 #plt.figure()
 #ax = plt.gca()
