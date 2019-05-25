@@ -41,6 +41,7 @@ class MultiAgentEnv(gym.Env):
         # configure spaces
         self.action_space = []
         self.observation_space = []
+
         # custom parameters for uav begin-------------------------------------------------------------------------------
         self.uav = getattr(FLAGS, 'num_uav')
         self.size = getattr(FLAGS, 'size_map')
@@ -52,24 +53,30 @@ class MultiAgentEnv(gym.Env):
         for i in range(self.size):
             for j in range(self.size):
                 self.PoI.append([-4.5 + i, -4.5 + j])
-
+        # ???
         self.M = np.zeros((self.size, self.size))
         self.final = np.zeros((self.size, self.size), dtype=np.int64)
-        self.state = []
 
-        for a in world.agents:
-            location_tem = [a.state.p_pos[0] * self.map_scale_rate, a.state.p_pos[1] * self.map_scale_rate]
-            self.state.append(location_tem)
-        # energy
+        # agents pos
+        self.agents_pos = []
+        for agent in world.agents:
+            loc_x = agent.state.p_pos[0] * self.map_scale_rate
+            loc_y = agent.state.p_pos[1] * self.map_scale_rate
+            self.agents_pos.append([loc_x, loc_y])
+
+        # energy list
         self.energy = np.zeros(self.uav)
+        # fair
         self.jain_index = 0
         # cost per speed
         self.cost = 1
-        self.honor = FLAGS.factor * self.cost
+        self.hover = FLAGS.factor * self.cost
         self.last_r = 0
-        # single uav total
-        self.SUE_ENERGY = (self.cost * FLAGS.max_speed + self.honor)
+        # single uav total energy cost one step
+        self.SUE_ENERGY = (self.cost * FLAGS.max_speed + self.hover)
+        # single uav total energy cost one episode
         self.SUT_ENERGY = self.SUE_ENERGY * FLAGS.max_epoch
+        # disconnected
         self.dis_flag = False
         self.agent_index_for_greedy = 0
         # custom parameters for uav end---------------------------------------------------------------------------------
@@ -113,7 +120,7 @@ class MultiAgentEnv(gym.Env):
         self._reset_render()
 
     def _is_covered(self, pos):
-        for uav in self.state:
+        for uav in self.agents_pos:
             if self._get_distance(pos, uav) <= self.radius:
                 return True
         return False
@@ -130,21 +137,21 @@ class MultiAgentEnv(gym.Env):
         dist = delta_pos_x ** 2 + delta_pos_y ** 2
         return dist
 
-    def __set_matrix(self, x, y, matrix, value):
+    def _set_matrix(self, x, y, matrix, value):
         assert x >= 0
         assert y < self.size
         _i = self.size - y - 1
         _j = x
         matrix[_i][_j] = value
 
-    def __add_matrix(self, x, y, matrix, addition):
+    def _add_matrix(self, x, y, matrix, addition):
         assert x >= 0
         assert y < self.size
         _i = self.size - y - 1
         _j = x
         matrix[_i][_j] += addition
 
-    def __get_matrix(self, x, y, matrix):
+    def _get_matrix(self, x, y, matrix):
         assert x >= 0
         assert y < self.size
         _i = self.size - y - 1
@@ -175,12 +182,10 @@ class MultiAgentEnv(gym.Env):
         return dis_con
 
     def step(self, action_n):
-        obs_n = []
-        reward_n = []
-        done_n = []
-        info_n = {'n': []}
+        obs_n, reward_n, done_n, info_n = [], [], [], {'n': []}
         self.agents = self.world.policy_agents
-        # set action for each agent
+
+        # set action
         random_action_move_dis = []
         greedy_action = self.greedy_algorithm(self.agent_index_for_greedy)
         for i, agent in enumerate(self.agents):
@@ -197,46 +202,52 @@ class MultiAgentEnv(gym.Env):
                 action_n[i][1] = action_n[i][2] + random_action[0]
                 action_n[i][3] = action_n[i][4] + random_action[1]
             self._set_action(action_n[i], agent, self.action_space[i])
-        # advance world state
+
+        # update world state
         self.world.step()
+
         # custom code for uav begin-------------------------------------------------------------------------------------
         # update state and map_state and energy
         self.agent_index_for_greedy += 1
         self.old_energy = self.energy.copy()
-        state_current = []
-        self.dis = 0
+        # out of the map
         self.over_map = 0
+        agents_pos_current = []
         for a in self.agents:
             loc_x = a.state.p_pos[0] * self.map_scale_rate
             loc_y = a.state.p_pos[1] * self.map_scale_rate
-            location_tem = [loc_x, loc_y]
-            state_current.append(location_tem)
+            agents_pos_current.append([loc_x, loc_y])
             if abs(loc_x) > FLAGS.map_constrain or abs(loc_y) > FLAGS.map_constrain:
                 self.over_map += 1
-        if self._is_disconnected(state_current):
+        # disconnected
+        self.dis = 0
+        if self._is_disconnected(agents_pos_current):
             self.dis_flag = True
             self.dis += 1
         else:
             self.dis_flag = False
         # custom code for uav end --------------------------------------------------------------------------------------
+
         # record observation for each agent
         for agent in self.agents:
             obs_n.append(self._get_obs(agent))
             reward_n.append(self._get_reward(agent))
             done_n.append(self._get_done(agent))
-
             info_n['n'].append(self._get_info(agent))
 
         # all agents get total reward in cooperative case
+        # this reward less than or equal 0
         reward = np.sum(reward_n)
         if self.shared_reward:
             reward_n = [reward] * self.n
 
         # custom code for uav begin-------------------------------------------------------------------------------------
-        self.state = []
-        for a in self.agents:
-            location_tem = [a.state.p_pos[0] * self.map_scale_rate, a.state.p_pos[1] * self.map_scale_rate]
-            self.state.append(location_tem)
+        self.agents_pos = []
+        for agent in self.agents:
+            loc_x = agent.state.p_pos[0] * self.map_scale_rate
+            loc_y = agent.state.p_pos[1] * self.map_scale_rate
+            self.agents_pos.append([loc_x, loc_y])
+
         for agent_i, agent in enumerate(self.agents):
             move_distance = np.sqrt(np.square(agent.state.p_vel[0]) + np.square(agent.state.p_vel[1])) * 0.1 *\
                             FLAGS.map_scale_rate
@@ -244,31 +255,36 @@ class MultiAgentEnv(gym.Env):
                 move_distance = FLAGS.greedy_act_dis
             if FLAGS.random_action:
                 move_distance = random_action_move_dis[agent_i]
-            self.energy[agent_i] += self.cost * move_distance + self.honor
+            # calculate energy
+            self.energy[agent_i] += self.cost * move_distance + self.hover
 
-        delta_energy = np.sum(self.energy - self.old_energy) * 1.0 / (self.SUE_ENERGY * self.uav)
-        self.delta = 0
+        # less than or equal 1
+        energy_delta_rate = np.sum(self.energy - self.old_energy) * 1.0 / (self.SUE_ENERGY * self.uav)
+        # every step coverage increment
+        self.coverage_delta = 0
         self.tmp = np.zeros([self.size, self.size], dtype=np.int8)
 
         for x in range(self.size):
             for y in range(self.size):
                 cov = self._is_covered(self.PoI[x * self.size + y])
                 if cov > 0:
-                    if self.__get_matrix(x, y, self.tmp) != 1:
-                        self.__add_matrix(x, y, self.final, 1)
-                        self.delta += 1
-                    self.__set_matrix(x, y, self.tmp, 1)
-
-                self.__set_matrix(x, y, self.M,
-                                  float(self.__get_matrix(x, y, self.final)) /
-                                  FLAGS.max_epoch)
+                    if self._get_matrix(x, y, self.tmp) != 1:
+                        self._add_matrix(x, y, self.final, 1)   # final每个step加1,至多max_epoch
+                        self.coverage_delta += 1    # 当前step覆盖了多少个cell
+                    self._set_matrix(x, y, self.tmp, 1 )
+                # M 每项最多是1
+                self._set_matrix(x, y, self.M,
+                                  float(self._get_matrix(x, y, self.final)) / self.max_epoch
+                                 )
         x_sum = np.sum(self.M)
         x_square_sum = np.sum(self.M ** 2)
         self.jain_index = x_sum ** 2 / x_square_sum / self.size ** 2
-        delta_coverage = self.delta * 1.0 / self.max_epoch
-        reward_positive = delta_coverage * self.jain_index / delta_energy
+        coverage_delta_percentage = self.coverage_delta * 1.0 / self.size ** 2
+
+        # reward
+        reward_positive = coverage_delta_percentage * self.jain_index / energy_delta_rate
         reward_positive_n = np.ones(self.uav) * reward_positive
-        self.o_r = reward_positive
+        self.positive_reward = reward_positive
         # add positive reward
         reward_n = reward_n + reward_positive_n
 
@@ -280,7 +296,7 @@ class MultiAgentEnv(gym.Env):
         self.reset_callback(self.world)
         # reset renderer
         self._reset_render()
-        # record observations for each agent
+        # record obs
         obs_n = []
         self.agents = self.world.policy_agents
         for agent in self.agents:
@@ -290,13 +306,13 @@ class MultiAgentEnv(gym.Env):
         # energy reset
         self.energy = np.zeros(self.uav)
         self.M = np.zeros((self.size, self.size))
-        self.MapState = np.zeros(self.size ** 2)
         self.final = np.zeros((self.size, self.size), dtype=np.int64)
-        self.state = []
         self.tmp = np.zeros([self.size, self.size], dtype=np.int8)
-        for a in self.agents:
-            location_tem = [a.state.p_pos[0] * self.map_scale_rate, a.state.p_pos[1] * self.map_scale_rate]
-            self.state.append(location_tem)
+        self.agents_pos = []
+        for agent in self.agents:
+            loc_x = agent.state.p_pos[0] * self.map_scale_rate
+            loc_y = agent.state.p_pos[1] * self.map_scale_rate
+            self.agents_pos.append([loc_x, loc_y])
         # map reset end-------------------------------------------------------------------------------------------------
         return obs_n
 
@@ -319,7 +335,7 @@ class MultiAgentEnv(gym.Env):
             return False
         return self.done_callback(agent, self.world)
 
-    # get reward for a particular agent
+    # get penalty reward for a particular agent
     def _get_reward(self, agent):
         if self.reward_callback is None:
             return 0.0
@@ -370,26 +386,28 @@ class MultiAgentEnv(gym.Env):
         result_reward = 0
         tmp = np.zeros([self.size, self.size], dtype=np.int8)
         delta_num = 0
-        delta_energy = self.cost * action_step_dis + self.honor
+        # some change by mxx 2019.05.24
+        energy_delta_rate = (self.cost * action_step_dis + self.hover) / self.SUE_ENERGY
         for x in range(self.size):
             for y in range(self.size):
                 cov = self._is_covered_for_greedy(self.PoI[x * self.size + y], agent_states)
                 if cov > 0:
-                    if self.__get_matrix(x, y, tmp) != 1:
-                        self.__add_matrix(x, y, final_coverage_num, 1)
+                    if self._get_matrix(x, y, tmp) != 1:
+                        self._add_matrix(x, y, final_coverage_num, 1)
                         delta_num += 1
-                    self.__set_matrix(x, y, tmp, 1)
+                    self._set_matrix(x, y, tmp, 1)
 
-                self.__set_matrix(x, y, map_coverage_score, float(self.__get_matrix(x, y, final_coverage_num))
+                self._set_matrix(x, y, map_coverage_score, float(self._get_matrix(x, y, final_coverage_num))
                                   / FLAGS.max_epoch)
         x_sum = np.sum(map_coverage_score)
         x_square_sum = np.sum(map_coverage_score ** 2)
         jain_index_tem = x_sum ** 2 / x_square_sum / self.size ** 2
         delta_coverage = delta_num * 1.0 / self.max_epoch
-        reward_positive = delta_coverage * jain_index_tem / delta_energy
+        reward_positive = delta_coverage * jain_index_tem / energy_delta_rate
         result_reward += reward_positive
         if self._is_disconnected(agent_states):
             result_reward -= FLAGS.penalty_disconnected
+
         def bound(x):
             if x < 4.5:
                 return 0
@@ -564,7 +582,7 @@ class MultiAgentEnv(gym.Env):
         return total_cover / (self.size ** 2)
 
     def _get_delta_c(self):
-        return self.delta
+        return self.coverage_delta
 
     def get_dis(self):
         return self.dis
@@ -572,15 +590,16 @@ class MultiAgentEnv(gym.Env):
     def get_over_map(self):
         return self.over_map
 
+    # not penalty
     def get_original_r(self):
-        return self.o_r
+        return self.origin_reward
 
-    def get_state(self):
-        tmp = []
-        for state in self.state:
-            tmp.append(state[0])
-            tmp.append(state[1])
-        return tmp
+    def get_agent_pos(self):
+        pos_n = []
+        for pos in self.agents_pos:
+            pos_n.append(pos[0])
+            pos_n.append(pos[1])
+        return pos_n
 
 
 # vectorized wrapper for a batch of multi-agent environments

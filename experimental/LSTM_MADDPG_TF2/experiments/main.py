@@ -1,11 +1,13 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
 import argparse
 import numpy as np
 import tensorflow as tf
 import time
 import pickle
 import sys
-
-sys.path.append("/home/mxxmhh/mxxhcm/code/experimental/")
+import os
 
 import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
 from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
@@ -196,22 +198,22 @@ def train(arglist):
 				
 				# 2.4 记录和更新train信息
 				# - energy
-				energy_one_episode.append(env.get_energy())
+				energy_one_episode.append(list_of_taskenv[task_index].get_energy())
 				# - fair index
-				j_index_one_episode.append(env.get_jain_index())
+				j_index_one_episode.append(list_of_taskenv[task_index].get_jain_index())
 				# - coverage
-				aver_cover_one_episode.append(env.get_aver_cover())
+				aver_cover_one_episode.append(list_of_taskenv[task_index].get_aver_cover())
 				# - over map counter
-				over_map_counter += env.get_over_map()
+				over_map_counter += list_of_taskenv[task_index].get_over_map()
 				over_map_one_episode.append(over_map_counter)
 				# - disconnected counter
-				disconnected_number_counter += env.get_dis()
+				disconnected_number_counter += list_of_taskenv[task_index].get_dis()
 				disconnected_number_one_episode.append(disconnected_number_counter)
 				# - reward
 				episode_reward_step += np.mean(rew_n)
 				accmulated_reward_one_episode.append(episode_reward_step)
 				# - state
-				s_route = env.get_state()
+				s_route = list_of_taskenv[task_index].get_agent_pos()
 				for route_i in range(0, FLAGS.num_uav * 2, 2):
 					tmp = [s_route[route_i], s_route[route_i + 1]]
 					route.append(tmp)
@@ -241,7 +243,7 @@ def train(arglist):
 					# - efficiency
 					energy_efficiency.append(
 						aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
-					print('Episode: %d - energy_consumptions: %s ' % (policy_step / arglist.max_episode_len,
+					print('Task %d, episode: %d - energy_consumptions: %s ' % (task_index, policy_step / arglist.max_episode_len,
 																	  str(env._get_energy_origin())))
 					
 					# 重置每个episode中的局部变量--------------------------------------------
@@ -290,7 +292,6 @@ def train(arglist):
 				# saves final episode reward for plotting training curve later
 				if len(episodes_rewards) > arglist.num_episodes:
 					file_name = "mean_reward"
-					
 					print('...Finished total of {} episodes.'.format(len(episodes_rewards)))
 					break
 				

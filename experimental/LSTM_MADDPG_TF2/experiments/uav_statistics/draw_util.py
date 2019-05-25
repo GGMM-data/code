@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..', 'multiagent'))
 from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+
 import numpy as np
 
 
@@ -18,8 +21,7 @@ def draw_reward(path, reward):
     ax.xlabel("No. of episodes")
     ax.ylabel("Mean reward")
     ax.plot()
-    
-    
+
 
 def draw(i, path, energy, route, actions, ob_, sqrt_, r_, discon_, over_map, final_steps, Run = False):
     mkdir(path)

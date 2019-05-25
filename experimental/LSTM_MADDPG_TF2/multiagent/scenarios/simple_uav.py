@@ -37,8 +37,9 @@ class Scenario(BaseScenario):
         env_information = []
         for x in range(FLAGS.size_map):
             for y in range(FLAGS.size_map):
-                loc_x = poi[x * FLAGS.size_map + y][0] / FLAGS.map_scale_rate
-                loc_y = poi[x * FLAGS.size_map + y][1] / FLAGS.map_scale_rate
+                pos = poi[x * FLAGS.size_map + y]
+                loc_x = pos[0] / FLAGS.map_scale_rate
+                loc_y = pos[1] / FLAGS.map_scale_rate
                 env_information.append([loc_x, loc_y, self.get_matrix(x, y, m)])
         # entity colors
         entity_color = []
@@ -56,6 +57,7 @@ class Scenario(BaseScenario):
     def reward(self, agent, world, dis_flag):
         reward = 0
         # agent are penalized for exiting the screen
+
         def bound(x):
             if x < 0.9:
                 return 0
