@@ -248,6 +248,7 @@ class MultiAgentEnv(gym.Env):
             loc_y = agent.state.p_pos[1] * self.map_scale_rate
             self.agents_pos.append([loc_x, loc_y])
 
+        # - energy
         for agent_i, agent in enumerate(self.agents):
             move_distance = np.sqrt(np.square(agent.state.p_vel[0]) + np.square(agent.state.p_vel[1])) * 0.1 *\
                             FLAGS.map_scale_rate
@@ -257,29 +258,26 @@ class MultiAgentEnv(gym.Env):
                 move_distance = random_action_move_dis[agent_i]
             # calculate energy
             self.energy[agent_i] += self.cost * move_distance + self.hover
-
         # less than or equal 1
         energy_delta_rate = np.sum(self.energy - self.old_energy) * 1.0 / (self.SUE_ENERGY * self.uav)
+        
+        # - coverage and fairness
         # every step coverage increment
         self.coverage_delta = 0
-        self.tmp = np.zeros([self.size, self.size], dtype=np.int8)
-
         for x in range(self.size):
             for y in range(self.size):
                 cov = self._is_covered(self.PoI[x * self.size + y])
                 if cov > 0:
-                    if self._get_matrix(x, y, self.tmp) != 1:
-                        self._add_matrix(x, y, self.final, 1)   # final每个step加1,至多max_epoch
-                        self.coverage_delta += 1    # 当前step覆盖了多少个cell
-                    self._set_matrix(x, y, self.tmp, 1 )
+                    self._add_matrix(x, y, self.final, 1)   # final每个step加1,至多max_epoch
+                    self.coverage_delta += 1    # 当前step覆盖了多少个cell
                 # M 每项最多是1
                 self._set_matrix(x, y, self.M,
                                   float(self._get_matrix(x, y, self.final)) / self.max_epoch
                                  )
         x_sum = np.sum(self.M)
         x_square_sum = np.sum(self.M ** 2)
-        self.jain_index = x_sum ** 2 / x_square_sum / self.size ** 2
-        coverage_delta_percentage = self.coverage_delta * 1.0 / self.size ** 2
+        self.jain_index = x_sum ** 2 / x_square_sum / self.size ** 2    # dont need to change
+        coverage_delta_percentage = self.coverage_delta * 1.0 / self.size ** 2  # dont need to change
 
         # reward
         reward_positive = coverage_delta_percentage * self.jain_index / energy_delta_rate
@@ -307,7 +305,6 @@ class MultiAgentEnv(gym.Env):
         self.energy = np.zeros(self.uav)
         self.M = np.zeros((self.size, self.size))
         self.final = np.zeros((self.size, self.size), dtype=np.int64)
-        self.tmp = np.zeros([self.size, self.size], dtype=np.int8)
         self.agents_pos = []
         for agent in self.agents:
             loc_x = agent.state.p_pos[0] * self.map_scale_rate
@@ -349,7 +346,7 @@ class MultiAgentEnv(gym.Env):
         return action_result, move_dis
 
     def greedy_algorithm(self, act_agent_index):
-        # todo calculate reward based on aciton space
+        # todo calculate reward based on action space
         action_space_tem_len = 4
         action_step_dis = FLAGS.greedy_act_dis / FLAGS.map_scale_rate
         action_space_tem = []

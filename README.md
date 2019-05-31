@@ -1,2 +1,2 @@
 # myown code
-some code corrsponding to my blog
+some demo for python library
