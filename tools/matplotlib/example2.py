@@ -70,4 +70,3 @@ plt.show()
 fig, ax = plt.subplots(2, 3, figsize=(40,20))
 
 plt.show()
-

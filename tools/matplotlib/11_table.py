@@ -1,6 +1,5 @@
 from matplotlib.table import Table
 import matplotlib.pyplot as plt
-from matplotlib.table import Table
 
 plt.figure()
 ax = plt.gca()

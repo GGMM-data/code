@@ -89,5 +89,6 @@ def figure_5_4():
     plt.show()
     plt.close()
 
+
 if __name__ == "__main__":
     figure_5_4()

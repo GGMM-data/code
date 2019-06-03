@@ -21,6 +21,6 @@ figure.set_yticks(list(reversed(range(21))))
 figure.set_title("policy", fontsize=30)
 figure.set_xlabel("cars at second location", fontsize=30)
 
-plt.savefig("hello.pdf")
+plt.savefig("./pics/hello.pdf")
 plt.show()
 plt.close()
