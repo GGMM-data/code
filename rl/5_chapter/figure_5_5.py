@@ -70,8 +70,6 @@ def figure_5_4():
             ratios_list.append(ratio)
             returns_list.append(returns)
             values_list.append(ratio * returns)
-            # values_list.append(np.sum(np.multiply(ratios_list, returns_list)) * 1.0)
-        # estimations = np.asarray(values_list) / np.arange(1, episodes + 1)
         values = np.add.accumulate(values_list)
         estimations = np.asarray(values) / np.arange(1, episodes + 1)
         plt.plot(estimations)
