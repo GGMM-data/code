@@ -1,17 +1,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-plt.figure()
-plt.ion()
-x = np.arange(20)
-for i in range(20):
-  # x[i] = x[i] + i 
-  y = pow(x[:i], 2)
-  temp = x[:i]*100
-  print(temp)
-  plt.plot(temp, y, linewidth=1)
-  plt.pause(0.1)
+count = 1
+flag = True
 
-plt.ioff()
+plt.figure()
+ax = plt.gca()
+x = np.arange(20)
+plt.figure()
+ax2 = plt.gca()
+
+while flag:
+    plt.ion()
+    y = pow(x[:count], 2)
+    temp = x[:count]
+    ax.plot(temp, y, linewidth=1)
+    plt.pause(1)
+    plt.ioff()
+
+    ax2.plot(x, x+count)
+    count += 1
+    if count > 20:
+        break
+
 plt.show() 
 

@@ -5,6 +5,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 import time
+import matplotlib.pyplot as plt
 import pickle
 import sys
 import os
@@ -104,7 +105,14 @@ def train(arglist):
 		saver = tf.train.Saver(max_to_keep=model_number)
 		episodes_rewards = [0.0]  # 每个元素为在一个episode中所有agents rewards的和
 		agent_rewards = [[0.0] for _ in range(env.n)]  # agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
-
+		final_ep_rewards = []  # sum of rewards for training curve
+		final_ep_rewards_sum = tf.Variable([0.0], name="final_ep_rewards")
+		final_ep_rewards_sum_op = tf.summary.scalar('final_ep_r', final_ep_rewards_sum)
+		final_ep_rewards_sum_ph = tf.placeholder(tf.float32, shape=None)
+		final_ep_rewards_sum_assign_op = final_ep_rewards_sum.assign(final_ep_rewards_sum_ph)
+		
+		final_ep_ag_rewards = []  # agent rewards for training curve
+		
 		energy_consumptions_for_test = []
 		j_index = []
 		aver_cover = []
@@ -116,9 +124,6 @@ def train(arglist):
 		# 1.5 episode局部变量初始化
 		local_steps = np.zeros(num_tasks)  # local timesteps for each env
 		t_start = time.time()
-		
-		final_ep_rewards = []  # sum of rewards for training curve
-		final_ep_ag_rewards = []  # agent rewards for training curve
 		
 		energy_one_episode = []
 		j_index_one_episode = []
@@ -148,6 +153,8 @@ def train(arglist):
 					history_n[i][j].add(obs_n_list[i][j])
 		
 		# 2.训练
+		plt.figure()
+		ax = plt.gca()
 		print('Starting iterations...')
 		while True:
 			# 2.1,在num_tasks个任务上进行采样
@@ -243,8 +250,8 @@ def train(arglist):
 					# - efficiency
 					energy_efficiency.append(
 						aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
-					print('Task %d, episode: %d - energy_consumptions: %s ' % (task_index, policy_step / arglist.max_episode_len,
-																	  str(env._get_energy_origin())))
+					print('Task %d, episode: %d - energy_consumptions: %s ' %
+									(task_index, policy_step / arglist.max_episode_len, str(env.get_energy_origin())))
 					
 					# 重置每个episode中的局部变量--------------------------------------------
 					energy_one_episode = []
@@ -259,40 +266,58 @@ def train(arglist):
 					route = []
 				
 				# save model, display training output
-				if terminal and (len(episodes_rewards) % arglist.save_rate == 0):
-					episode_number_name = global_steps[i] / arglist.max_episode_len
-					save_dir_custom = arglist.save_dir + str(episode_number_name) + '/'
+				episode_number = len(episodes_rewards)
+				if terminal and (episode_number % arglist.save_rate == 0):
+					save_dir_custom = arglist.save_dir + str(episode_number) + '/'
 					U.save_state(save_dir_custom, saver=saver)
 					# print statement depends on whether or not there are adversaries
+					# 最新save_rate个episode的平均reward
+					save_rate_mean_reward = np.mean(episodes_rewards[-arglist.save_rate:])
 					if num_adversaries == 0:
 						print("steps: {}, episodes: {}, mean episode reward: {}, time: {}".format(
-							global_steps[i], len(episodes_rewards), np.mean(episodes_rewards[-arglist.save_rate:]),
+							global_steps[i], episode_number, save_rate_mean_reward,
 							round(time.time() - t_start, 3)))
 					else:
 						print("steps: {}, episodes: {}, mean episode reward: {}, agent episode reward: {}, time: {}".format(
-							global_steps[i], len(episodes_rewards), np.mean(episodes_rewards[-arglist.save_rate:]),
+							global_steps[i], episode_number, save_rate_mean_reward,
 							[np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards], round(time.time() - t_start, 3)))
+					
 					t_start = time.time()
-					# 最新save_rate个episode的平均reward
-					final_ep_rewards.append(np.mean(episodes_rewards[-arglist.save_rate:]))
+					
+					final_ep_rewards.append(save_rate_mean_reward)
 					for rew in agent_rewards:
 						final_ep_ag_rewards.append(np.mean(rew[-arglist.save_rate:]))
-					# 保存训练曲线
+						
+					# summary reward
+					tf.get_default_session().run(
+						final_ep_rewards_sum_assign_op,
+						feed_dict={final_ep_rewards_sum_ph: save_rate_mean_reward}
+					)
+					tf.get_default_session().run(final_ep_rewards_sum_op)
+					
+					# 绘制reward曲线
+					plt.ion()
+					ax.plot(np.arange(0, episode_number, arglist.save_rate), final_ep_rewards)
+					plt.xlabel("episode number")
+					plt.ylabel("reward")
+					plt.ioff()
+					# 保存train曲线
 					if arglist.draw_picture_train:
-						episode_number_name = global_steps[task_index] / arglist.max_episode_len
 						model_name = arglist.save_dir.split('/')[-2] + '/'
 						draw_util.draw_episode(
-							episode_number_name,
+							episode_number,
 							arglist.pictures_dir_train + model_name,
-							aver_cover, j_index,
-							instantaneous_accmulated_reward, instantaneous_dis,
-							instantaneous_out_the_map, len(aver_cover)
+							aver_cover,
+							j_index,
+							instantaneous_accmulated_reward,
+							instantaneous_dis,
+							instantaneous_out_the_map,
+							len(aver_cover)
 						)
-				
+
 				# saves final episode reward for plotting training curve later
-				if len(episodes_rewards) > arglist.num_episodes:
-					file_name = "mean_reward"
-					print('...Finished total of {} episodes.'.format(len(episodes_rewards)))
+				if episode_number > arglist.num_episodes:
+					print('...Finished total of {} episodes.'.format(episode_number))
 					break
 				
 

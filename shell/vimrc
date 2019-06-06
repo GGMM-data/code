@@ -1,7 +1,13 @@
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4	
+			
 " 打开文件类型检测
 filetype on
 " 根据不同的文件类型加载插件
 filetype plugin on
+set ignorecase
 
 " 定义前缀键
 " let mappleader=";"
@@ -10,24 +16,41 @@ filetype plugin on
 vnoremap ; "+
 nnoremap ; "+
 nmap ;p "+p
+nnoremap <C-C> "+y
+vnoremap <C-C> "+y
 
+" 删除#号开头
+nnoremap ;d3 :g/^#.*$/d<CR>
+nnoremap ;d# :g/^#.*$/d<CR>
+" 删除空行
+nnoremap ;ds :g/^\s*$/d<CR>
+" 删除以tab开头的tab
+nnoremap ;rt :0,$s/^\t//g<CR>
+" 用\^代替^
+nnoremap ;r6 :0,$s/\^/\\^/g<CR>
+nnoremap ;r^ :0,$s/\^/\\^/g<CR>
+"
+nnoremap ;r/ :0,$s/\\\\/\\\\\\\\/g<CR>
+nnoremap ;r? :0,$s/\\\\/\\\\\\\\/g<CR>
+
+" 给选中行加注释
+" cnoremap <C-#> s/^/# /g<CR>
+nmap ;ic :s/^/# /g<CR>
+vmap ;ic :s/^/# /g<CR>
+nmap ;rc :s/^# //g<CR>
+vmap ;rc :s/^# //g<CR>
+"vmap <C-#> :s/^/#/g<CR>
+"nmap <C-#> :s/^/#/g<CR>
 
 """ 状态栏设置
 " 总是显示状态栏
 set laststatus=2
 " 状态信息
 set statusline=%f%m%r%h%w\ %=#%n\ [%{&fileformat}:%{(&fenc==\"\"?&enc:&fenc).((exists(\"\+bomb\")\ &&\ &bomb)?\"\+B\":\"\").\"\"}:%{strlen(&ft)?&ft:'**'}]\ [%c,%l/%L]\ %p%%
-"set statusline=%l/%L\L
-"set statusline=%F\ %l,%c %L
-"set statusline=%<%F\ %h%m%r%y%=%-14.(%l,%c%V%)\ %P,%L 
-"set statusline=%<%f%=\ [%1*%M%*%n%R%H]\ %-19(%3l,%02c%03V%)%O'%02b'
 
 """光标设置
 " 设置显示光标当前位置
 set ruler
-" 光标信息
-" set rulerformat=%43(%=%m%r%h%w#%n\ [%{&fileformat}:%{(&fenc==\"\"?&enc:&fenc).((exists(\"\+bomb\")\ &&\ &bomb)?\"\+B\":\"\").\"\"}:%{strlen(&ft)?&ft:'**'}]\ [%L\\%l,%c]\ %p%%%)
-
 
 " 开启行号显示
 set number
@@ -42,19 +65,10 @@ set hlsearch
 syntax enable
 " 允许用指定语法高亮配色方案替换默认方案
 syntax on
-" 自适应不同语言的智能缩进
-filetype indent on
 " 将制表符扩展为空格
-set expandtab
 " 设置编辑时制表符占用空格数
-set tabstop=4
 " 设置格式化时制表符占用空格数
-set shiftwidth=4
 " 让 vim 把连续数量的空格视为一个制表符
-set softtabstop=4
+set autoindent
+set paste	
 
-set completeopt=longest,menu
-set paste
-
-
-set clipboard=unnamed

@@ -11,6 +11,7 @@ Distral/code/envs/.ipynb_checkpoints/*
 tf/ops/tf_summary/
 tf/op/saver_restore/checkpoint/
 tf/model/MNIST-data/
+tools/matplotlib/pics/
 # delete all .idea files
 **/.idea/
 # delete all pycache files
