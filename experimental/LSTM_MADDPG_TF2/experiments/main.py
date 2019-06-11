@@ -198,7 +198,7 @@ def train(arglist):
 				
 				# 2.3，优化actor
 				policy_step += 1
-				print("policy steps: ", policy_step)
+				# print("policy steps: ", policy_step)
 				for actor, critic in zip(policy, model_list[task_index]):
 					actor.add_critic(critic.name)
 					actor.update(policy, policy_step)
@@ -250,8 +250,14 @@ def train(arglist):
 					# - efficiency
 					energy_efficiency.append(
 						aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
-					print('Task %d, episode: %d - energy_consumptions: %s ' %
-									(task_index, policy_step / arglist.max_episode_len, str(env.get_energy_origin())))
+					print('Task %d, episode: %d - energy_consumptions: %s , energy efficiency : %s.' %
+							(
+								task_index,
+								policy_step / arglist.max_episode_len,
+								str(env.get_energy_origin()),
+								str(energy_efficiency[-1])
+							)
+						  )
 					
 					# 重置每个episode中的局部变量--------------------------------------------
 					energy_one_episode = []
