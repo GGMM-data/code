@@ -5,4 +5,8 @@
 - install.sh	重装系统后一些软件的配置
 - sumofn	输入一个数n，求1+...+n的和
 - check_dir 输入一个目录，检测该目录是否存在，如果不存在就创建该目录，否则删除该目录。
-
+- outputtime_minutes.sh 每分钟输出当前时间
+- for   for循环
+- while     while循环
+- if    if语句
+- hole  测试当前ssh tunnel是否中断，中断后重连

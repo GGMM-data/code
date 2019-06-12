@@ -24,6 +24,7 @@ def parse_args():
 	parser.add_argument("--batch-size", type=int, default=1024, help="number of episodes to optimize at the same time")
 	parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
 	parser.add_argument("--buffer-size", type=int, default=100, help="buffer capacity")
+	parser.add_argument("--num-task", type=int, default=4, help="number of tasks")
 	# rnn 长度
 	parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
 	parser.add_argument("--model-dir", type=str, default="./tmp/policy_gamma_0.80_batch_1024_neural_160_batch_75/",
@@ -70,7 +71,7 @@ def parse_args():
 def train(arglist):
 	with U.single_threaded_session():
 		# 1.初始化
-		num_tasks = 4		# 总共有多少个任务
+		num_tasks = arglist.num_task		# 总共有多少个任务
 		list_of_taskenv = []		# env list
 
 		# 1.1创建一个actor

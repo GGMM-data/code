@@ -262,16 +262,12 @@ class MultiAgentEnv(gym.Env):
         energy_delta_rate = np.sum(self.energy - self.old_energy) * 1.0 / (self.SUE_ENERGY * self.uav)
         # every step coverage increment
         self.coverage_delta = 0
-        self.tmp = np.zeros([self.size, self.size], dtype=np.int8)
-
         for x in range(self.size):
             for y in range(self.size):
                 cov = self._is_covered(self.PoI[x * self.size + y])
                 if cov > 0:
-                    if self._get_matrix(x, y, self.tmp) != 1:
-                        self._add_matrix(x, y, self.final, 1)   # final每个step加1,至多max_epoch
-                        self.coverage_delta += 1    # 当前step覆盖了多少个cell
-                    self._set_matrix(x, y, self.tmp, 1  )
+                    self._add_matrix(x, y, self.final, 1)   # final每个step加1,至多max_epoch
+                    self.coverage_delta += 1    # 当前step覆盖了多少个cell
                 # M 每项最多是1
                 self._set_matrix(x, y, self.M,
                                   float(self._get_matrix(x, y, self.final)) / self.max_epoch
@@ -307,7 +303,6 @@ class MultiAgentEnv(gym.Env):
         self.energy = np.zeros(self.uav)
         self.M = np.zeros((self.size, self.size))
         self.final = np.zeros((self.size, self.size), dtype=np.int64)
-        self.tmp = np.zeros([self.size, self.size], dtype=np.int8)
         self.agents_pos = []
         for agent in self.agents:
             loc_x = agent.state.p_pos[0] * self.map_scale_rate
