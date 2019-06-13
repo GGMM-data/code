@@ -142,7 +142,7 @@ def train(arglist):
 		obs_n_list = []
 		for i in range(num_tasks):
 			obs_n = list_of_taskenv[i].reset()
-			list_of_taskenv[i].set_map(sample_map("chengdu_" + str(i+1) + ".h5"))
+			list_of_taskenv[i].set_map(sample_map("../data/chengdu_" + str(i+1) + ".h5"))
 			obs_n_list.append(obs_n)
 		
 		# 1.7 生成maddpg 加上rnn之后的输入seq，
@@ -196,7 +196,7 @@ def train(arglist):
 				for critic in model_list[task_index]:
 					critic.preupdate()
 				for critic in model_list[task_index]:
-					critic.update(model_list[task_index], global_steps[i])
+					critic.update(model_list[task_index], global_steps[task_index])
 				
 				# 2.3，优化actor
 				policy_step += 1
@@ -231,7 +231,7 @@ def train(arglist):
 				if done or terminal:
 					# 重置局部变量
 					obs_n_list[task_index] = env.reset()		# 重置env
-					list_of_taskenv[task_index].set_map(sample_map("chengdu_" + str(i + 1) + ".h5"))
+					list_of_taskenv[task_index].set_map(sample_map("../data/chengdu_" + str(i + 1) + ".h5"))
 					local_steps[task_index] = 0		# 重置局部计数器
 					episodes_rewards.append(0)		# 添加新的元素
 					for rew in agent_rewards:

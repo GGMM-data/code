@@ -39,23 +39,7 @@ class MADDPGAgentTrainer(AgentTrainer):
             local_q_func=local_q_func,
             num_units=args.num_units
         )
-        # self.obs_ph_n = obs_ph_n
-        # self.act_space_n = act_space_n
-        # self.model = model
-        # self.lstm_model = lstm_model
-        # self.local_q_func = local_q_func
-        # self.act, self.p_update, self.p_debug = p_act(
-        #     scope=self.name,
-        #     make_obs_ph_n=self.obs_ph_n,
-        #     act_space_n=self.act_space_n,
-        #     p_index=self.agent_index,
-        #     p_func=self.model,
-        #     lstm_model=self.lstm_model,
-        #     args=self.args,
-        #     reuse=False,
-        #     num_units=self.args.num_units
-        # )
-        # Create experience buffer
+
         self.replay_buffer = ReplayBuffer(args, obs_shape_n[0], act_space_n[0].n)
         self.max_replay_buffer_len = args.batch_size * args.max_episode_len
         self.replay_sample_index = None

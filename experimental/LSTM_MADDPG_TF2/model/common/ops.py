@@ -33,7 +33,7 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
         # 创建观测placeholder
         obs_ph_n = make_obs_ph_n  # set up placeholders
         # batch size的placeholder
-        observation_n = lstm_model(obs_ph_n, args.history_length, batch_size=batch_size, scope="lstm", reuse=False)
+        observation_n = lstm_model(obs_ph_n, scope="lstm", reuse=False)
         act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action" + str(i)) for i in range(len(act_space_n))]
         target_ph = tf.placeholder(tf.float32, [None], name="target")  # 在运行时计算，然后传入，只跟loss有关
         # 所有智能体的obs和action
@@ -79,7 +79,7 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
         # 创建observation的placeholder # list of [batch_size, dim, time_step]
         obs_ph_n = make_obs_ph_n
         # 所有智能体的obs, list of [batch_size, state_dim]
-        observation_n = lstm_model(obs_ph_n, args.history_length, batch_size=batch_size, reuse=reuse, scope="lstm")
+        observation_n = lstm_model(obs_ph_n, reuse=reuse, scope="lstm")
         # 当前智能体的局部obs, [batch_size, state_dim]
         p_input = observation_n[p_index]
         
@@ -127,7 +127,7 @@ def p_train(make_obs_ph_n, act_space_n, critic_scope, p_index, p_func, q_func, l
         # action的placeholder, list of [batch_size, action_dim
         act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action"+str(i)) for i in range(len(act_space_n))]
         # 所有智能体的obs, list of [batch_size, state_dim]
-        observation_n = lstm_model(obs_ph_n, args.history_length, batch_size=batch_size, reuse=reuse, scope="lstm")
+        observation_n = lstm_model(obs_ph_n, reuse=reuse, scope="lstm")
         # 当前智能体的局部obs, [batch_size, state_dim]
         p_input = observation_n[p_index]
        

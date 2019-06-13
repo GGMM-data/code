@@ -16,11 +16,11 @@ def sample_map(path):
     map = np.sum(data[index], 2)
     return map
 
+
 # lstm模型
 # inputs: list of [batch_size, dim, time_step]
-def lstm_model(inputs, history_length, batch_size, reuse=False, layers_number=2, scope="l", rnn_cell=None):
+def lstm_model(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
     shape = inputs[0].shape
-    lstm_size = shape[1]
     observation_n = []
     for i in range(len(inputs)):
         obs = inputs[i]
@@ -29,9 +29,22 @@ def lstm_model(inputs, history_length, batch_size, reuse=False, layers_number=2,
                 reuse = False
             else:
                 reuse = True
+        x = []
+        # dimension reduction 3096->1024->256
         with tf.variable_scope(scope, reuse=reuse):
-            x = obs
-            x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size,state_size)
+            for j in range(shape[2]):
+                flreuse = True
+                if not reuse and j == 0:
+                    flreuse = False
+                out = layers.fully_connected(obs[:, :, j], num_outputs=num_units * 4, activation_fn=tf.nn.relu,
+                                             scope="dimension_reduction_first_layer", reuse=flreuse)
+                out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu,
+                                             scope="dimension_reduction_second_layer", reuse=flreuse)
+                x.append(tf.expand_dims(out, 2))
+            x = tf.concat(x, 2)
+            lstm_size = x.shape[1]
+
+            x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size, state_size)
             lstm_cell = rnn.BasicLSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
             cell = rnn.MultiRNNCell([lstm_cell] * layers_number, state_is_tuple=True)
             with tf.variable_scope("Multi_Layer_RNN"):
