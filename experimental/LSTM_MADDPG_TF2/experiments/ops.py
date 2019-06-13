@@ -17,6 +17,13 @@ def sample_map(path):
     return map
 
 
+def dimension_reduction(inputs, num_units=256, scope="dimension_reduction", reuse=None):
+    with tf.variable_scope(scope, reuse=reuse):
+        out = layers.fully_connected(inputs, num_outputs=num_units * 4, activation_fn=tf.nn.relu)
+        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
+        return out
+
+
 # lstm模型
 # inputs: list of [batch_size, dim, time_step]
 def lstm_model(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
@@ -24,26 +31,26 @@ def lstm_model(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
     observation_n = []
     for i in range(len(inputs)):
         obs = inputs[i]
-        if not reuse:
-            if i == 0:
-                reuse = False
-            else:
-                reuse = True
+        if not reuse and i == 0:
+            reuse = False
+        else:
+            reuse = True
         x = []
-        # dimension reduction 3096->1024->256
         with tf.variable_scope(scope, reuse=reuse):
             for j in range(shape[2]):
-                flreuse = True
-                if not reuse and j == 0:
-                    flreuse = False
+                dr_reuse = True
+                if j == 0 and not reuse:
+                    dr_reuse = False
                 out = layers.fully_connected(obs[:, :, j], num_outputs=num_units * 4, activation_fn=tf.nn.relu,
-                                             scope="dimension_reduction_first_layer", reuse=flreuse)
+                                             scope="first", reuse=dr_reuse)
                 out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu,
-                                             scope="dimension_reduction_second_layer", reuse=flreuse)
+                                             scope="second", reuse=dr_reuse)
                 x.append(tf.expand_dims(out, 2))
             x = tf.concat(x, 2)
             lstm_size = x.shape[1]
 
+        # dimension reduction 3096->1024->256
+        with tf.variable_scope(scope, reuse=reuse):
             x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size, state_size)
             lstm_cell = rnn.BasicLSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
             cell = rnn.MultiRNNCell([lstm_cell] * layers_number, state_is_tuple=True)
@@ -56,7 +63,6 @@ def lstm_model(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
 
 
 def q_model(inputs, num_outputs, scope, reuse=False,  num_units=64):
-
     # This model takes as input an observation and returns values of all actions
     with tf.variable_scope(scope, reuse=reuse):
         out = inputs

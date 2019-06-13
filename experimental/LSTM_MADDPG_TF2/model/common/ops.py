@@ -32,8 +32,8 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
         act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]
         # 创建观测placeholder
         obs_ph_n = make_obs_ph_n  # set up placeholders
-        # batch size的placeholder
-        observation_n = lstm_model(obs_ph_n, scope="lstm", reuse=False)
+        # 在这里进行dimension reduction
+        observation_n = lstm_model(obs_ph_n, scope="lstm", reuse=reuse)
         act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action" + str(i)) for i in range(len(act_space_n))]
         target_ph = tf.placeholder(tf.float32, [None], name="target")  # 在运行时计算，然后传入，只跟loss有关
         # 所有智能体的obs和action
@@ -47,7 +47,8 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
         q_loss = tf.reduce_mean(tf.square(q - target_ph))  # mse loss
         q_reg = tf.reduce_mean(tf.square(q))
         loss = q_loss  # + 1e-3 * q_reg
-        optimize_expr = U.minimize_and_clip(optimizer, loss, q_func_vars + lstm_func_vars, grad_norm_clipping)
+        # optimize_expr = U.minimize_and_clip(optimizer, loss, q_func_vars + lstm_func_vars, grad_norm_clipping)
+        optimize_expr = U.minimize_and_clip(optimizer, loss, q_func_vars, grad_norm_clipping)
         # ===============q network建图结束=====================
         
         # 创建可调用函数

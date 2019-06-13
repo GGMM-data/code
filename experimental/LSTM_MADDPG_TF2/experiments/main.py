@@ -22,9 +22,9 @@ def parse_args():
 	parser.add_argument("--batch-size", type=int, default=1024, help="number of episodes to optimize at the same time")
 	parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
 	parser.add_argument("--buffer-size", type=int, default=100, help="buffer capacity")
-	parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
+	parser.add_argument("--num-task", type=int, default=2, help="number of tasks")
 	# rnn 长度
-	parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
+	parser.add_argument('--history_length', type=int, default=2, help="how many history states were used")
 	parser.add_argument("--model-dir", type=str, default="./tmp/policy_gamma_0.80_batch_1024_neural_160_batch_75/",
 						help="directory in which training state and model should be saved")
 	
@@ -158,6 +158,7 @@ def train(arglist):
 		plt.figure()
 		ax = plt.gca()
 		print('Starting iterations...')
+		step_start_time = time.time()
 		while True:
 			# 2.1,在num_tasks个任务上进行采样
 			for task_index in range(num_tasks):
@@ -200,7 +201,7 @@ def train(arglist):
 				
 				# 2.3，优化actor
 				policy_step += 1
-				# print("policy steps: ", policy_step)
+				print("policy steps: ", policy_step)
 				for actor, critic in zip(policy, model_list[task_index]):
 					actor.add_critic(critic.name)
 					actor.update(policy, policy_step)
@@ -227,6 +228,13 @@ def train(arglist):
 					tmp = [s_route[route_i], s_route[route_i + 1]]
 					route.append(tmp)
 				
+				#
+				step_end_time = time.time()
+				step_time = step_end_time - step_start_time
+				step_start_time = step_end_time
+				if policy_step == 4:
+					print("hhh")
+				print(str(policy_step), " step time: ", round(step_time, 3))
 				# 当前episode结束是否结束
 				if done or terminal:
 					# 重置局部变量

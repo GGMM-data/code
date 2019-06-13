@@ -80,12 +80,12 @@ class MADDPGAgentTrainer(AgentTrainer):
 
     def update(self, agents, t):
         # 这个就是训练actor的，
-        if len(self.replay_buffer) <= self.replay_buffer.history_length:
+        # if len(self.replay_buffer) <= self.replay_buffer.history_length:
+        #     return
+        if len(self.replay_buffer) < self.max_replay_buffer_len: # replay buffer is not large enough
             return
-        # if len(self.replay_buffer) < self.max_replay_buffer_len: # replay buffer is not large enough
-        #     return
-        # if not t % 100 == 0:  # only update every 100 steps
-        #     return
+        if not t % 100 == 0:  # only update every 100 steps
+            return
 
         # collect replay sample from all agents
         obs_n = []  # 长度为n的list，list每隔元素为[batch_size, state_size, history_length]
