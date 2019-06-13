@@ -14,6 +14,7 @@ tf/model/MNIST-data/
 tools/matplotlib/pics/
 # delete all .idea files
 **/.idea/
+**/**.pyc
 # delete all pycache files
 **/__pycache__/
 experimental/LSTM_MADDPG_TF2/data/
