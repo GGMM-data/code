@@ -1,8 +1,0 @@
-begin_long : 108.93
-end_long : 108.97
-begin_lati : 34.24
-end_lati : 34.28
-begin_time : 1475251200
-end_time : 1480521599
-time_interval : 1800
-m = n = 32
