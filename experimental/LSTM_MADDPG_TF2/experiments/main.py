@@ -6,15 +6,13 @@ import numpy as np
 import tensorflow as tf
 import time
 import matplotlib.pyplot as plt
-import pickle
-import sys
-import os
+import h5py
 
 import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
 from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
 from experimental.LSTM_MADDPG_TF2.experiments.uav_statistics import draw_util
 from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
-from experimental.LSTM_MADDPG_TF2.experiments.ops import make_env, lstm_model, q_model, mlp_model, get_trainers
+from experimental.LSTM_MADDPG_TF2.experiments.ops import make_env, get_trainers, sample_map
 
 
 def parse_args():
@@ -24,7 +22,7 @@ def parse_args():
 	parser.add_argument("--batch-size", type=int, default=1024, help="number of episodes to optimize at the same time")
 	parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
 	parser.add_argument("--buffer-size", type=int, default=100, help="buffer capacity")
-	parser.add_argument("--num-task", type=int, default=4, help="number of tasks")
+	parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
 	# rnn 长度
 	parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
 	parser.add_argument("--model-dir", type=str, default="./tmp/policy_gamma_0.80_batch_1024_neural_160_batch_75/",
@@ -76,6 +74,7 @@ def train(arglist):
 
 		# 1.1创建一个actor
 		env = make_env(arglist.scenario, arglist, arglist.benchmark)
+		env.set_map(sample_map("../data/chengdu_1.h5"))
 		obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
 		num_adversaries = min(env.n, arglist.num_adversaries)
 		policy = get_trainers(env, "pi_0_", num_adversaries, obs_shape_n, arglist, is_actor=True, acotr=None)
@@ -88,7 +87,8 @@ def train(arglist):
 			trainers = get_trainers(list_of_taskenv[i], "task_"+str(i+1)+"_", num_adversaries,
 										obs_shape_n,  arglist, is_actor=False, acotr=policy)
 			model_list.append(trainers)
-		
+		for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+			print(var)
 		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 		U.initialize()
 		
@@ -142,6 +142,7 @@ def train(arglist):
 		obs_n_list = []
 		for i in range(num_tasks):
 			obs_n = list_of_taskenv[i].reset()
+			list_of_taskenv[i].set_map(sample_map("chengdu_" + str(i+1) + ".h5"))
 			obs_n_list.append(obs_n)
 		
 		# 1.7 生成maddpg 加上rnn之后的输入seq，
@@ -230,6 +231,7 @@ def train(arglist):
 				if done or terminal:
 					# 重置局部变量
 					obs_n_list[task_index] = env.reset()		# 重置env
+					list_of_taskenv[task_index].set_map(sample_map("chengdu_" + str(i + 1) + ".h5"))
 					local_steps[task_index] = 0		# 重置局部计数器
 					episodes_rewards.append(0)		# 添加新的元素
 					for rew in agent_rewards:

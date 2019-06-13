@@ -48,12 +48,15 @@ class MultiAgentEnv(gym.Env):
         self.radius = getattr(FLAGS, 'radius') ** 2
         self.max_epoch = getattr(FLAGS, 'max_epoch')
         self.map_scale_rate = getattr(FLAGS, 'map_scale_rate')
+        self.threshold = getattr(FLAGS, 'map_threshold')
 
+        self.map = np.zeros((self.size, self.size))
         self.PoI = []
+        base = - (self.size - 1)/2
         for i in range(self.size):
             for j in range(self.size):
-                self.PoI.append([-4.5 + i, -4.5 + j])
-        # ???
+                self.PoI.append([base + i, base + j])
+        # self.size * self.size
         self.M = np.zeros((self.size, self.size))
         self.final = np.zeros((self.size, self.size), dtype=np.int64)
 
@@ -118,7 +121,7 @@ class MultiAgentEnv(gym.Env):
         else:
             self.viewers = [None] * self.n
         self._reset_render()
-
+        
     def _is_covered(self, pos):
         for uav in self.agents_pos:
             if self._get_distance(pos, uav) <= self.radius:
@@ -310,6 +313,11 @@ class MultiAgentEnv(gym.Env):
             self.agents_pos.append([loc_x, loc_y])
         # map reset end-------------------------------------------------------------------------------------------------
         return obs_n
+
+    def set_map(self, target_map):
+        self.map = target_map + 1   # change 0 to 1
+        self.map[self.map < self.threshold] = self.threshold
+        self.map = self.map / np.sum(self.map)
 
     # get info used for benchmarking
     def _get_info(self, agent):

@@ -3,7 +3,18 @@ from experimental.LSTM_MADDPG_TF2.model.trainer.maddpg_actor import MADDPGAgentT
 from experimental.LSTM_MADDPG_TF2.model.trainer.maddpg_critic import MADDPGAgentTrainer as MADDPG_CRITIC
 import tensorflow.nn.rnn_cell as rnn
 import tensorflow.contrib.layers as layers
+import h5py
+import numpy as np
 
+
+def sample_map(path):
+    f = h5py.File(path, "r")
+    data = f['data'][:]
+    f.close()
+    data_shape = data.shape
+    index = np.random.randint(0, data_shape[0])
+    map = np.sum(data[index], 2)
+    return map
 
 # lstm模型
 # inputs: list of [batch_size, dim, time_step]

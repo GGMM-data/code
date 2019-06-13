@@ -8,7 +8,6 @@ import numpy as np
 def multi_layer_lstm(x, batch_size, reuse=True):
     time_steps = 28
 
-    
     # (batch_size, time_steps, lstm_size)
     # (time_steps, batch_size,, input_size)
     # x = tf.transpose(x, (1, 0, 2))
@@ -31,6 +30,7 @@ def multi_layer_lstm(x, batch_size, reuse=True):
 
     output_size = 10
     lstm_size = 28
+    # lstm_size = 5
     layers = 2
     x = tf.transpose(x, (1, 0, 2))
     lstm_cell = rnn.LSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
@@ -40,7 +40,6 @@ def multi_layer_lstm(x, batch_size, reuse=True):
     outputs = tf.convert_to_tensor(outputs[-1:, :, :])
     outputs = tf.squeeze(outputs, 0)
     return tf.layers.dense(outputs, output_size, activation=tf.nn.relu, use_bias=True)
-
 
 def train():
 
@@ -56,6 +55,8 @@ def train():
     y = tf.placeholder(tf.float32, [None, 10])
 
     predicted_y = multi_layer_lstm(x, batch_size, reuse=False)
+    for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+        print(var)
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=predicted_y, labels=y))
     optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.9).minimize(loss)
 
