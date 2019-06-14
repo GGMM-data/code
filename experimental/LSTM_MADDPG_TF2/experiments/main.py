@@ -22,28 +22,32 @@ def parse_args():
 	parser.add_argument("--batch-size", type=int, default=40, help="number of episodes to optimize at the same time")
 	parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
 	parser.add_argument("--buffer-size", type=int, default=100, help="buffer capacity")
-	parser.add_argument("--num-task", type=int, default=2, help="number of tasks")
+	parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
 	# rnn 长度
-	parser.add_argument('--history_length', type=int, default=2, help="how many history states were used")
-	parser.add_argument("--model-dir", type=str, default="./tmp/policy_gamma_0.80_batch_1024_neural_160_batch_75/",
-						help="directory in which training state and model should be saved")
+	parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
+	parser.add_argument("--data-path", type=str, default="../data/chengdu",
+						help="directory in which map data are saved")
+	
+	parser.add_argument("--load-dir", type=str, default="",
+						help="directory in which models are saved")
+	parser.add_argument("--save-dir", type=str, default="./tmp/",
+						help="directory in which models are saved")
 	
 	# Environment
 	parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
-	parser.add_argument("--max-episode-len", type=int, default=5, help="maximum episode length")
+	parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
 	parser.add_argument("--num-episodes", type=int, default=4000, help="number of episodes")
 	parser.add_argument("--num-adversaries", type=int, default=0, help="number of adversaries")
 	parser.add_argument("--good-policy", type=str, default="maddpg", help="policy for good agents")
 	parser.add_argument("--adv-policy", type=str, default="maddpg", help="policy of adversaries")
 	
 	# Core training parameters
+	parser.add_argument("--save-rate", type=int, default=100,
+						help="save model once every time this many episodes are completed")
 	parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
 	# Checkpoint
 	parser.add_argument("--exp-name", type=str, default="simple_uav", help="name of the experiment")
-	parser.add_argument("--save-rate", type=int, default=100,
-						help="save model once every time this many episodes are completed")
-	parser.add_argument("--load-dir", type=str, default="./tmp/policy_f_1_u_7_r_3_c_5_with_wall/2599/",
-						help="directory in which training state and model are loaded")
+	
 	# Evaluation
 	parser.add_argument("--restore", action="store_true", default=False)
 	parser.add_argument("--display", action="store_true", default=False)
@@ -68,13 +72,20 @@ def parse_args():
 
 def train(arglist):
 	with U.single_threaded_session():
+		params = ["num_task", "history_length", "max_episode_len", "num_episodes",
+				  "batch_size", "gamma", "buffer_size", "num_units"]
+		save_path = arglist.save_dir + "policy"
+		dict_arg = vars(arglist)
+		for param in params:
+			save_path = save_path + "_" + param + "_" + str(dict_arg[param])
+		save_path += "/"
 		# 1.初始化
 		num_tasks = arglist.num_task		# 总共有多少个任务
 		list_of_taskenv = []		# env list
 
 		# 1.1创建一个actor
 		env = make_env(arglist.scenario, arglist, arglist.benchmark)
-		env.set_map(sample_map("../data/chengdu_1.h5"))
+		env.set_map(sample_map(arglist.data_path + "_1.h5"))
 		obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
 		num_adversaries = min(env.n, arglist.num_adversaries)
 		policy = get_trainers(env, "pi_0_", num_adversaries, obs_shape_n, arglist, is_actor=True, acotr=None)
@@ -87,14 +98,16 @@ def train(arglist):
 			trainers = get_trainers(list_of_taskenv[i], "task_"+str(i+1)+"_", num_adversaries,
 										obs_shape_n,  arglist, is_actor=False, acotr=policy)
 			model_list.append(trainers)
-		for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-			print(var)
+		
+		# for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+		# 	print(var)
+		
 		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 		U.initialize()
 		
 		# 1.3生成模型保存或者恢复文件夹目录
 		if arglist.load_dir == "":
-			arglist.load_dir = arglist.save_dir
+			arglist.load_dir = save_path
 		if arglist.display or arglist.restore or arglist.benchmark:
 			print('Loading previous state...')
 			U.load_state(arglist.load_dir)
@@ -107,9 +120,9 @@ def train(arglist):
 		episodes_rewards = [0.0]  # 每个元素为在一个episode中所有agents rewards的和
 		agent_rewards = [[0.0] for _ in range(env.n)]  # agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
 		final_ep_rewards = []  # sum of rewards for training curve
-		final_ep_rewards_sum = tf.Variable([0.0], name="final_ep_rewards")
+		final_ep_rewards_sum = tf.Variable(0.0, name="final_ep_rewards")
 		final_ep_rewards_sum_op = tf.summary.scalar('final_ep_r', final_ep_rewards_sum)
-		final_ep_rewards_sum_ph = tf.placeholder(tf.float32, shape=None)
+		final_ep_rewards_sum_ph = tf.placeholder(tf.float32, shape=None, name="sum")
 		final_ep_rewards_sum_assign_op = final_ep_rewards_sum.assign(final_ep_rewards_sum_ph)
 		
 		final_ep_ag_rewards = []  # agent rewards for training curve
@@ -142,7 +155,7 @@ def train(arglist):
 		obs_n_list = []
 		for i in range(num_tasks):
 			obs_n = list_of_taskenv[i].reset()
-			list_of_taskenv[i].set_map(sample_map("../data/chengdu_" + str(i+1) + ".h5"))
+			list_of_taskenv[i].set_map(sample_map(arglist.data_path + "_" + str(i+1) + ".h5"))
 			obs_n_list.append(obs_n)
 		
 		# 1.7 生成maddpg 加上rnn之后的输入seq，
@@ -163,7 +176,7 @@ def train(arglist):
 		plt.figure()
 		ax = plt.gca()
 		print('Starting iterations...')
-		step_start_time = time.time()
+		# step_start_time = time.time()
 		while True:
 			# 2.1,在num_tasks个任务上进行采样
 			for task_index in range(num_tasks):
@@ -205,8 +218,8 @@ def train(arglist):
 					critic.update(model_list[task_index], global_steps[task_index])
 				
 				# 2.3，优化actor
-				policy_step += 1
-				print("policy steps: ", policy_step)
+				# policy_step += 1
+				# print("policy steps: ", policy_step)
 				for actor, critic in zip(policy, model_list[task_index]):
 					actor.change_p(critic.p)
 					actor.update(policy, policy_step)
@@ -234,15 +247,15 @@ def train(arglist):
 					route.append(tmp)
 				
 				#
-				step_end_time = time.time()
-				step_time = step_end_time - step_start_time
-				step_start_time = step_end_time
-				print(str(policy_step), " step time: ", round(step_time, 3))
+				# step_end_time = time.time()
+				# step_time = step_end_time - step_start_time
+				# step_start_time = step_end_time
+				# print(str(policy_step), " step time: ", round(step_time, 3))
 				# 当前episode结束是否结束
 				if done or terminal:
 					# 重置局部变量
 					obs_n_list[task_index] = env.reset()		# 重置env
-					list_of_taskenv[task_index].set_map(sample_map("../data/chengdu_" + str(task_index + 1) + ".h5"))
+					list_of_taskenv[task_index].set_map(sample_map(arglist.data_path + "_" + str(task_index + 1) + ".h5"))
 					local_steps[task_index] = 0		# 重置局部计数器
 					episodes_rewards.append(0)		# 添加新的元素
 					for rew in agent_rewards:
@@ -265,13 +278,12 @@ def train(arglist):
 					energy_efficiency.append(
 						aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
 					print('Task %d, episode: %d - energy_consumptions: %s , energy efficiency : %s.' %
-							(
-								task_index,
-								policy_step / arglist.max_episode_len,
-								str(list_of_taskenv[task_index].get_energy_origin()),
-								str(energy_efficiency[-1])
+							(task_index,
+							policy_step / arglist.max_episode_len,
+							str(list_of_taskenv[task_index].get_energy_origin()),
+							str(energy_efficiency[-1])
 							)
-						  )
+					)
 					
 					# 重置每个episode中的局部变量--------------------------------------------
 					energy_one_episode = []
@@ -288,18 +300,18 @@ def train(arglist):
 				# save model, display training output
 				episode_number = len(episodes_rewards)
 				if terminal and (episode_number % arglist.save_rate == 0):
-					save_dir_custom = arglist.save_dir + str(episode_number) + '/'
+					save_dir_custom = save_path + str(episode_number) + '/'
 					U.save_state(save_dir_custom, saver=saver)
 					# print statement depends on whether or not there are adversaries
 					# 最新save_rate个episode的平均reward
 					save_rate_mean_reward = np.mean(episodes_rewards[-arglist.save_rate:])
 					if num_adversaries == 0:
 						print("steps: {}, episodes: {}, mean episode reward: {}, time: {}".format(
-							global_steps[i], episode_number, save_rate_mean_reward,
+							global_steps[task_index], episode_number, save_rate_mean_reward,
 							round(time.time() - t_start, 3)))
 					else:
 						print("steps: {}, episodes: {}, mean episode reward: {}, agent episode reward: {}, time: {}".format(
-							global_steps[i], episode_number, save_rate_mean_reward,
+							global_steps[task_index], episode_number, save_rate_mean_reward,
 							[np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards], round(time.time() - t_start, 3)))
 					
 					t_start = time.time()
@@ -309,6 +321,8 @@ def train(arglist):
 						final_ep_ag_rewards.append(np.mean(rew[-arglist.save_rate:]))
 						
 					# summary reward
+					print(save_rate_mean_reward.shape)
+					print(final_ep_rewards_sum_ph.shape)
 					tf.get_default_session().run(
 						final_ep_rewards_sum_assign_op,
 						feed_dict={final_ep_rewards_sum_ph: save_rate_mean_reward}

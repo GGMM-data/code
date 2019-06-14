@@ -21,4 +21,11 @@ experimental/LSTM_MADDPG_TF2/data/
 maddpg/experiments/result_pictures/
 maddpg/experiments/benchmark_files/
 maddpg/experiments/learning_curves/
+maddpg/experiments/uav_statistics/
 maddpg/experiments/tmp/
+experimental/LSTM_MADDPG_TF2/experiments/result_pictures/
+experimental/LSTM_MADDPG_TF2/experiments/benchmark_files/
+experimental/LSTM_MADDPG_TF2/experiments/learning_curves/
+experimental/LSTM_MADDPG_TF2/experiments/uav_statistics/
+experimental/LSTM_MADDPG_TF2/experiments/tmp/
+

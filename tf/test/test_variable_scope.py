@@ -20,7 +20,7 @@ for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
 with tf.Session() as sess:
     sess.run(init_op)
     for i in range(4):
-        outputs = sess.run(y, feed_dict={x: inputs})
+        outputs = sess.run(y, feed_dict={xx: inputs})
         print(len(outputs))
 
     
