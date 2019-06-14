@@ -1,12 +1,21 @@
-- bashrc	自定义的shell命令
-- vimrc		自定义的vim配置
-- vim_regex		常用的vim正则命令
-- delete_null_dir.sh 删除当前目录下的空文件夹
-- install.sh	重装系统后一些软件的配置
-- sumofn	输入一个数n，求1+...+n的和
-- check_dir 输入一个目录，检测该目录是否存在，如果不存在就创建该目录，否则删除该目录。
-- outputtime_minutes.sh 每分钟输出当前时间
-- for   for循环
-- while     while循环
-- if    if语句
-- hole  测试当前ssh tunnel是否中断，中断后重连
+1. bashrc	自定义的shell命令
+2. vimrc		自定义的vim配置
+3. logical  逻辑语句
+4. if       if语句
+5. for      for语句
+6. while    while语句
+7. until    until语句
+8. case     case语句
+9. add    判断是否为空
+10. list_file    @变量表示命令行传入参数
+11. read_char    从键盘读入数据
+12. pause   用read实现暂停功能
+13. sumofn	输入一个数n，求1+...+n的和
+14. check_dir 输入一个目录，检测该目录是否存在，如果不存在就创建该目录，否则删除该目录。
+15. file_count  统计一个目录下的文件数量（不包含目录）
+16. outputtime_minutes.sh 每分钟输出当前时间
+17. delete_null_dir.sh 删除当前目录下的空文件夹
+18. vim_regex		常用的vim正则命令
+19. install.sh	重装系统后一些软件的配置
+20. hole  测试当前ssh tunnel是否中断，中断后重连
+21. cudnn 将cudnn移动到/usr/bin相应路径中去

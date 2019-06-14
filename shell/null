@@ -1,9 +1,0 @@
-#! /bin/bash
-
-read password
-if  [ -z "$password" ]
-then 
-	echo "Please enter the password"
-	read password
-	echo "Great"
-fi

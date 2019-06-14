@@ -1,0 +1,15 @@
+#! /bin/bash
+
+number=1
+let number=$number+1
+echo $number
+
+number=$[$number+1]
+echo $number
+
+number=$[$number + 1]
+echo $number
+
+number=$[ $number + 1 ]
+echo $number
+

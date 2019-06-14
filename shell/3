@@ -1,0 +1,75 @@
+#! /bin/bash
+
+# test方式和 []方式
+# 大于,,, test方式
+if test 1 -ge 0
+then
+    echo "1 ge 0"
+else
+    echo "false"
+fi
+
+# 小于,,,,[]方式
+if [ 0 -lt 1 ]
+then
+    echo "0 lt 1"
+fi
+
+# 等于=
+if [ "AAA" = "aaa" ]
+then 
+	echo "AAA = aaa"
+else 
+	echo "AAA != aaa"
+fi
+
+if [ "AAA" = "AAA" ]
+then 
+	echo "AAA = AAA"
+else 
+	echo "AAA != AAA"
+fi
+
+# 是否文件
+if test -f 1_vimrc
+then
+    echo "1_vimrc is a file"
+else
+    echo "false"
+fi
+
+# 是否目录
+if test -d /home/
+then
+    echo "/home/ is a dir"
+else
+    echo "false"
+fi
+
+# 变量是否为空
+if  [ -z "$money" ]
+then 
+	echo "money is null."
+fi
+
+# 逻辑非
+money=100
+if  [ ! -z "$money" ]
+then 
+	echo "money is not null."
+fi
+
+# 逻辑与
+if [ ! -z "$money" -a -d /home/ ]
+then
+	echo "money is not null and /home/ is dir"
+else
+    echo "False"
+fi
+
+# 逻辑或
+if [ -z "$money" -o -d /home/ ]
+then
+	echo "money is null or /home/ is dir"
+fi
+

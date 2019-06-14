@@ -1,9 +1,5 @@
 #! /bin/bash
 
-ls -l
-
 echo "Press any key to continue"
-
 read
-
 echo "END"
