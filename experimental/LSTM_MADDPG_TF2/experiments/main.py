@@ -19,7 +19,7 @@ def parse_args():
 	parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
 
 	parser.add_argument("--gamma", type=float, default=0.80, help="discount factor")
-	parser.add_argument("--batch-size", type=int, default=1024, help="number of episodes to optimize at the same time")
+	parser.add_argument("--batch-size", type=int, default=40, help="number of episodes to optimize at the same time")
 	parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
 	parser.add_argument("--buffer-size", type=int, default=100, help="buffer capacity")
 	parser.add_argument("--num-task", type=int, default=2, help="number of tasks")
@@ -30,7 +30,7 @@ def parse_args():
 	
 	# Environment
 	parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
-	parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
+	parser.add_argument("--max-episode-len", type=int, default=5, help="maximum episode length")
 	parser.add_argument("--num-episodes", type=int, default=4000, help="number of episodes")
 	parser.add_argument("--num-adversaries", type=int, default=0, help="number of adversaries")
 	parser.add_argument("--good-policy", type=str, default="maddpg", help="policy for good agents")
@@ -153,7 +153,12 @@ def train(arglist):
 				history_n[i].append(history)
 				for _ in range(arglist.history_length):
 					history_n[i][j].add(obs_n_list[i][j])
-		
+		# 1.8
+		for task_index in range(num_tasks):
+			for actor, critic in zip(policy, model_list[task_index]):
+				actor.add_p(critic.name)
+				critic.p = actor.p_train
+				
 		# 2.训练
 		plt.figure()
 		ax = plt.gca()
@@ -203,7 +208,7 @@ def train(arglist):
 				policy_step += 1
 				print("policy steps: ", policy_step)
 				for actor, critic in zip(policy, model_list[task_index]):
-					actor.add_critic(critic.name)
+					actor.change_p(critic.p)
 					actor.update(policy, policy_step)
 				
 				# 2.4 记录和更新train信息
@@ -232,14 +237,12 @@ def train(arglist):
 				step_end_time = time.time()
 				step_time = step_end_time - step_start_time
 				step_start_time = step_end_time
-				if policy_step == 4:
-					print("hhh")
 				print(str(policy_step), " step time: ", round(step_time, 3))
 				# 当前episode结束是否结束
 				if done or terminal:
 					# 重置局部变量
 					obs_n_list[task_index] = env.reset()		# 重置env
-					list_of_taskenv[task_index].set_map(sample_map("../data/chengdu_" + str(i + 1) + ".h5"))
+					list_of_taskenv[task_index].set_map(sample_map("../data/chengdu_" + str(task_index + 1) + ".h5"))
 					local_steps[task_index] = 0		# 重置局部计数器
 					episodes_rewards.append(0)		# 添加新的元素
 					for rew in agent_rewards:
@@ -265,7 +268,7 @@ def train(arglist):
 							(
 								task_index,
 								policy_step / arglist.max_episode_len,
-								str(env.get_energy_origin()),
+								str(list_of_taskenv[task_index].get_energy_origin()),
 								str(energy_efficiency[-1])
 							)
 						  )

@@ -116,7 +116,7 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
 
 
 # 优化actor用的是policy gradient,怎么用到critic,把所有任务的performance measure加起来？？？把scope传进来就ok了。
-def p_train(make_obs_ph_n, act_space_n, critic_scope, p_index, p_func, q_func, lstm_model, optimizer,
+def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_model, optimizer,
             args, grad_norm_clipping=None, local_q_func=False, num_units=64, scope="trainer", reuse=None):
     with tf.variable_scope(scope, reuse=reuse):
         # batch size的placeholder, []
@@ -151,10 +151,10 @@ def p_train(make_obs_ph_n, act_space_n, critic_scope, p_index, p_func, q_func, l
             q_input = tf.concat([obs_ph_n[p_index], act_input_n[p_index]], 1)
         # 计算Q(s,a), [batch_size,]
 
-    with tf.variable_scope(critic_scope, reuse=reuse):
+    with tf.variable_scope(p_scope, reuse=reuse):
         q = q_func(q_input, 1, scope="q_func", reuse=reuse, num_units=num_units)[:, 0]
 
-    with tf.variable_scope(scope + "_" + critic_scope, reuse=False):
+    with tf.variable_scope(scope + "_" + p_scope, reuse=False):
         pg_loss = - tf.reduce_mean(q)    # policy gradient loss ???
         loss = pg_loss + p_reg * 1e-3   # 使用每一个critic计算的loss都是不同的，第一次需要建图，以后就不需要了
         # p网络的优化器。

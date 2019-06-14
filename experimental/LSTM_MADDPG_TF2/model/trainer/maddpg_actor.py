@@ -48,14 +48,12 @@ class MADDPGAgentTrainer(AgentTrainer):
         self.max_replay_buffer_len = args.batch_size * args.max_episode_len
         self.replay_sample_index = None
         
-    def add_critic(self, critic_scope):
-        self.critic_scope = critic_scope
-
+    def add_p(self, p_scope):
         self.p_train = p_train(
             scope=self.name,
             make_obs_ph_n=self.obs_ph_n,
             act_space_n=self.act_space_n,
-            critic_scope=self.critic_scope,
+            p_scope=p_scope,
             p_index=self.agent_index,
             p_func=self.model,
             q_func=self.model,
@@ -67,6 +65,9 @@ class MADDPGAgentTrainer(AgentTrainer):
             num_units=self.args.num_units,
             reuse=True
         )
+    
+    def change_p(self, p):
+        self.p_train = p
         
     def action(self, obs, batch_size):
         return self.act(*(obs + batch_size))[0]
