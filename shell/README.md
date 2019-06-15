@@ -19,3 +19,4 @@
 19. install.sh	重装系统后一些软件的配置
 20. hole  测试当前ssh tunnel是否中断，中断后重连
 21. cudnn 将cudnn移动到/usr/bin相应路径中去
+22. ss     自动化配置ss服务端

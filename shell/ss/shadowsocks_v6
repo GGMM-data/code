@@ -1,0 +1,34 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          apache2
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Required-Stop:     $local_fs $remote_fs $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: apache2 service
+# Description:       apache2 service daemon
+### END INIT INFO
+start(){
+  ssserver -c /etc/shadowsocks_v6.json -d start --pid-file ss1.pid
+}
+stop(){
+  ssserver -c /etc/shadowsocks_v6.json -d stop --pid-file ss1.pid
+
+}
+case "$1" in
+start)
+  start
+  ;;
+stop)
+  stop
+  ;;
+restart)
+  stop
+  start
+  ;;
+*)
+  echo "Uasage: $0 {start|reload|stop}$"
+  exit 1
+  ;;
+esac
+
