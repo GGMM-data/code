@@ -247,14 +247,6 @@ def train(arglist):
 					route.append(tmp)
 				
 				if done or terminal:
-					# 重置局部变量
-					obs_n_list[task_index] = env.reset()		# 重置env
-					list_of_taskenv[task_index].set_map(sample_map(arglist.data_path + "_" + str(task_index + 1) + ".h5"))
-					local_steps[task_index] = 0		# 重置局部计数器
-					episodes_rewards.append(0)		# 添加新的元素
-					for rew in agent_rewards:
-						rew.append(0)
-					
 					# 记录每个episode的变量
 					# - energy
 					energy_consumptions_for_test.append(energy_one_episode[-1])
@@ -295,6 +287,15 @@ def train(arglist):
 					episode_reward_step = 0
 					accmulated_reward_one_episode = []
 					route = []
+					
+					# 重置局部变量
+					obs_n_list[task_index] = list_of_taskenv[task_index].reset()  # 重置env
+					list_of_taskenv[task_index].set_map(
+						sample_map(arglist.data_path + "_" + str(task_index + 1) + ".h5"))
+					local_steps[task_index] = 0  # 重置局部计数器
+					episodes_rewards.append(0)  # 添加新的元素
+					for rew in agent_rewards:
+						rew.append(0)
 				
 				# save model, display training output
 				episode_number = len(episodes_rewards)

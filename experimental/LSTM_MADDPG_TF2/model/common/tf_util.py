@@ -173,7 +173,7 @@ def make_session(num_cpu):
 
 def single_threaded_session():
     """Returns a session which will only use a single CPU"""
-    return make_session(1)
+    return make_session(10)
 
 
 ALREADY_INITIALIZED = set()
