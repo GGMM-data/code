@@ -176,7 +176,7 @@ def train(arglist):
 		plt.figure()
 		ax = plt.gca()
 		print('Starting iterations...')
-		# step_start_time = time.time()
+		episode_start_time = time.time()
 		while True:
 			# 2.1,在num_tasks个任务上进行采样
 			for task_index in range(num_tasks):
@@ -246,12 +246,6 @@ def train(arglist):
 					tmp = [s_route[route_i], s_route[route_i + 1]]
 					route.append(tmp)
 				
-				#
-				# step_end_time = time.time()
-				# step_time = step_end_time - step_start_time
-				# step_start_time = step_end_time
-				# print(str(policy_step), " step time: ", round(step_time, 3))
-				# 当前episode结束是否结束
 				if done or terminal:
 					# 重置局部变量
 					obs_n_list[task_index] = env.reset()		# 重置env
@@ -277,11 +271,16 @@ def train(arglist):
 					# - efficiency
 					energy_efficiency.append(
 						aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
-					print('Task %d, episode: %d - energy_consumptions: %s , energy efficiency : %s.' %
+					episode_end_time = time.time()
+					episode_time = episode_end_time - episode_start_time
+					episode_start_time = episode_end_time
+					# print(str(policy_step), " step time: ", round(step_time, 3))
+					print('Task %d, episode: %d - energy_consumptions: %s , energy efficiency : %s, time : %s.' %
 							(task_index,
-							policy_step / arglist.max_episode_len,
+							global_steps[task_index] / arglist.max_episode_len,
 							str(list_of_taskenv[task_index].get_energy_origin()),
-							str(energy_efficiency[-1])
+							str(energy_efficiency[-1]),
+							str(round(episode_time, 3))
 							)
 					)
 					
