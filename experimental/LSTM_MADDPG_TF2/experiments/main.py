@@ -166,7 +166,7 @@ def train(arglist):
 				history_n[i].append(history)
 				for _ in range(arglist.history_length):
 					history_n[i][j].add(obs_n_list[i][j])
-		# 1.8
+		# 1.8 create p_train
 		for task_index in range(num_tasks):
 			for actor, critic in zip(policy, model_list[task_index]):
 				actor.add_p(critic.name)
