@@ -289,7 +289,7 @@ def train(arglist):
             # save model, display training output
             if terminal and (len(episode_rewards) % arglist.save_rate == 0):
                 episode_number_name = train_step / arglist.max_episode_len
-                save_dir_custom = arglist.save_dir + str(episode_number_name) + '/'
+                save_dir_custom = arglist.save_dir + "/"+ str(episode_number_name) + '/'
                 # save_dir
                 U.save_state(save_dir_custom, saver=saver)
                 # print statement depends on whether or not there are adversaries
