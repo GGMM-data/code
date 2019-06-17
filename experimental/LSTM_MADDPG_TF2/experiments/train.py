@@ -8,6 +8,7 @@ import time
 import matplotlib.pyplot as plt
 import h5py
 import sys
+import os
 sys.path.append("/home/mxxmhh/mxxhcm/code/")
 
 import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
@@ -81,6 +82,8 @@ def train(arglist):
 		for param in params:
 			save_path = save_path + "_" + param + "_" + str(dict_arg[param])
 		save_path += "/"
+		if os.path.exists(save_path):
+			os.makedirs(save_path)
 		# 1.初始化
 		num_tasks = arglist.num_task		# 总共有多少个任务
 		list_of_taskenv = []		# env list
@@ -356,5 +359,6 @@ def train(arglist):
 				
 
 # if __name__ == '__main__':
+# 	os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 # 	arglist = parse_args()
 # 	train(arglist)

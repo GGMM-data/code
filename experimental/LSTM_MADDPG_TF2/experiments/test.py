@@ -7,6 +7,7 @@ import tensorflow as tf
 import time
 import matplotlib.pyplot as plt
 import h5py
+import os
 
 import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
 from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
@@ -356,5 +357,6 @@ def train(arglist):
 				
 
 if __name__ == '__main__':
+	os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 	arglist = parse_args()
 	train(arglist)
