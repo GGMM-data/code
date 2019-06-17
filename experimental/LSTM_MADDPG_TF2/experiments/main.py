@@ -284,10 +284,10 @@ def train(arglist):
 					
 					# 绘制reward曲线
 					plt.ion()
-					axes[task_index].plot(np.arange(0, episode_number), energy_efficiency[task_index][-1])
+					axes[task_index].plot(np.arange(0, episode_number), energy_efficiency[task_index])
 					plt.xlabel("episode number")
 					plt.ylabel("energy efficiency")
-					plt.savefig("")
+					plt.savefig(save_path + "task_" + str(task_index) + "_efficiency.png")
 					plt.ioff()
 					
 					# 重置每个episode中的局部变量--------------------------------------------
