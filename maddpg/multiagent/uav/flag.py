@@ -4,10 +4,10 @@ import numpy as np
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('num_uav', 7, 'the number of UAVS')
-flags.DEFINE_integer('size_map', 10, 'the size of map')
-flags.DEFINE_float('radius', 3., 'sensing range')
-flags.DEFINE_float('constrain', 5., 'connectivity constraint between 2 uavs')
+flags.DEFINE_integer('num_uav', 6, 'the number of UAVS')
+flags.DEFINE_integer('size_map', 32, 'the size of map')	
+flags.DEFINE_float('radius', 6., 'sensing range')
+flags.DEFINE_float('constrain', 10., 'connectivity constraint between 2 uavs')
 flags.DEFINE_integer('max_epoch', 500, 'the max epoch')
 flags.DEFINE_float('max_speed', 1., 'max value of speed')
 flags.DEFINE_float('factor', 1.0, 'energy(honor) / energy(max distance)')

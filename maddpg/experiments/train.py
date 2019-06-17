@@ -6,31 +6,29 @@ import tensorflow as tf
 import time
 import pickle
 import sys
-sys.path.append("/home/lirhea/maddpg/")
+sys.path.append("/home/mxxmhh/mxxhcm/code/maddpg/")
+
 import maddpg_.common.tf_util as U
 from maddpg_.trainer.maddpg import MADDPGAgentTrainer
 import tensorflow.contrib.layers as layers
 from uav_statistics import draw_util
 from multiagent.uav.flag import FLAGS
+import matplotlib.pyplot as plt
 
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
 
-    ########I
-    # to change
     # Core training parameters
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
     parser.add_argument("--gamma", type=float, default=0.83, help="discount f  rractor")
     parser.add_argument("--batch-size", type=int, default=1024, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
-    #parser.add_argument("--save-dir", type=str, default="./tmp/uav_8/",
-                        #help="directory in which training state and model should be saved")
-    parser.add_argument("--save-dir", type=str, default="./tmp/num_uav_"+str(FLAGS.num_uav)+"_radius_"+str(FLAGS.radius)
-                                                        +"_factor_"+str(FLAGS.factor),
-                         help="directory in which training state and model should be saved")
-    # #
-    #######
+    parser.add_argument("--save-dir", type=str, default="./tmp/num_uav_"+str(FLAGS.num_uav)
+                                                        + "_radius_"+str(FLAGS.radius)
+                                                        + "_factor_"+str(FLAGS.factor)
+                                                        + "_constrain_" + str(FLAGS.constrain),
+                        help="directory in which training state and model should be saved")
 
     # Environment
     parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
@@ -40,14 +38,12 @@ def parse_args():
     parser.add_argument("--good-policy", type=str, default="maddpg", help="policy for good agents")
     parser.add_argument("--adv-policy", type=str, default="maddpg", help="policy of adversaries")
 
-    # Checkpointing
-    parser.add_argument("--exp-name", type=str, default="simple_uav", help="name of the experiment")
-
-
-    parser.add_argument("--save-rate", type=int, default=100, help="save model once every time this many episodes are completed")
-    # parser.add_argument("--load-dir", type=str, default="./tmp/policy/", help="directory in which training state and model are loaded")
+    #
     parser.add_argument("--load-dir", type=str, default="./tmp/policy_f_1_u_7_r_3_c_5_with_wall/2599/",
                         help="directory in which training state and model are loaded")
+    parser.add_argument("--exp-name", type=str, default="simple_uav", help="name of the experiment")
+    parser.add_argument("--save-rate", type=int, default=100,
+                        help="save model once every time this many episodes are completed")
     # Evaluation
     parser.add_argument("--restore", action="store_true", default=False)
     parser.add_argument("--display", action="store_true", default=False)
@@ -55,8 +51,10 @@ def parse_args():
     parser.add_argument("--draw-picture-train", action="store_true", default=True)
     parser.add_argument("--draw-picture-test", action="store_true", default=False)
     parser.add_argument("--benchmark-iters", type=int, default=100000, help="number of iterations run for benchmarking")
-    parser.add_argument("--benchmark-dir", type=str, default="./benchmark_files/", help="directory where benchmark data is saved")
-    parser.add_argument("--plots-dir", type=str, default="./learning_curves/", help="directory where plot data is saved")
+    parser.add_argument("--benchmark-dir", type=str, default="./benchmark_files/",
+                        help="directory where benchmark data is saved")
+    parser.add_argument("--plots-dir", type=str, default="./learning_curves/",
+                        help="directory where plot data is saved")
     parser.add_argument("--pictures-dir-train", type=str, default="./result_pictures/train/",
                         help="directory where result pictures data is saved")
     parser.add_argument("--pictures-dir-test", type=str, default="./result_pictures/test/",
@@ -64,6 +62,7 @@ def parse_args():
 
     # custom parameters for uav
     return parser.parse_args()
+
 
 def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=None):
     # This model takes as input an observation and returns values of all actions
@@ -73,6 +72,7 @@ def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=Non
         out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
         out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
         return out
+
 
 def make_env(scenario_name, arglist, benchmark=False):
     from multiagent.environment_uav import MultiAgentEnv
@@ -88,6 +88,7 @@ def make_env(scenario_name, arglist, benchmark=False):
     else:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
+
 
 def get_trainers(env, num_adversaries, obs_shape_n, arglist):
     trainers = []
@@ -123,6 +124,8 @@ def train(arglist):
         if arglist.display or arglist.restore or arglist.benchmark:
             print('Loading previous state...')
             U.load_state(arglist.load_dir)
+        if not os.path.exists(arglist.save_dir):
+            os.makedirs(arglist.save_dir)
 
         episode_rewards = [0.0]  # sum of rewards for all agents
         agent_rewards = [[0.0] for _ in range(env.n)]  # individual agent reward
@@ -169,6 +172,7 @@ def train(arglist):
             model_name = model_name + 'random/'
 
         print('Starting iterations...')
+        ax = plt.gca()
         episode_begin_time = time.time()
         while True:
             # get action
@@ -212,9 +216,17 @@ def train(arglist):
                 energy_consumptions_for_test.append(energy_one_episode[-1])
                 energy_efficiency.append(aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
                 episode_end_time = time.time()
-
-                print('Episode: %d - energy_consumptions: %s time %s' % (train_step / arglist.max_episode_len,
+                
+                # plot fig
+                plt.ion()
+                plt.pause(0.01)
+                ax.plot(np.arange(1, train_step/arglist.max_episode_len+1), energy_efficiency)
+                plt.ioff()
+                plt.savefig(arglist.save_dir + "/efficiency.png")
+                # plt fig
+                print('Episode: %d - energy_consumptions: %s, efficiency: %s, time %s' % (train_step / arglist.max_episode_len,
                                                             str(env._get_energy_origin()),
+                                                            str(energy_efficiency[-1]),
                                                             str(round(episode_end_time - episode_begin_time, 3))))
                 episode_begin_time = episode_end_time
                 # draw picture of this episode
@@ -289,7 +301,7 @@ def train(arglist):
             # save model, display training output
             if terminal and (len(episode_rewards) % arglist.save_rate == 0):
                 episode_number_name = train_step / arglist.max_episode_len
-                save_dir_custom = arglist.save_dir + "/"+ str(episode_number_name) + '/'
+                save_dir_custom = arglist.save_dir + "/" + str(episode_number_name) + '/'
                 # save_dir
                 U.save_state(save_dir_custom, saver=saver)
                 # print statement depends on whether or not there are adversaries
@@ -323,7 +335,9 @@ def train(arglist):
                     pickle.dump(final_ep_ag_rewards, fp)
                 print('...Finished total of {} episodes.'.format(len(episode_rewards)))
                 break
-
+        plt.show()
+        
+        
 if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     arglist = parse_args()

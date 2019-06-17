@@ -16,12 +16,13 @@ while flag:
     temp = x[:count]
     ax.plot(temp, y, linewidth=1)
     plt.pause(1)
+    plt.savefig("8_1.png")
     plt.ioff()
 
     ax2.plot(x, x+count)
+    plt.savefig("8_2.png")
     count += 1
     if count > 20:
         break
 
 plt.show() 
-
