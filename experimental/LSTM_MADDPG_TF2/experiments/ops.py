@@ -136,9 +136,3 @@ def clipped_error(x):
     return tf.where(tf.abs(x) < 1.0, 0.5 * tf.square(x), tf.abs(x) - 0.5)
 
 
-
-
-
-
-
-
