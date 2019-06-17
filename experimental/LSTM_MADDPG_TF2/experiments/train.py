@@ -82,7 +82,7 @@ def train(arglist):
 		for param in params:
 			save_path = save_path + "_" + param + "_" + str(dict_arg[param])
 		save_path += "/"
-		if os.path.exists(save_path):
+		if not os.path.exists(save_path):
 			os.makedirs(save_path)
 		# 1.初始化
 		num_tasks = arglist.num_task		# 总共有多少个任务
