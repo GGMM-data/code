@@ -4,23 +4,22 @@ import numpy as np
 count = 1
 flag = True
 
-plt.figure()
-ax = plt.gca()
+figures = [plt.figure(), plt.figure(), plt.figure()]
+
+axes = []
+for fig in figures:
+    axes.append(fig.gca())
 x = np.arange(20)
-plt.figure()
-ax2 = plt.gca()
 
 while flag:
-    plt.ion()
-    y = pow(x[:count], 2)
-    temp = x[:count]
-    ax.plot(temp, y, linewidth=1)
-    plt.pause(1)
-    plt.savefig("8_1.png")
-    plt.ioff()
-
-    ax2.plot(x, x+count)
-    plt.savefig("8_2.png")
+    for i in range(3):
+        plt.ion()
+        y = pow(x[:count], 2)
+        temp = x[:count]
+        axes[i].plot(temp, y, linewidth=1)
+        plt.pause(5)
+        plt.savefig("8_" +str(i) + ".png")
+        plt.ioff()
     count += 1
     if count > 20:
         break

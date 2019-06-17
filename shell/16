@@ -1,3 +1,7 @@
 #! /bin/bash
-time=`date`
-echo $time >> /home/mxxmhh/test.log
+while true
+do
+    time=`date`
+    echo $time >> ~/test.log
+    sleep 10
+done

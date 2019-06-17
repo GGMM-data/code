@@ -7,8 +7,6 @@ import tensorflow as tf
 import time
 import matplotlib.pyplot as plt
 import h5py
-import sys
-sys.path.append("/home/mxxmhh/mxxhcm/code/")
 
 import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
 from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
@@ -119,21 +117,23 @@ def train(arglist):
 		policy_step = 0		# 记录actor训练的步数
 		model_number = int(arglist.num_episodes / arglist.save_rate)
 		saver = tf.train.Saver(max_to_keep=model_number)
+		episodes_rewards = [0.0]  # 每个元素为在一个episode中所有agents rewards的和
+		agent_rewards = [[0.0] for _ in range(env.n)]  # agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
+		final_ep_rewards = []  # sum of rewards for training curve
+		final_ep_rewards_sum = tf.Variable(0.0, name="final_ep_rewards")
+		final_ep_rewards_sum_op = tf.summary.scalar('final_ep_r', final_ep_rewards_sum)
+		final_ep_rewards_sum_ph = tf.placeholder(tf.float32, shape=None, name="sum")
+		final_ep_rewards_sum_assign_op = final_ep_rewards_sum.assign(final_ep_rewards_sum_ph)
 		
-		episodes_rewards = [[0.0] for _ in range(num_tasks)]  # 每个元素为在一个episode中所有agents rewards的和
-		# agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
-		agent_rewards = [[[0.0] for _ in range(env.n)] for _ in range(num_tasks)]
-		
-		final_ep_rewards = [[] for _ in range(num_tasks)]  # sum of rewards for training curve
 		final_ep_ag_rewards = []  # agent rewards for training curve
 		
-		energy_consumptions_for_test = [[] for _ in range(num_tasks)]
-		j_index = [[] for _ in range(num_tasks)]
-		aver_cover = [[] for _ in range(num_tasks)]
-		instantaneous_dis = [[] for _ in range(num_tasks)]
-		instantaneous_out_the_map = [[] for _ in range(num_tasks)]
-		energy_efficiency = [[] for _ in range(num_tasks)]
-		instantaneous_accmulated_reward = [[] for _ in range(num_tasks)]
+		energy_consumptions_for_test = []
+		j_index = []
+		aver_cover = []
+		instantaneous_dis = []
+		instantaneous_out_the_map = []
+		energy_efficiency = []
+		instantaneous_accmulated_reward = []
 		
 		# 1.5 episode局部变量初始化
 		local_steps = np.zeros(num_tasks)  # local timesteps for each env
@@ -166,20 +166,15 @@ def train(arglist):
 				history_n[i].append(history)
 				for _ in range(arglist.history_length):
 					history_n[i][j].add(obs_n_list[i][j])
-		
 		# 1.8 create p_train
 		for task_index in range(num_tasks):
 			for actor, critic in zip(policy, model_list[task_index]):
 				actor.add_p(critic.name)
 				critic.p = actor.p_train
 				
-		# 1.9 reward figures
-		figures = [plt.figure() for _ in range(num_tasks)]
-		axes = []
-		for fig in figures:
-			axes.append(fig.gca())
-			
 		# 2.训练
+		plt.figure()
+		ax = plt.gca()
 		print('Starting iterations...')
 		episode_start_time = time.time()
 		while True:
@@ -205,11 +200,17 @@ def train(arglist):
 					agent.experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
 				# 更新obs
 				obs_n_list[task_index] = new_obs_n
+
+				# 用于test
+				if arglist.display:
+					time.sleep(0.1)
+					current_env.render()
+					continue
 				
 				# 2.2，优化每一个任务的critic
 				for i, rew in enumerate(rew_n):
-					episodes_rewards[task_index][-1] += rew
-					agent_rewards[task_index][i][-1] += rew
+					episodes_rewards[-1] += rew
+					agent_rewards[i][-1] += rew
 				
 				for critic in model_list[task_index]:
 					critic.preupdate()
@@ -245,50 +246,35 @@ def train(arglist):
 					tmp = [s_route[route_i], s_route[route_i + 1]]
 					route.append(tmp)
 				
-				episode_number = len(episodes_rewards[task_index])
 				if done or terminal:
 					# 记录每个episode的变量
 					# - energy
-					energy_consumptions_for_test[task_index].append(energy_one_episode[task_index][-1])
+					energy_consumptions_for_test.append(energy_one_episode[task_index][-1])
 					# - fairness index
-					j_index[task_index].append(j_index_one_episode[task_index][-1])
+					j_index.append(j_index_one_episode[task_index][-1])
 					# - coverage
-					aver_cover[task_index].append(aver_cover_one_episode[task_index][-1])
+					aver_cover.append(aver_cover_one_episode[task_index][-1])
 					# - disconnected
-					instantaneous_dis[task_index].append(disconnected_number_one_episode[-1])
+					instantaneous_dis.append(disconnected_number_one_episode[-1])
 					# - out of the map
-					instantaneous_out_the_map[task_index].append(over_map_one_episode[task_index][-1])
+					instantaneous_out_the_map.append(over_map_one_episode[task_index][-1])
 					# - reward
-					instantaneous_accmulated_reward[task_index].append(accmulated_reward_one_episode[task_index][-1])
+					instantaneous_accmulated_reward.append(accmulated_reward_one_episode[task_index][-1])
 					# - efficiency
-					energy_efficiency[task_index].append(
+					energy_efficiency.append(
 						aver_cover_one_episode[task_index][-1] * j_index_one_episode[task_index][-1] / energy_one_episode[task_index][-1])
 					episode_end_time = time.time()
 					episode_time = episode_end_time - episode_start_time
 					episode_start_time = episode_end_time
 					# print(str(policy_step), " step time: ", round(step_time, 3))
-					print(
-						'Task %d, '
-						'episode: %d, - '
-						'energy_consumptions: %s,'
-						'energy_efficiency : %s,'
-						'time : %s.' %
-						(
-							task_index,
-							episode_number,
+					print('Task %d, episode: %d - energy_consumptions: %s , energy efficiency : %s, time : %s.' %
+							(task_index,
+							global_steps[task_index] / arglist.max_episode_len,
 							str(current_env.get_energy_origin()),
-							str(energy_efficiency[task_index][-1]),
+							str(energy_efficiency[-1]),
 							str(round(episode_time, 3))
-						)
+							)
 					)
-					
-					# 绘制reward曲线
-					plt.ion()
-					axes[task_index].plot(np.arange(0, episode_number), energy_efficiency[task_index][-1])
-					plt.xlabel("episode number")
-					plt.ylabel("energy efficiency")
-					plt.savefig("")
-					plt.ioff()
 					
 					# 重置每个episode中的局部变量--------------------------------------------
 					energy_one_episode = [[] for _ in range(num_tasks)]
@@ -307,19 +293,18 @@ def train(arglist):
 					current_env.set_map(
 						sample_map(arglist.data_path + "_" + str(task_index + 1) + ".h5"))
 					local_steps[task_index] = 0  # 重置局部计数器
-					
-					# 更新全局变量
-					episodes_rewards[task_index].append(0)  # 添加新的元素
-					for reward in agent_rewards[task_index]:
-						reward.append(0)
+					episodes_rewards.append(0)  # 添加新的元素
+					for rew in agent_rewards:
+						rew.append(0)
 				
 				# save model, display training output
+				episode_number = len(episodes_rewards)
 				if terminal and (episode_number % arglist.save_rate == 0):
 					save_dir_custom = save_path + str(episode_number) + '/'
 					U.save_state(save_dir_custom, saver=saver)
 					# print statement depends on whether or not there are adversaries
 					# 最新save_rate个episode的平均reward
-					save_rate_mean_reward = np.mean(episodes_rewards[task_index][-arglist.save_rate:])
+					save_rate_mean_reward = np.mean(episodes_rewards[-arglist.save_rate:])
 					if num_adversaries == 0:
 						print("steps: {}, episodes: {}, mean episode reward: {}, time: {}".format(
 							global_steps[task_index], episode_number, save_rate_mean_reward,
@@ -331,16 +316,31 @@ def train(arglist):
 					
 					t_start = time.time()
 					
-					final_ep_rewards[task_index].append(save_rate_mean_reward)
-					for rew in agent_rewards[task_index]:
-						final_ep_ag_rewards[task_index].append(np.mean(rew[-arglist.save_rate:]))
+					final_ep_rewards.append(save_rate_mean_reward)
+					for rew in agent_rewards:
+						final_ep_ag_rewards.append(np.mean(rew[-arglist.save_rate:]))
+						
+					# summary reward
+					print(save_rate_mean_reward.shape)
+					print(final_ep_rewards_sum_ph.shape)
+					tf.get_default_session().run(
+						final_ep_rewards_sum_assign_op,
+						feed_dict={final_ep_rewards_sum_ph: save_rate_mean_reward}
+					)
+					tf.get_default_session().run(final_ep_rewards_sum_op)
 					
+					# 绘制reward曲线
+					plt.ion()
+					ax.plot(np.arange(0, episode_number, arglist.save_rate), final_ep_rewards)
+					plt.xlabel("episode number")
+					plt.ylabel("reward")
+					plt.ioff()
 					# 保存train曲线
 					if arglist.draw_picture_train:
 						model_name = save_path.split('/')[-2] + '/'
 						draw_util.draw_episode(
 							episode_number,
-							arglist.pictures_dir_train + model_name + str(task_index) + "/",
+							arglist.pictures_dir_train + model_name,
 							aver_cover,
 							j_index,
 							instantaneous_accmulated_reward,

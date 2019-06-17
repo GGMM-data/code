@@ -219,7 +219,7 @@ def train(arglist):
                 
                 # plot fig
                 plt.ion()
-                plt.pause(0.01)
+                # plt.pause(0.01)
                 ax.plot(np.arange(1, train_step/arglist.max_episode_len+1), energy_efficiency)
                 plt.ioff()
                 plt.savefig(arglist.save_dir + "/efficiency.png")
@@ -335,7 +335,7 @@ def train(arglist):
                     pickle.dump(final_ep_ag_rewards, fp)
                 print('...Finished total of {} episodes.'.format(len(episode_rewards)))
                 break
-        plt.show()
+        # plt.show()
         
         
 if __name__ == '__main__':
