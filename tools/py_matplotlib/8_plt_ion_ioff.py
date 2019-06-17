@@ -17,11 +17,11 @@ while flag:
         y = pow(x[:count], 2)
         temp = x[:count]
         axes[i].plot(temp, y, linewidth=1)
-        plt.pause(5)
+        plt.pause(0.01) # 
         plt.savefig("8_" +str(i) + ".png")
         plt.ioff()
     count += 1
     if count > 20:
         break
 
-plt.show() 
+# plt.show() 
