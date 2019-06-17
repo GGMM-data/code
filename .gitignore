@@ -12,6 +12,7 @@ tf/ops/tf_summary/
 tf/op/saver_restore/checkpoint/
 tf/model/MNIST-data/
 tools/matplotlib/pics/
+tools/matplotlib/*png
 # delete all .idea files
 **/.idea/
 **/**.pyc
