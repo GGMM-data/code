@@ -289,10 +289,10 @@ def train(arglist):
 							episode_number,
 							arglist.pictures_dir_train + model_name + str(task_index) + "/",
 							aver_cover[task_index],
-							j_index,
-							instantaneous_accmulated_reward,
-							instantaneous_dis,
-							instantaneous_out_the_map,
+							j_index[task_index],
+							instantaneous_accmulated_reward[task_index],
+							instantaneous_dis[task_index],
+							instantaneous_out_the_map[task_index],
 							len(aver_cover[task_index])
 						)
 

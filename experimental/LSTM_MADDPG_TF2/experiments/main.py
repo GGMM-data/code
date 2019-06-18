@@ -12,9 +12,9 @@ def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
     
     parser.add_argument("--gamma", type=float, default=0.80, help="discount factor")
-    parser.add_argument("--batch-size", type=int, default=40, help="number of episodes to optimize at the same time")
+    parser.add_argument("--batch-size", type=int, default=512, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
-    parser.add_argument("--buffer-size", type=int, default=100, help="buffer capacity")
+    parser.add_argument("--buffer-size", type=int, default=500000, help="buffer capacity")
     parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
     # rnn 长度
     parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
