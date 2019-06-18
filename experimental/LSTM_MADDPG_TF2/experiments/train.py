@@ -67,9 +67,9 @@ def train(arglist):
 		model_number = int(arglist.num_episodes / arglist.save_rate)
 		saver = tf.train.Saver(max_to_keep=model_number)
 		
-		episodes_rewards = [[0.0] for _ in range(num_tasks)]  # 每个元素为在一个episode中所有agents rewards的和
+		episodes_rewards = [[0.0] for _ in range(num_tasks)] # 每个元素为在一个episode中所有agents rewards的和
 		# agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
-		agent_rewards = [[[0.0] for _ in range(env.n)] for _ in range(num_tasks)]
+		agent_rewards = [[[0.0] for _ in range(env.n)]for _ in range(num_tasks)]
 		
 		final_ep_rewards = [[] for _ in range(num_tasks)]  # sum of rewards for training curve
 		final_ep_ag_rewards = [[] for _ in range(num_tasks)]  # agent rewards for training curve
@@ -168,7 +168,7 @@ def train(arglist):
 				# print("policy steps: ", policy_step)
 				for actor, critic in zip(policy, model_list[task_index]):
 					actor.change_p(critic.p)
-					actor.update(policy, policy_step)
+					actor.update(policy, global_steps[task_index])
 				
 				# 2.4 记录和更新train信息
 				# - energy
@@ -202,7 +202,7 @@ def train(arglist):
 					# - coverage
 					aver_cover[task_index].append(aver_cover_one_episode[task_index][-1])
 					# - disconnected
-					instantaneous_dis[task_index].append(disconnected_number_one_episode[-1])
+					instantaneous_dis[task_index].append(disconnected_number_one_episode[task_index][-1])
 					# - out of the map
 					instantaneous_out_the_map[task_index].append(over_map_one_episode[task_index][-1])
 					# - reward

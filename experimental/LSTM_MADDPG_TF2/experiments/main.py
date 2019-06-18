@@ -23,7 +23,10 @@ def parse_args():
                         help="directory in which models are saved")
     parser.add_argument("--save-dir", type=str, default="./tmp/",
                         help="directory in which models are saved")
-    
+    parser.add_argument("--save-rate", type=int, default=100,
+                        help="save model once every time this many episodes are completed")
+    parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
+
     # Environment
     parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
@@ -35,11 +38,7 @@ def parse_args():
                         help="directory in which map data are saved")
     parser.add_argument("--cnn-format", type=str, default='NHWC', help="cnn_format")
 
-    # Core training parameters
-    parser.add_argument("--save-rate", type=int, default=2,
-                        help="save model once every time this many episodes are completed")
-    parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
-    # Checkpoint
+    # Core training parameters    # Checkpoint
     parser.add_argument("--exp-name", type=str, default="simple_uav", help="name of the experiment")
     
     # Evaluation
