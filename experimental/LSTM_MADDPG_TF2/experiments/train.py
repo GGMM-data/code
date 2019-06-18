@@ -18,65 +18,9 @@ from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
 from experimental.LSTM_MADDPG_TF2.experiments.ops import make_env, get_trainers, sample_map
 
 
-def parse_args():
-	parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
-
-	parser.add_argument("--gamma", type=float, default=0.80, help="discount factor")
-	parser.add_argument("--batch-size", type=int, default=40, help="number of episodes to optimize at the same time")
-	parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
-	parser.add_argument("--buffer-size", type=int, default=100, help="buffer capacity")
-	parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
-	# rnn 长度
-	parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
-	parser.add_argument("--data-path", type=str, default="../data/chengdu",
-						help="directory in which map data are saved")
-	
-	parser.add_argument("--load-dir", type=str, default="",
-						help="directory in which models are saved")
-	parser.add_argument("--save-dir", type=str, default="./tmp/",
-						help="directory in which models are saved")
-	
-	# Environment
-	parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
-	parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
-	parser.add_argument("--num-episodes", type=int, default=4000, help="number of episodes")
-	parser.add_argument("--num-adversaries", type=int, default=0, help="number of adversaries")
-	parser.add_argument("--good-policy", type=str, default="maddpg", help="policy for good agents")
-	parser.add_argument("--adv-policy", type=str, default="maddpg", help="policy of adversaries")
-	
-	# Core training parameters
-	parser.add_argument("--save-rate", type=int, default=100,
-						help="save model once every time this many episodes are completed")
-	parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
-	# Checkpoint
-	parser.add_argument("--exp-name", type=str, default="simple_uav", help="name of the experiment")
-	
-	# Evaluation
-	parser.add_argument("--restore", action="store_true", default=False)
-	parser.add_argument("--display", action="store_true", default=False)
-	parser.add_argument("--benchmark", action="store_true", default=False)
-	parser.add_argument("--draw-picture-train", action="store_true", default=True)
-	parser.add_argument("--draw-picture-test", action="store_true", default=False)
-	parser.add_argument("--benchmark-iters", type=int, default=100000, help="number of iterations run for benchmarking")
-	parser.add_argument("--benchmark-dir", type=str, default="./benchmark_files/",
-						help="directory where benchmark data is saved")
-	parser.add_argument("--plots-dir", type=str, default="./learning_curves/",
-						help="directory where plot data is saved")
-	parser.add_argument("--pictures-dir-train", type=str, default="./result_pictures/train/",
-						help="directory where result pictures data is saved")
-	parser.add_argument("--pictures-dir-test", type=str, default="./result_pictures/test/",
-						help="directory where result pictures data is saved")
-	
-	parser.add_argument("--cnn-format", type=str, default='NHWC', help="cnn_format")
-	
-	# custom parameters for uav
-	return parser.parse_args()
-
-
 def train(arglist):
 	with U.single_threaded_session():
-		params = ["num_task", "history_length", "max_episode_len", "num_episodes",
-				  "batch_size", "gamma", "buffer_size", "num_units"]
+		params = ["num_task", "history_length", "max_episode_len", "num_episodes", "batch_size", "gamma", "buffer_size", "num_units"]
 		save_path = arglist.save_dir + "policy"
 		dict_arg = vars(arglist)
 		for param in params:
@@ -128,7 +72,7 @@ def train(arglist):
 		agent_rewards = [[[0.0] for _ in range(env.n)] for _ in range(num_tasks)]
 		
 		final_ep_rewards = [[] for _ in range(num_tasks)]  # sum of rewards for training curve
-		final_ep_ag_rewards = []  # agent rewards for training curve
+		final_ep_ag_rewards = [[] for _ in range(num_tasks)]  # agent rewards for training curve
 		
 		energy_consumptions_for_test = [[] for _ in range(num_tasks)]
 		j_index = [[] for _ in range(num_tasks)]
@@ -330,7 +274,7 @@ def train(arglist):
 					else:
 						print("steps: {}, episodes: {}, mean episode reward: {}, agent episode reward: {}, time: {}".format(
 							global_steps[task_index], episode_number, save_rate_mean_reward,
-							[np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards], round(time.time() - t_start, 3)))
+							[np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards[task_index]], round(time.time() - t_start, 3)))
 					
 					t_start = time.time()
 					
@@ -344,21 +288,15 @@ def train(arglist):
 						draw_util.draw_episode(
 							episode_number,
 							arglist.pictures_dir_train + model_name + str(task_index) + "/",
-							aver_cover,
+							aver_cover[task_index],
 							j_index,
 							instantaneous_accmulated_reward,
 							instantaneous_dis,
 							instantaneous_out_the_map,
-							len(aver_cover)
+							len(aver_cover[task_index])
 						)
 
 				# saves final episode reward for plotting training curve later
 				if episode_number > arglist.num_episodes:
 					print('...Finished total of {} episodes.'.format(episode_number))
 					break
-				
-
-# if __name__ == '__main__':
-# 	os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-# 	arglist = parse_args()
-# 	train(arglist)
