@@ -17,7 +17,7 @@ class MultiAgentEnv(gym.Env):
     def __init__(self, world, reset_callback=None, reward_callback=None,
                  observation_callback=None, info_callback=None,
                  done_callback=None, shared_viewer=True):
-
+        self.debug = False
         self.world = world
         self.agents = self.world.policy_agents
         # set required vectorized gym env property
@@ -112,7 +112,8 @@ class MultiAgentEnv(gym.Env):
             else:
                 self.action_space.append(total_action_space[0])
             # observation space
-            obs_dim = len(observation_callback(agent, self.world, self.PoI_array, self.M))
+            # obs_dim = len(observation_callback(agent, self.world, self.PoI_array, self.M))
+            obs_dim = len(self._get_obs(self.agents)[0])
             self.observation_space.append(spaces.Box(low=-np.inf, high=+np.inf, shape=(obs_dim,)))
             agent.action.c = np.zeros(self.world.dim_c)
 
@@ -190,14 +191,16 @@ class MultiAgentEnv(gym.Env):
         return dis_con
 
     def step(self, action_n):
-        step_begin = time.time()
-        begin = self.time_begin()
+        if self.debug:
+            step_begin = time.time()
+            begin = self.time_begin()
         obs_n, reward_n, done_n, info_n = [], [], [], {'n': []}
         self.agents = self.world.policy_agents
 
         # set action
-        print(self.time_end(begin, "hhhh"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "hhhh"))
+            begin = self.time_begin()
 
         random_action_move_dis = []
         greedy_action = self.greedy_algorithm(self.agent_index_for_greedy)
@@ -215,14 +218,15 @@ class MultiAgentEnv(gym.Env):
                 action_n[i][1] = action_n[i][2] + random_action[0]
                 action_n[i][3] = action_n[i][4] + random_action[1]
             self._set_action(action_n[i], agent, self.action_space[i])
-
-        print(self.time_end(begin, "set action"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "set action"))
+            begin = self.time_begin()
         
         # update world state
         self.world.step()
-        print(self.time_end(begin, "world step"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "world step"))
+            begin = self.time_begin()
 
         # custom code for uav begin-------------------------------------------------------------------------------------
         # update state and map_state and energy
@@ -237,8 +241,9 @@ class MultiAgentEnv(gym.Env):
             agents_pos_current.append([loc_x, loc_y])
             if abs(loc_x) > FLAGS.map_constrain or abs(loc_y) > FLAGS.map_constrain:
                 self.over_map += 1
-        print(self.time_end(begin, "overmap"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "overmap"))
+            begin = self.time_begin()
 
         # disconnected
         self.dis = 0
@@ -247,23 +252,26 @@ class MultiAgentEnv(gym.Env):
             self.dis += 1
         else:
             self.dis_flag = False
-        print(self.time_end(begin, "dicconnect"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "dicconnect"))
+            begin = self.time_begin()
         # custom code for uav end --------------------------------------------------------------------------------------
 
         # record observation for each agent
         obs_n = self._get_obs(self.agents)
-        print(self.time_end(begin, "obs"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "obs"))
+            begin = self.time_begin()
         for agent in self.agents:
             reward_n.append(self._get_reward(agent))
-            print(self.time_end(begin, "reward"))
-            begin = self.time_begin()
+            if self.debug:
+                print(self.time_end(begin, "reward"))
+                begin = self.time_begin()
             done_n.append(self._get_done(agent))
             # info_n['n'].append(self._get_info(agent))
-
-        print(self.time_end(begin, "info"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "info"))
+            begin = self.time_begin()
 
         # all agents get total reward in cooperative case
         # this reward less than or equal 0
@@ -277,8 +285,9 @@ class MultiAgentEnv(gym.Env):
             loc_x = agent.state.p_pos[0] * self.map_scale_rate
             loc_y = agent.state.p_pos[1] * self.map_scale_rate
             self.agents_pos.append([loc_x, loc_y])
-        print(self.time_end(begin, "agent pos"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "agent pos"))
+            begin = self.time_begin()
 
         for agent_i, agent in enumerate(self.agents):
             move_distance = np.sqrt(np.square(agent.state.p_vel[0]) + np.square(agent.state.p_vel[1])) * 0.1 *\
@@ -308,8 +317,9 @@ class MultiAgentEnv(gym.Env):
         x_square_sum = np.sum(self.M ** 2)
         self.jain_index = x_sum ** 2 / x_square_sum / self.size ** 2
         coverage_delta_percentage = self.coverage_delta * 1.0 / self.size ** 2
-        print(self.time_end(begin, "coverage and fairness"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "coverage and fairness"))
+            begin = self.time_begin()
 
         # reward
         reward_positive = coverage_delta_percentage * self.jain_index / energy_delta_rate
@@ -317,9 +327,9 @@ class MultiAgentEnv(gym.Env):
         self.positive_reward = reward_positive
         # add positive reward
         reward_n = reward_n + reward_positive_n
-        print(self.time_end(begin, "reward"))
-
-        print("step, time", time.time()-step_begin)
+        if self.debug:
+            print(self.time_end(begin, "reward"))
+            print("step, time", time.time()-step_begin)
         return obs_n, reward_n, done_n
         # return obs_n, reward_n, done_n, info_n
         # custom code for uav end---------------------------------------------------------------------------------------
@@ -473,7 +483,8 @@ class MultiAgentEnv(gym.Env):
 
     # set env action for a particular agent
     def _set_action(self, action, agent, action_space, time=None):
-        begin = self.time_begin()
+        if self.debug:
+            begin = self.time_begin()
         agent.action.u = np.zeros(self.world.dim_p)
         agent.action.c = np.zeros(self.world.dim_c)
         # process action
@@ -487,8 +498,9 @@ class MultiAgentEnv(gym.Env):
             action = act
         else:
             action = [action]
-        print(self.time_end(begin, "set "))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "set "))
+            begin = self.time_begin()
         
         if agent.movable:
             # physical action
@@ -518,8 +530,9 @@ class MultiAgentEnv(gym.Env):
                 sensitivity = agent.accel
             agent.action.u *= FLAGS.action_sensitivity
             action = action[1:]
-        print(self.time_end(begin, "moveable"))
-        begin = self.time_begin()
+        if self.debug:
+            print(self.time_end(begin, "moveable"))
+            begin = self.time_begin()
         if not agent.silent:
             # communication action
             if self.discrete_action_input:
@@ -528,7 +541,8 @@ class MultiAgentEnv(gym.Env):
             else:
                 agent.action.c = action[0]
             action = action[1:]
-        print(self.time_end(begin, "silent"))
+        if self.debug:
+            print(self.time_end(begin, "silent"))
         # make sure we used all elements of action
         assert len(action) == 0
 
