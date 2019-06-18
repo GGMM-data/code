@@ -56,8 +56,6 @@ class MultiAgentEnv(gym.Env):
         for i in range(self.size):
             for j in range(self.size):
                 self.PoI.append([base + i, base + j])
-        self.PoI_array = np.array(self.PoI)
-        
         # self.size * self.size
         self.M = np.zeros((self.size, self.size))
         self.final = np.zeros((self.size, self.size), dtype=np.int64)
@@ -112,7 +110,7 @@ class MultiAgentEnv(gym.Env):
             else:
                 self.action_space.append(total_action_space[0])
             # observation space
-            obs_dim = len(observation_callback(agent, self.world, self.PoI_array, self.M))
+            obs_dim = len(observation_callback(agent, self.world, self.PoI, self.M))
             self.observation_space.append(spaces.Box(low=-np.inf, high=+np.inf, shape=(obs_dim,)))
             agent.action.c = np.zeros(self.world.dim_c)
 
@@ -145,26 +143,23 @@ class MultiAgentEnv(gym.Env):
     def _set_matrix(self, x, y, matrix, value):
         assert x >= 0
         assert y < self.size
-        # _i = self.size - y - 1
-        # _j = x
-        # matrix[_i][_j] = value
-        matrix[x][y] = value
+        _i = self.size - y - 1
+        _j = x
+        matrix[_i][_j] = value
 
     def _add_matrix(self, x, y, matrix, addition):
         assert x >= 0
         assert y < self.size
-        # _i = self.size - y - 1
-        # _j = x
-        # matrix[_i][_j] += addition
-        matrix[x][y] += addition
+        _i = self.size - y - 1
+        _j = x
+        matrix[_i][_j] += addition
 
     def _get_matrix(self, x, y, matrix):
         assert x >= 0
         assert y < self.size
-        # _i = self.size - y - 1
-        # _j = x
-        # return matrix[_i][_j]
-        return matrix[x][y]
+        _i = self.size - y - 1
+        _j = x
+        return matrix[_i][_j]
 
     def _is_disconnected(self, state_current):
         state_current_temp = np.array(state_current).copy()
@@ -252,10 +247,10 @@ class MultiAgentEnv(gym.Env):
         # custom code for uav end --------------------------------------------------------------------------------------
 
         # record observation for each agent
-        obs_n = self._get_obs(self.agents)
-        print(self.time_end(begin, "obs"))
-        begin = self.time_begin()
         for agent in self.agents:
+            obs_n.append(self._get_obs(agent))
+            print(self.time_end(begin, "obs"))
+            begin = self.time_begin()
             reward_n.append(self._get_reward(agent))
             print(self.time_end(begin, "reward"))
             begin = self.time_begin()
@@ -337,11 +332,10 @@ class MultiAgentEnv(gym.Env):
         # reset renderer
         self._reset_render()
         # record obs
-
+        obs_n = []
         self.agents = self.world.policy_agents
-        obs_n = self._get_obs(self.agents)
-        # for agent in self.agents:
-        #     obs_n.append(self._get_obs(agent))
+        for agent in self.agents:
+            obs_n.append(self._get_obs(agent))
 
         # map reset begin-----------------------------------------------------------------------------------------------
         # energy reset
@@ -368,18 +362,10 @@ class MultiAgentEnv(gym.Env):
         return self.info_callback(agent, self.world)
 
     # get observation for a particular agent
-    def _get_obs(self, agents):
+    def _get_obs(self, agent):
         if self.observation_callback is None:
             return np.zeros(0)
-        loc = self.PoI_array / FLAGS.map_scale_rate
-        env_info = np.concatenate((loc, np.reshape(self.M, (FLAGS.size_map * FLAGS.size_map, 1))), 1)
-        env_information = env_info.tolist()
-        
-        obs_n = []
-        for agent in agents:
-            other = self.observation_callback(agent, self.world, self.PoI_array, self.M)
-            obs_n.append(np.concatenate(other + env_information))
-        return obs_n
+        return self.observation_callback(agent, self.world, self.PoI, self.M)
 
     # get dones for a particular agent
     # unused right now -- agents are allowed to go beyond the viewing screen

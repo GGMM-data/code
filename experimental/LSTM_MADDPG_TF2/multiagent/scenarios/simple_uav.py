@@ -34,39 +34,40 @@ class Scenario(BaseScenario):
             agent.state.c = np.zeros(world.dim_c)
 
     def observation(self, agent, world, poi, m):
-        env_information = []
-        for x in range(FLAGS.size_map):
-            for y in range(FLAGS.size_map):
-                pos = poi[x * FLAGS.size_map + y]
-                loc_x = pos[0] / FLAGS.map_scale_rate
-                loc_y = pos[1] / FLAGS.map_scale_rate
-                env_information.append([loc_x, loc_y, self.get_matrix(x, y, m)])
-        # entity colors
-        entity_color = []
-        for entity in world.landmarks:  # world.entities:
-            entity_color.append(entity.color)
+        # env_information = []
+        # for x in range(FLAGS.size_map):
+        #     for y in range(FLAGS.size_map):
+        #         pos = poi[x * FLAGS.size_map + y]
+        #         loc_x = pos[0] / FLAGS.map_scale_rate
+        #         loc_y = pos[1] / FLAGS.map_scale_rate
+        #         env_information.append([loc_x, loc_y, self.get_matrix(x, y, m)])
         # communication of all other agents
+        # entity colors
+        # entity_color = []
+        # for entity in self.world.landmarks:  # world.entities:
+        #     entity_color.append(entity.color)
         comm = []
         other_pos = []
         for other in world.agents:
-            if other is agent: continue
+            if other is agent:
+                continue
             comm.append(other.state.c)
             other_pos.append(other.state.p_pos - agent.state.p_pos)
-        return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos + env_information + comm)
+        return [agent.state.p_vel] + [agent.state.p_pos] + other_pos + comm
 
+    def bound(self, x):
+        if x < 0.9:
+            return 0
+        if x < 1.:
+            return (x - 0.9) * FLAGS.penalty
+        return min(np.exp(2 * x - 2), FLAGS.penalty)
+    
     def reward(self, agent, world, dis_flag):
         reward = 0
         # agent are penalized for exiting the screen
-
-        def bound(x):
-            if x < 0.9:
-                return 0
-            if x < 1.:
-                return (x - 0.9) * FLAGS.penalty
-            return min(np.exp(2 * x - 2), FLAGS.penalty)
         for p in range(world.dim_p):
             x = abs(agent.state.p_pos[p])
-            reward -= bound(x)
+            reward -= self.bound(x)
         # agent disconnected from the uav network
         if dis_flag:
             reward -= FLAGS.penalty_disconnected
@@ -98,9 +99,11 @@ class Scenario(BaseScenario):
     def get_matrix(self, x, y, matrix):
         assert x >= 0
         assert y < FLAGS.size_map
-        _i = FLAGS.size_map - y - 1
-        _j = x
-        return matrix[_i][_j]
+        # _i = FLAGS.size_map - y - 1
+        # _j = x
+        # return matrix[_i][_j]
+        return matrix[x][y]
+
 
     def benchmark_data(self, agent, world):
         rew = 0
