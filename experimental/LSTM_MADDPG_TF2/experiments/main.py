@@ -24,7 +24,7 @@ def parse_args():
                         help="directory in which models are saved")
     parser.add_argument("--save-dir", type=str, default="./tmp/",
                         help="directory in which models are saved")
-    parser.add_argument("--save-rate", type=int, default=100,
+    parser.add_argument("--save-rate", type=int, default=5,
                         help="save model once every time this many episodes are completed")
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
 
@@ -63,11 +63,12 @@ def parse_args():
 
 if __name__ == '__main__':
     argslist = parse_args()
-    params = ["num_task", "history_length", "max_episode_len", "num_episodes", "batch_size", "gamma", "buffer_size", "num_units"]
+    params = ["num_task", "history_length", "max_episode_len", "num_episodes", "save_rate", "batch_size", "gamma", "buffer_size", "num_units"]
     save_path = "policy"
     dict_arg = vars(argslist)
     for param in params:
         save_path = save_path + "_" + param + "_" + str(dict_arg[param])
+    argslist.save_dir = argslist.save_dir + save_path
     save_path = save_path + "_" + str(int(time.time()))
     with open(".info.txt", "a+") as f:
         f.write(save_path+"\n")

@@ -28,13 +28,7 @@ def time_end(begin_time, info):
 	
 def train(arglist):
 	with U.single_threaded_session():
-		
-		params = ["num_task", "history_length", "max_episode_len", "num_episodes", "batch_size", "gamma", "buffer_size", "num_units"]
-		save_path = arglist.save_dir + "policy"
-		dict_arg = vars(arglist)
-		for param in params:
-			save_path = save_path + "_" + param + "_" + str(dict_arg[param])
-		save_path += "/"
+		save_path = arglist.save_dir + "/"
 		if not os.path.exists(save_path):
 			os.makedirs(save_path)
 		
@@ -60,26 +54,17 @@ def train(arglist):
 		
 		# for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
 		# 	print(var)
-		
-		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
-		U.initialize()
-		
-		# 1.3生成模型保存或者恢复文件夹目录
-		if arglist.load_dir == "":
-			arglist.load_dir = save_path
-		if arglist.display or arglist.restore or arglist.benchmark:
-			print('Loading previous state...')
-			U.load_state(arglist.load_dir)
-		
 		# 1.4全局变量初始化
-		global_steps = np.zeros(num_tasks)  # global timesteps for each env
-		policy_step = 0		# 记录actor训练的步数
+		global_steps = tf.Variable(tf.zeros(num_tasks), trainable=False) # global timesteps for each env
+		global_steps_add_op = []
+		for i in range(num_tasks):
+			global_steps_add_op.append(global_steps[i].assign(global_steps[i]+1))
 		model_number = int(arglist.num_episodes / arglist.save_rate)
 		saver = tf.train.Saver(max_to_keep=model_number)
 		
-		episodes_rewards = [[0.0] for _ in range(num_tasks)] # 每个元素为在一个episode中所有agents rewards的和
+		episodes_rewards = [[0.0] for _ in range(num_tasks)]  # 每个元素为在一个episode中所有agents rewards的和
 		# agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
-		agent_rewards = [[[0.0] for _ in range(env.n)]for _ in range(num_tasks)]
+		agent_rewards = [[[0.0] for _ in range(env.n)] for _ in range(num_tasks)]
 		
 		final_ep_rewards = [[] for _ in range(num_tasks)]  # sum of rewards for training curve
 		final_ep_ag_rewards = [[] for _ in range(num_tasks)]  # agent rewards for training curve
@@ -91,6 +76,24 @@ def train(arglist):
 		instantaneous_out_the_map = [[] for _ in range(num_tasks)]
 		energy_efficiency = [[] for _ in range(num_tasks)]
 		instantaneous_accmulated_reward = [[] for _ in range(num_tasks)]
+		
+		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
+		U.initialize()
+		
+		# 1.3生成模型保存或者恢复文件夹目录
+		if arglist.load_dir == "":
+			arglist.load_dir = save_path
+		if arglist.display or arglist.restore or arglist.benchmark:
+			file_list = []
+			for f in os.listdir(arglist.load_dir):
+				if os.path.isdir(os.path.join(arglist.save_dir, f)):
+					file_list.append(f)
+			file_list.sort(key=lambda fn: os.path.getmtime(arglist.load_dir + "/" + fn))
+			if len(file_list) > 0:
+				load_dir = os.path.join(arglist.load_dir, file_list[0], "model.ckpt")
+				U.load_state(load_dir)
+			print('Loading previous state...')
+		
 		
 		# 1.5 episode局部变量初始化
 		local_steps = np.zeros(num_tasks)  # local timesteps for each env
@@ -165,7 +168,8 @@ def train(arglist):
 				# begin = time_begin()
 				
 				local_steps[task_index] += 1		# 更新局部计数器
-				global_steps[task_index] += 1		# 更新全局计数器
+				step = tf.get_default_session().run(global_steps_add_op[task_index])
+				# global_steps[task_index] += 1		# 更新全局计数器
 				
 				done = all(done_n)
 				terminal = (local_steps[task_index] >= arglist.max_episode_len)
@@ -186,7 +190,7 @@ def train(arglist):
 				for critic in model_list[task_index]:
 					critic.preupdate()
 				for critic in model_list[task_index]:
-					critic.update(model_list[task_index], global_steps[task_index])
+					critic.update(model_list[task_index], step)
 				# print(time_end(begin, "update critic"))
 				# begin = time_begin()
 				# 2.3，优化actor
@@ -194,7 +198,7 @@ def train(arglist):
 				# print("policy steps: ", policy_step)
 				for actor, critic in zip(policy, model_list[task_index]):
 					actor.change_p(critic.p)
-					actor.update(policy, global_steps[task_index])
+					actor.update(policy, step)
 				# print(time_end(begin, "update actor"))
 				# begin = time_begin()
 				# 2.4 记录和更新train信息
@@ -292,18 +296,19 @@ def train(arglist):
 				
 				# save model, display training output
 				if terminal and (episode_number % arglist.save_rate == 0):
-					save_dir_custom = save_path + str(episode_number) + '/'
+					save_dir_custom = save_path + str(episode_number) + '/model.ckpt'
+					print(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES))
 					U.save_state(save_dir_custom, saver=saver)
 					# print statement depends on whether or not there are adversaries
 					# 最新save_rate个episode的平均reward
 					save_rate_mean_reward = np.mean(episodes_rewards[task_index][-arglist.save_rate:])
 					if num_adversaries == 0:
 						print("steps: {}, episodes: {}, mean episode reward: {}, time: {}".format(
-							global_steps[task_index], episode_number, save_rate_mean_reward,
+							step, episode_number, save_rate_mean_reward,
 							round(time.time() - t_start, 3)))
 					else:
 						print("steps: {}, episodes: {}, mean episode reward: {}, agent episode reward: {}, time: {}".format(
-							global_steps[task_index], episode_number, save_rate_mean_reward,
+							step, episode_number, save_rate_mean_reward,
 							[np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards[task_index]], round(time.time() - t_start, 3)))
 					
 					t_start = time.time()

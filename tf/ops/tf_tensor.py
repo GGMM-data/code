@@ -15,6 +15,24 @@ print(sess.run(tf.random_uniform([2,2], dtype=tf.int32, maxval=4)))
 print(sess.run(tf.ones([3, 4])))
 print(sess.run(tf.zeros([2,2])))
 
+a = tf.Variable(tf.zeros([4]), trainable=False)
+b = tf.Variable(tf.zeros([2, 2]))
+print(sess.run(tf.global_variables_initializer()))
+# print(sess.run(a))
+print(sess.run(b))
+print(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
+print(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES))
+print(sess.run(a))
+op = a[0].assign(a[0]+1)
+print(sess.run(op))
+
+op_list = []
+for i in range(a.shape[0]):
+    op_list.append(a[i].assign(a[i]+1))
+
+for i in range(a.shape[0]):
+    print(sess.run(op_list[i]))
+
 # [3 4]
 # [[1 1]
 #  [1 1]]
