@@ -1,0 +1,10 @@
+{
+    "ipv4_address": "149.28.45.232",
+    "ipv6_address": "2001:19f0:5:5ba3:5400:2ff:fe1f:cca7",
+    "ipv4_server_port": "8889",
+    "ipv6_server_port": "8888",
+    "ipv4_local_port": "1080",
+    "ipv6_local_port": "1081",
+    "ipv4_ss_password": "123456", 
+    "ipv6_ss_password": "123456"
+}

@@ -19,6 +19,7 @@ def parse_args():
     # rnn 长度
     parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
     
+    parser.add_argument("--restore", action="store_true", default=True)
     parser.add_argument("--load-dir", type=str, default="",
                         help="directory in which models are saved")
     parser.add_argument("--save-dir", type=str, default="./tmp/",
@@ -42,7 +43,6 @@ def parse_args():
     parser.add_argument("--exp-name", type=str, default="simple_uav", help="name of the experiment")
     
     # Evaluation
-    parser.add_argument("--restore", action="store_true", default=False)
     parser.add_argument("--display", action="store_true", default=False)
     parser.add_argument("--benchmark", action="store_true", default=False)
     parser.add_argument("--draw-picture-train", action="store_true", default=True)

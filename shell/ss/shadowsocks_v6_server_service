@@ -9,10 +9,10 @@
 # Description:       apache2 service daemon
 ### END INIT INFO
 start(){
-  ssserver -c /etc/shadowsocks_v6.json -d start --pid-file ss1.pid
+  ssserver -c /etc/shadowsocks_v6_server.json -d start --pid-file ss1.pid
 }
 stop(){
-  ssserver -c /etc/shadowsocks_v6.json -d stop --pid-file ss1.pid
+  ssserver -c /etc/shadowsocks_v6_server.json -d stop --pid-file ss1.pid
 
 }
 case "$1" in

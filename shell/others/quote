@@ -3,7 +3,10 @@
 log=Wednesday
 
 echo "Toady is $log"
-
 echo 'Today is $log'
-
 echo "Today is `date`"
+
+log=big
+
+echo "The apple is ${log}ger"
+echo 'The apple is ${log}ger'
