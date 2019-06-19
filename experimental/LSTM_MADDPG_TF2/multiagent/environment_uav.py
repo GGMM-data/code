@@ -203,9 +203,9 @@ class MultiAgentEnv(gym.Env):
             begin = self.time_begin()
 
         random_action_move_dis = []
-        greedy_action = self.greedy_algorithm(self.agent_index_for_greedy)
         for i, agent in enumerate(self.agents):
             if FLAGS.greedy_action:
+                greedy_action = self.greedy_algorithm(self.agent_index_for_greedy)
                 if i == self.agent_index_for_greedy % len(self.agents):
                     action_n[i][1] = action_n[i][2] + greedy_action[0]
                     action_n[i][3] = action_n[i][4] + greedy_action[1]
