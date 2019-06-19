@@ -266,9 +266,7 @@ def train(arglist):
 					# 绘制reward曲线
 					plt.ion()
 					axes[task_index].plot(np.arange(0, episode_number), energy_efficiency[task_index])
-					plt.xlabel("episode number")
-					plt.ylabel("energy efficiency")
-					plt.savefig(save_path + str(task_index) + "efficiency.png")
+					plt.savefig(save_path + str(task_index) + "_efficiency.png")
 					plt.ioff()
 					
 					# 重置每个episode中的局部变量--------------------------------------------
@@ -297,7 +295,6 @@ def train(arglist):
 				# save model, display training output
 				if terminal and (episode_number % arglist.save_rate == 0):
 					save_dir_custom = save_path + str(episode_number) + '/model.ckpt'
-					print(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES))
 					U.save_state(save_dir_custom, saver=saver)
 					# print statement depends on whether or not there are adversaries
 					# 最新save_rate个episode的平均reward

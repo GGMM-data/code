@@ -24,7 +24,7 @@ def parse_args():
                         help="directory in which models are saved")
     parser.add_argument("--save-dir", type=str, default="./tmp/",
                         help="directory in which models are saved")
-    parser.add_argument("--save-rate", type=int, default=5,
+    parser.add_argument("--save-rate", type=int, default=100,
                         help="save model once every time this many episodes are completed")
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
 
