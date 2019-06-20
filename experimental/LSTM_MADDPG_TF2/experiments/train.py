@@ -1,16 +1,14 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import argparse
 import numpy as np
 import tensorflow as tf
 import time
 import matplotlib.pyplot as plt
-import h5py
 import sys
 import os
-
 import math
+import pickle
 
 sys.path.append("/home/mxxmhh/mxxhcm/code/")
 
@@ -29,18 +27,18 @@ def time_end(begin_time, info):
 	print(info)
 	return time.time() - begin_time
 	
+
 def train(arglist):
 	with U.single_threaded_session():
-		save_path = arglist.save_dir + "/"
-		if not os.path.exists(save_path):
-			os.makedirs(save_path)
-		
 		# 1.初始化
 		num_tasks = arglist.num_task		# 总共有多少个任务
 		list_of_taskenv = []		# env list
+		save_path = arglist.save_dir
+		if not os.path.exists(save_path):
+			os.makedirs(save_path)
 
 		# 1.1创建一个actor
-		env = make_env(arglist.scenario, arglist, arglist.benchmark)
+		env = make_env(arglist.scenario, arglist)
 		env.set_map(sample_map(arglist.data_path + "_1.h5"))
 		obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
 		num_adversaries = min(env.n, arglist.num_adversaries)
@@ -50,7 +48,7 @@ def train(arglist):
 		model_list = []		# 所有任务critic的list
 		for i in range(num_tasks):
 			# 创建每个任务的env
-			list_of_taskenv.append(make_env(arglist.scenario, arglist, arglist.benchmark))
+			list_of_taskenv.append(make_env(arglist.scenario, arglist))
 			trainers = get_trainers(list_of_taskenv[i], "task_"+str(i+1)+"_", num_adversaries,
 										obs_shape_n,  arglist, is_actor=False, acotr=policy)
 			model_list.append(trainers)
@@ -61,6 +59,12 @@ def train(arglist):
 		global_steps_tensor = tf.Variable(tf.zeros(num_tasks), trainable=False) # global timesteps for each env
 		global_steps_ph = tf.placeholder(tf.float32, [num_tasks])
 		global_steps_assign_op = tf.assign(global_steps_tensor, global_steps_ph)
+		
+		# efficiency = tf.Variable(0.0, trainable=False)  # global timesteps for each env
+		# summary_effi = tf.summary.scalar("efficiency", efficiency)
+		# efficiency_ph = tf.placeholder(tf.float32, None)
+		# efficiency_assign_op = tf.assign(efficiency, efficiency_ph)
+		
 		model_number = int(arglist.num_episodes / arglist.save_rate)
 		saver = tf.train.Saver(max_to_keep=model_number)
 		
@@ -91,7 +95,7 @@ def train(arglist):
 					file_list.append(f)
 			file_list.sort(key=lambda fn: os.path.getmtime(arglist.load_dir + "/" + fn))
 			if len(file_list) > 0:
-				load_dir = os.path.join(arglist.load_dir, file_list[0], "model.ckpt")
+				load_dir = os.path.join(arglist.load_dir, file_list[-1], "model.ckpt")
 				U.load_state(load_dir)
 			print('Loading previous state...')
 		
@@ -111,7 +115,6 @@ def train(arglist):
 		episode_reward_step = np.zeros(num_tasks)		# 累加一个episode里每一步的所有智能体的平均reward
 		accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
 		route = [[] for _ in range(num_tasks)]
-		
 		
 		# 1.6初始化ENV
 		obs_n_list = []
@@ -203,73 +206,51 @@ def train(arglist):
 				# print(time_end(begin, "update actor"))
 				# begin = time_begin()
 				# 2.4 记录和更新train信息
-				# - energy
+				# energy
 				energy_one_episode[task_index].append(current_env.get_energy())
-				# - fair index
+				# fair index
 				j_index_one_episode[task_index].append(current_env.get_jain_index())
-				# - coverage
+				# coverage
 				aver_cover_one_episode[task_index].append(current_env.get_aver_cover())
-				# - over map counter
+				# over map counter
 				over_map_counter[task_index] += current_env.get_over_map()
 				over_map_one_episode[task_index].append(over_map_counter[task_index])
-				# - disconnected counter
+				# disconnected counter
 				disconnected_number_counter[task_index] += current_env.get_dis()
 				disconnected_number_one_episode[task_index].append(disconnected_number_counter)
-				# - reward
+				# reward
 				episode_reward_step[task_index] += np.mean(rew_n)
 				accmulated_reward_one_episode[task_index].append(episode_reward_step)
-				# - state
-				s_route = current_env.get_agent_pos()
-				for route_i in range(0, FLAGS.num_uav * 2, 2):
-					tmp = [s_route[route_i], s_route[route_i + 1]]
-					route.append(tmp)
 				
 				# print(time_end(begin, "task_index: " + str(task_index)+", steps:" + str(global_steps[task_index])))
 				# begin = time_begin()
 				episode_number = math.ceil(global_steps[task_index] / arglist.max_episode_len)
 				if done or terminal:
 					# 记录每个episode的变量
-					# - energy
-					energy_consumptions_for_test[task_index].append(energy_one_episode[task_index][-1])
-					# - fairness index
-					j_index[task_index].append(j_index_one_episode[task_index][-1])
-					# - coverage
-					aver_cover[task_index].append(aver_cover_one_episode[task_index][-1])
-					# - disconnected
-					instantaneous_dis[task_index].append(disconnected_number_one_episode[task_index][-1])
-					# - out of the map
-					instantaneous_out_the_map[task_index].append(over_map_one_episode[task_index][-1])
-					# - reward
-					instantaneous_accmulated_reward[task_index].append(accmulated_reward_one_episode[task_index][-1])
-					# - efficiency
-					energy_efficiency[task_index].append(
-						aver_cover_one_episode[task_index][-1] * j_index_one_episode[task_index][-1] / energy_one_episode[task_index][-1])
+					energy_consumptions_for_test[task_index].append(energy_one_episode[task_index][-1])		# energy
+					j_index[task_index].append(j_index_one_episode[task_index][-1])		# fairness index
+					aver_cover[task_index].append(aver_cover_one_episode[task_index][-1])		# coverage
+					instantaneous_dis[task_index].append(disconnected_number_one_episode[task_index][-1])		# disconnected
+					instantaneous_out_the_map[task_index].append(over_map_one_episode[task_index][-1])		# out of the map
+					instantaneous_accmulated_reward[task_index].append(accmulated_reward_one_episode[task_index][-1])		# reward
+					energy_efficiency[task_index].append(aver_cover_one_episode[task_index][-1]
+						* j_index_one_episode[task_index][-1] / energy_one_episode[task_index][-1])		# efficiency
+
 					episode_end_time = time.time()
 					episode_time = episode_end_time - episode_start_time
 					episode_start_time = episode_end_time
-					# print(str(policy_step), " step time: ", round(step_time, 3))
-					print(
-						'Task %d, '
-						'episode: %d, - '
-						'energy_consumptions: %s,'
-						'energy_efficiency : %s,'
-						'time : %s.' %
-						(
-							task_index,
-							episode_number,
-							str(current_env.get_energy_origin()),
-							str(energy_efficiency[task_index][-1]),
-							str(round(episode_time, 3))
-						)
-					)
-					
+					with open(save_path+"train_info.txt", "a+") as f:
+						info = "Task " + str(task_index)\
+							+ ", episode-" + str(episode_number)\
+							+ ", energy_consumptions: " + str(current_env.get_energy_origin())\
+							+ ", energy_efficiency: " + str(energy_efficiency[task_index][-1])\
+							+ ", time: " + str(round(episode_time, 3))
+						f.write(info)
+
 					# 绘制reward曲线
-					plt.ion()
-					axes[task_index].plot(np.arange(episode_number - len(energy_efficiency[task_index]), episode_number),
-										  energy_efficiency[task_index])
-					plt.savefig(save_path + str(task_index) + "_efficiency.png")
-					plt.ioff()
-					
+					# tf.get_default_session().run(efficiency_assign_op, feed_dict={efficiency_ph: efficiency[task_index]})
+					# writer.add_summary(efficiency, global_step=global_steps[task_index])
+
 					# 重置每个episode中的局部变量--------------------------------------------
 					energy_one_episode = [[] for _ in range(num_tasks)]
 					j_index_one_episode = [[] for _ in range(num_tasks)]
@@ -332,5 +313,11 @@ def train(arglist):
 
 				# saves final episode reward for plotting training curve later
 				if episode_number > arglist.num_episodes:
+					rew_file_name = arglist.plots_dir + arglist.exp_name + '_rewards.pkl'
+					with open(rew_file_name, 'wb') as fp:
+						pickle.dump(final_ep_rewards, fp)
+					agrew_file_name = arglist.plots_dir + arglist.exp_name + '_agrewards.pkl'
+					with open(agrew_file_name, 'wb') as fp:
+						pickle.dump(final_ep_ag_rewards, fp)
 					print('...Finished total of {} episodes.'.format(episode_number))
 					break

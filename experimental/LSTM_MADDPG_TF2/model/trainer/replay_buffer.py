@@ -8,10 +8,10 @@ class ReplayBuffer:
   def __init__(self, config, obs_shape, act_space):
     self.cnn_format = config.cnn_format
     self.buffer_size = config.buffer_size
-    self.actions = np.empty((self.buffer_size, act_space,), dtype = np.float16)
-    self.rewards = np.empty(self.buffer_size, dtype = np.float16)
-    self.observations = np.empty((self.buffer_size,) + obs_shape, dtype = np.float16)
-    self.terminals = np.empty(self.buffer_size, dtype = np.bool)
+    self.actions = np.empty((self.buffer_size, act_space,), dtype=np.float16)
+    self.rewards = np.empty(self.buffer_size, dtype=np.float16)
+    self.observations = np.empty((self.buffer_size,) + obs_shape, dtype=np.float16)
+    self.terminals = np.empty(self.buffer_size, dtype=np.bool)
     self.dims = obs_shape
     self.history_length = config.history_length
     self.batch_size = config.batch_size
@@ -19,8 +19,8 @@ class ReplayBuffer:
     self.current = 0
 
     # pre-allocate prestates and poststates for minibatch
-    self.states = np.empty((self.batch_size, self.history_length) + self.dims, dtype = np.float16)
-    self.next_states = np.empty((self.batch_size, self.history_length) + self.dims, dtype = np.float16)
+    self.states = np.empty((self.batch_size, self.history_length) + self.dims, dtype=np.float16)
+    self.next_states = np.empty((self.batch_size, self.history_length) + self.dims, dtype=np.float16)
 
   def __len__(self):
     return self.count

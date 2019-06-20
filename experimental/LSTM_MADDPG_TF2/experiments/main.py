@@ -1,9 +1,8 @@
 import sys
 sys.path.append("/home/mxxmhh/mxxhcm/code/")
+
 import argparse
-from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
 from experimental.LSTM_MADDPG_TF2.experiments.train import train
-import subprocess
 import os
 import time
 
@@ -14,7 +13,7 @@ def parse_args():
     parser.add_argument("--gamma", type=float, default=0.80, help="discount factor")
     parser.add_argument("--batch-size", type=int, default=512, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
-    parser.add_argument("--buffer-size", type=int, default=500000, help="buffer capacity")
+    parser.add_argument("--buffer-size", type=int, default=100000, help="buffer capacity")
     parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
     # rnn 长度
     parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
@@ -44,20 +43,12 @@ def parse_args():
     
     # Evaluation
     parser.add_argument("--display", action="store_true", default=False)
-    parser.add_argument("--benchmark", action="store_true", default=False)
     parser.add_argument("--draw-picture-train", action="store_true", default=True)
     parser.add_argument("--draw-picture-test", action="store_true", default=False)
-    parser.add_argument("--benchmark-iters", type=int, default=100000, help="number of iterations run for benchmarking")
-    parser.add_argument("--benchmark-dir", type=str, default="./benchmark_files/",
-                        help="directory where benchmark data is saved")
     parser.add_argument("--plots-dir", type=str, default="./learning_curves/",
                         help="directory where plot data is saved")
     parser.add_argument("--pictures-dir-train", type=str, default="./result_pictures/train/",
                         help="directory where result pictures data is saved")
-    parser.add_argument("--pictures-dir-test", type=str, default="./result_pictures/test/",
-                        help="directory where result pictures data is saved")
-    
-    # custom parameters for uav
     return parser.parse_args()
 
 
@@ -68,10 +59,6 @@ if __name__ == '__main__':
     dict_arg = vars(argslist)
     for param in params:
         save_path = save_path + "_" + param + "_" + str(dict_arg[param])
-    argslist.save_dir = argslist.save_dir + save_path
-    save_path = save_path + "_" + str(int(time.time()))
-    with open(".info.txt", "a+") as f:
-        f.write(save_path+"\n")
+    argslist.save_dir = argslist.save_dir + save_path + "/"
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     train(argslist)
-
