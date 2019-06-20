@@ -265,7 +265,8 @@ def train(arglist):
 					
 					# 绘制reward曲线
 					plt.ion()
-					axes[task_index].plot(np.arange(0, episode_number), energy_efficiency[task_index])
+					axes[task_index].plot(np.arange(episode_number - len(energy_efficiency[task_index]), episode_number),
+										  energy_efficiency[task_index])
 					plt.savefig(save_path + str(task_index) + "_efficiency.png")
 					plt.ioff()
 					
