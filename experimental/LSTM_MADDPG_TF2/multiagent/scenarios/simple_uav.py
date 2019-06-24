@@ -3,6 +3,8 @@ from experimental.LSTM_MADDPG_TF2.multiagent.core import World, Agent
 from experimental.LSTM_MADDPG_TF2.multiagent.scenario import BaseScenario
 from PIL import Image, ImageDraw
 from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+import time
+
 
 
 class Scenario(BaseScenario):
@@ -33,27 +35,40 @@ class Scenario(BaseScenario):
             agent.state.p_vel = np.zeros(world.dim_p)
             agent.state.c = np.zeros(world.dim_c)
 
-    def observation(self, agent, world, poi, m):
-        # env_information = []
-        # for x in range(FLAGS.size_map):
-        #     for y in range(FLAGS.size_map):
-        #         pos = poi[x * FLAGS.size_map + y]
-        #         loc_x = pos[0] / FLAGS.map_scale_rate
-        #         loc_y = pos[1] / FLAGS.map_scale_rate
-        #         env_information.append([loc_x, loc_y, self.get_matrix(x, y, m)])
-        # communication of all other agents
-        # entity colors
-        # entity_color = []
-        # for entity in self.world.landmarks:  # world.entities:
-        #     entity_color.append(entity.color)
+    def time_begin(self):
+        return time.time()
+
+    def time_end(self, begin_time, info):
+        print(info)
+        return time.time() - begin_time
+                
+    def observation(self, agents, world, poi, m):
+        debug = False
+        if debug:
+            begin = self.time_begin()
+        loc = poi / FLAGS.map_scale_rate
+        env_info = np.concatenate((loc, np.reshape(m, (FLAGS.size_map * FLAGS.size_map, 1))), 1)
+        env_list = env_info.tolist()
+
         comm = []
-        other_pos = []
-        for other in world.agents:
-            if other is agent:
-                continue
-            comm.append(other.state.c)
-            other_pos.append(other.state.p_pos - agent.state.p_pos)
-        return [agent.state.p_vel] + [agent.state.p_pos] + other_pos + comm
+        pos = []
+        obs_n = []
+        for agent in agents:
+            comm.append(agent.state.c)
+            pos.append(agent.state.p_pos)
+        pos_array = np.asarray(pos)
+        info = np.concatenate(comm + env_list)
+        info_list = info.tolist()
+        for i, agent in enumerate(agents):
+            pos = pos_array - pos_array[i]
+            pos[i] = agent.state.p_pos
+            if debug:
+                                print(self.time_end(begin, "obs1"))
+                                begin = self.time_begin()
+            obs_n.append(np.concatenate([agent.state.p_vel] + pos.tolist() + [info_list]))
+            if debug:
+                print(self.time_end(begin, "obs2"))
+        return obs_n
 
     def bound(self, x):
         if x < 0.9:

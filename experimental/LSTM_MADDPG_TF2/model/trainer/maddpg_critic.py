@@ -55,8 +55,6 @@ class MADDPGAgentTrainer(AgentTrainer):
 
     def update(self, agents, t):
         # 训练critic
-        # if len(self.replay_buffer) <= self.replay_buffer.history_length:
-        #     return
         if len(self.replay_buffer) < self.max_replay_buffer_len: # replay buffer is not large enough
             return
         if not t % 100 == 0:  # only update every 100 steps

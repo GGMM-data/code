@@ -64,7 +64,9 @@ class MADDPGAgentTrainer(AgentTrainer):
             local_q_func=self.local_q_func,
             num_units=self.args.num_units,
             reuse=True
-        )
+        
+
+    )
     
     def change_p(self, p):
         self.p_train = p
@@ -80,10 +82,8 @@ class MADDPGAgentTrainer(AgentTrainer):
         self.replay_sample_index = None
 
     def update(self, agents, t):
-        # 这个就是训练actor的，
-        # if len(self.replay_buffer) <= self.replay_buffer.history_length:
-        #     return
-        if len(self.replay_buffer) < self.max_replay_buffer_len: # replay buffer is not large enough
+        # 这个就是训练actor的
+        if len(self.replay_buffer) < self.max_replay_buffer_len:
             return
         if not t % 100 == 0:  # only update every 100 steps
             return

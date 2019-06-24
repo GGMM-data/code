@@ -56,7 +56,7 @@ class MultiAgentEnv(gym.Env):
         for i in range(self.size):
             for j in range(self.size):
                 self.PoI.append([base + i, base + j])
-        self.PoI_array = np.array(self.PoI)
+        self.PoI_array = np.array(self.PoI)     # [self.size * self.size, 2]
         
         # self.size * self.size
         self.M = np.zeros((self.size, self.size))
@@ -84,6 +84,7 @@ class MultiAgentEnv(gym.Env):
         # disconnected
         self.dis_flag = False
         self.agent_index_for_greedy = 0
+        self.coverage_delta = 0
         # custom parameters for uav end---------------------------------------------------------------------------------
         for agent in self.agents:
             total_action_space = []
@@ -301,18 +302,34 @@ class MultiAgentEnv(gym.Env):
 
         # less than or equal 1
         energy_delta_rate = np.sum(self.energy - self.old_energy) * 1.0 / (self.SUE_ENERGY * self.uav)
+        if self.debug:
+            print(self.time_end(begin, "energy"))
+            begin = self.time_begin()
+
         # every step coverage increment
-        self.coverage_delta = 0
-        for x in range(self.size):
-            for y in range(self.size):
-                cov = self._is_covered(self.PoI[x * self.size + y])
-                if cov > 0:
-                    self._add_matrix(x, y, self.final, 1)   # final每个step加1,至多max_epoch
-                    self.coverage_delta += 1    # 当前step覆盖了多少个cell
-                # M 每项最多是1
-                self._set_matrix(x, y, self.M,
-                                  float(self._get_matrix(x, y, self.final)) / self.max_epoch
-                                 )
+        flag = np.zeros((self.size * self.size), dtype=bool)
+        for k in range(self.uav):
+            temp = np.square(self.PoI_array - np.asarray(self.agents_pos[k]))
+            dis = temp[:, 0] + temp[:, 1]
+            flag[dis <= self.radius] = True
+        flag = np.reshape(flag, (self.size, self.size))
+        self.coverage_delta = np.sum(flag)
+        self.final = np.add(self.final, flag)
+        self.M = self.final / self.max_epoch
+        # self.coverage_delta = 0
+        # for x in range(self.size):
+        #     for y in range(self.size):
+        #         cov = self._is_covered(self.PoI[x * self.size + y])
+        #         if cov > 0:
+        #             self._add_matrix(x, y, self.final, 1)   # final每个step加1,至多max_epoch
+        #             self.coverage_delta += 1    # 当前step覆盖了多少个cell
+        #             # M 每项最多是1
+        #             self._set_matrix(x, y, self.M,
+        #                           float(self._get_matrix(x, y, self.final)) / self.max_epoch
+        #                          )
+        if self.debug:
+            print(self.time_end(begin, "M"))
+            begin = self.time_begin()
         x_sum = np.sum(self.M)
         x_square_sum = np.sum(self.M ** 2)
         self.jain_index = x_sum ** 2 / x_square_sum / self.size ** 2
@@ -379,16 +396,14 @@ class MultiAgentEnv(gym.Env):
 
     # get observation for a particular agent
     def _get_obs(self, agents):
+        if self.debug:
+            begin = self.time_begin()
         if self.observation_callback is None:
             return np.zeros(0)
-        loc = self.PoI_array / FLAGS.map_scale_rate
-        env_info = np.concatenate((loc, np.reshape(self.M, (FLAGS.size_map * FLAGS.size_map, 1))), 1)
-        env_information = env_info.tolist()
         
-        obs_n = []
-        for agent in agents:
-            other = self.observation_callback(agent, self.world, self.PoI_array, self.M)
-            obs_n.append(np.concatenate(other + env_information))
+        obs_n = self.observation_callback(agents, self.world, self.PoI_array, self.M)
+        if self.debug:
+            print(self.time_end(begin, "obs"))
         return obs_n
 
     # get dones for a particular agent
