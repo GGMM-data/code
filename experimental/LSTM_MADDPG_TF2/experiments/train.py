@@ -148,9 +148,6 @@ def train(arglist):
 		print('Starting iterations...')
 		episode_start_time = time.time()
 		while True:
-			if debug:
-				print(time_end(begin, "loop"))
-				begin = time_begin()
 			# 2.1,在num_tasks个任务上进行采样
 			for task_index in range(num_tasks):
 				current_env = list_of_taskenv[task_index]
@@ -163,9 +160,9 @@ def train(arglist):
 					hiss = his.obtain().reshape(1, obs_shape_n[0][0], arglist.history_length)		# [1, state_dim, length]
 					action = agent.action([hiss], [1])
 					action_n.append(action)
-				if debug:
-					print(time_end(begin, "action"))
-					begin = time_begin()
+					if debug:
+						print(time_end(begin, "action"))
+						begin = time_begin()
 				# environment step
 				# begin = time.time()
 				new_obs_n, rew_n, done_n = current_env.step(action_n)
@@ -179,9 +176,6 @@ def train(arglist):
 				
 				done = all(done_n)
 				terminal = (local_steps[task_index] >= arglist.max_episode_len)
-				if debug:
-					print(time_end(begin, "update counter"))
-					begin = time_begin()
 				# 收集experience
 				for i, agent in enumerate(model_list[task_index]):
 					agent.experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
