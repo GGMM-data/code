@@ -15,7 +15,6 @@ sys.path.append("/home/mxxmhh/mxxhcm/code/")
 import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
 from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
 from experimental.LSTM_MADDPG_TF2.experiments.uav_statistics import draw_util
-from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
 from experimental.LSTM_MADDPG_TF2.experiments.ops import make_env, get_trainers, sample_map
 
 
@@ -29,7 +28,7 @@ def time_end(begin_time, info):
 	
 
 def train(arglist):
-	debug = True
+	debug = False
 	with U.single_threaded_session():
 		if debug:
 			begin = time_begin()
@@ -56,9 +55,13 @@ def train(arglist):
 										obs_shape_n,  arglist, is_actor=False, acotr=policy)
 			model_list.append(trainers)
 		
-		# for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-		# 	print(var)
-		# 1.3全局变量初始化
+		# 1.3 create p_train
+		for task_index in range(num_tasks):
+			for actor, critic in zip(policy, model_list[task_index]):
+				actor.add_p(critic.name)
+				critic.p = actor.p_train
+			
+		# 1.4 全局变量初始化
 		global_steps_tensor = tf.Variable(tf.zeros(num_tasks), trainable=False) # global timesteps for each env
 		global_steps_ph = tf.placeholder(tf.float32, [num_tasks])
 		global_steps_assign_op = tf.assign(global_steps_tensor, global_steps_ph)
@@ -83,7 +86,10 @@ def train(arglist):
 		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 		U.initialize()
 		
-		# 1.4生成模型保存或者恢复文件夹目录
+		# for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+		# 	print(var)
+		
+		# 1.5 生成模型保存或者恢复文件夹目录
 		if arglist.load_dir == "":
 			arglist.load_dir = save_path
 		if arglist.display or arglist.restore or arglist.benchmark:
@@ -99,7 +105,7 @@ def train(arglist):
 		
 		global_steps = tf.get_default_session().run(global_steps_tensor)
 		
-		# 1.5 episode局部变量初始化
+		# 1.6 episode局部变量初始化
 		local_steps = np.zeros(num_tasks)  # local timesteps for each env
 		t_start = time.time()
 		
@@ -114,14 +120,14 @@ def train(arglist):
 		accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
 		route = [[] for _ in range(num_tasks)]
 		
-		# 1.6初始化ENV
+		# 1.7 初始化ENV
 		obs_n_list = []
 		for i in range(num_tasks):
 			obs_n = list_of_taskenv[i].reset()
 			list_of_taskenv[i].set_map(sample_map(arglist.data_path + "_" + str(i+1) + ".h5"))
 			obs_n_list.append(obs_n)
 		
-		# 1.7 生成maddpg 加上rnn之后的输入seq，
+		# 1.8 生成maddpg 加上rnn之后的输入seq，
 		history_n = [[] for _ in range(num_tasks)]
 		for i in range(num_tasks):
 			for j in range(len(obs_n_list[i])):  # 生成每个智能体长度为history_length的观测
@@ -129,12 +135,6 @@ def train(arglist):
 				history_n[i].append(history)
 				for _ in range(arglist.history_length):
 					history_n[i][j].add(obs_n_list[i][j])
-		
-		# 1.8 create p_train
-		for task_index in range(num_tasks):
-			for actor, critic in zip(policy, model_list[task_index]):
-				actor.add_p(critic.name)
-				critic.p = actor.p_train
 				
 		# 1.9 reward figures
 		figures = [plt.figure() for _ in range(num_tasks)]
@@ -150,19 +150,18 @@ def train(arglist):
 		while True:
 			# 2.1,在num_tasks个任务上进行采样
 			for task_index in range(num_tasks):
+				current_actors = model_list[task_index]
 				current_env = list_of_taskenv[task_index]
 				action_n = []
 				# 用critic获得state,用critic给出action，
-				if debug:
-					print(time_end(begin, "begin"))
-					begin = time_begin()
 				for agent, his in zip(policy, history_n[task_index]):
 					hiss = his.obtain().reshape(1, obs_shape_n[0][0], arglist.history_length)		# [1, state_dim, length]
 					action = agent.action([hiss], [1])
-					action_n.append(action)
 					if debug:
-						print(time_end(begin, "action"))
+						print(time_end(begin, "action2"))
 						begin = time_begin()
+					action_n.append(action)
+
 				# environment step
 				# begin = time.time()
 				new_obs_n, rew_n, done_n = current_env.step(action_n)
@@ -177,8 +176,10 @@ def train(arglist):
 				done = all(done_n)
 				terminal = (local_steps[task_index] >= arglist.max_episode_len)
 				# 收集experience
-				for i, agent in enumerate(model_list[task_index]):
-					agent.experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
+				for i in range(env.n):
+					current_actors[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
+					policy[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
+					
 				# 更新obs
 				obs_n_list[task_index] = new_obs_n
 				if debug:
@@ -189,17 +190,18 @@ def train(arglist):
 					episodes_rewards[task_index][-1] += rew
 					agent_rewards[task_index][i][-1] += rew
 				
-				for critic in model_list[task_index]:
+				for critic in current_actors:
 					critic.preupdate()
-				for critic in model_list[task_index]:
-					critic.update(model_list[task_index], global_steps[task_index])
+				for critic in current_actors:
+					critic.update(current_actors, global_steps[task_index])
+					
 				if debug:
 					print(time_end(begin, "update critic"))
 					begin = time_begin()
 				# 2.3，优化actor
 				# policy_step += 1
 				# print("policy steps: ", policy_step)
-				for actor, critic in zip(policy, model_list[task_index]):
+				for actor, critic in zip(policy, current_actors):
 					actor.change_p(critic.p)
 					actor.update(policy, global_steps[task_index])
 				if debug:

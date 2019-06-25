@@ -84,5 +84,5 @@ class MADDPGAgentTrainer(AgentTrainer):
         # train p network
 
         self.q_update()
-
+        print("step: ", t, "q_loss: ", q_loss)
         return [q_loss, np.mean(target_q), np.mean(rew), np.std(target_q)]

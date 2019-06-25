@@ -47,8 +47,8 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
         q_loss = tf.reduce_mean(tf.square(q - target_ph))  # mse loss
         q_reg = tf.reduce_mean(tf.square(q))
         loss = q_loss  # + 1e-3 * q_reg
-        # optimize_expr = U.minimize_and_clip(optimizer, loss, q_func_vars + lstm_func_vars, grad_norm_clipping)
-        optimize_expr = U.minimize_and_clip(optimizer, loss, q_func_vars, grad_norm_clipping)
+        optimize_expr = U.minimize_and_clip(optimizer, loss, q_func_vars + lstm_func_vars, grad_norm_clipping)
+        #optimize_expr = U.minimize_and_clip(optimizer, loss, q_func_vars, grad_norm_clipping)
         # ===============q network建图结束=====================
         
         # 创建可调用函数
@@ -136,6 +136,7 @@ def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_m
         p = p_func(p_input, int(act_pdtype_n[p_index].param_shape()[0]), scope="p_func", reuse=reuse, num_units=num_units)
         # p函数的参数
         p_func_vars = U.scope_vars(U.absolute_scope_name("p_func"))
+        lstm_vars = U.scope_vars(U.absolute_scope_name("lstm"))
         # wrap parameters in distribution,Pd.logits
         act_pd = act_pdtype_n[p_index].pdfromflat(p)    #
         # act_sample = act_pd.sample()    # [batch_size, action_dim]
@@ -158,7 +159,7 @@ def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_m
         pg_loss = - tf.reduce_mean(q)    # policy gradient loss ???
         loss = pg_loss + p_reg * 1e-3   # 使用每一个critic计算的loss都是不同的，第一次需要建图，以后就不需要了
         # p网络的优化器。
-        optimize_expr = U.minimize_and_clip(optimizer, loss, p_func_vars, grad_norm_clipping)  #
+        optimize_expr = U.minimize_and_clip(optimizer, loss, p_func_vars+lstm_vars, grad_norm_clipping)  #
         # ============p network建图结束=================
 
         # 创建可以调用的函数，就是往里面喂数据

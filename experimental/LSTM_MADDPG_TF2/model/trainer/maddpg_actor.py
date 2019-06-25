@@ -64,9 +64,7 @@ class MADDPGAgentTrainer(AgentTrainer):
             local_q_func=self.local_q_func,
             num_units=self.args.num_units,
             reuse=True
-        
-
-    )
+        )
     
     def change_p(self, p):
         self.p_train = p
@@ -101,5 +99,5 @@ class MADDPGAgentTrainer(AgentTrainer):
         p_loss = self.p_train(*(obs_n + act_n + [self.args.batch_size]))
 
         self.p_update()
-
+        print("step: ", t, "p_loss: ", p_loss)
         return [p_loss]
