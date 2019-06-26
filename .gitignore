@@ -15,7 +15,7 @@ tools/py_matplotlib/pics/
 tools/py_matplotlib/*png
 # delete all .idea files
 **/.idea/
-**/**.pyc
+**/**pyc
 # delete all pycache files
 **/__pycache__/
 experimental/LSTM_MADDPG_TF2/data/
