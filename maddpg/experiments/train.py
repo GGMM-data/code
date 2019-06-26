@@ -6,7 +6,7 @@ import tensorflow as tf
 import time
 import pickle
 import sys
-sys.path.append("/home/mxxmhh/mxxhcm/code/maddpg/")
+sys.path.append("/home/lirhea/mxxhcm/code/maddpg/")
 
 import maddpg_.common.tf_util as U
 from maddpg_.trainer.maddpg import MADDPGAgentTrainer

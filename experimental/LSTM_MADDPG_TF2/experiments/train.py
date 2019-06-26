@@ -10,7 +10,7 @@ import os
 import math
 import pickle
 
-sys.path.append("/home/mxxmhh/mxxhcm/code/")
+sys.path.append("/home/lirhea/mxxhcm/code/")
 
 import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
 from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
