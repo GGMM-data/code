@@ -1,5 +1,5 @@
 import sys
-sys.path.append("/home/lirhea/mxxhcm/code/")
+sys.path.append("/home/mxxmhh/mxxhcm/code/")
 
 import argparse
 from experimental.LSTM_MADDPG_TF2.experiments.train import train

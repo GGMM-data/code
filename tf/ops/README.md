@@ -1,0 +1,32 @@
+- tf_add.py # tf.add函数
+- tf_app.py # tf.app.flags使用
+- tf_assign.py  # tf.assign函数
+- tf_basic.py   # 关于tensorflow的一些基本操作，session，tensor等
+- tf_boolean_mask.py    # 对两个tensorf取逻辑与，shape也会改变
+- tf_cond.py    # tf.cond函数，和if语句很像，但是它的操作数必须是tf.Tensor类型，不能是ndarray
+- tf_conv2d.py  # 两个都是二维卷积操作
+- tf_conv.py
+- tf_custom_collection.py   # 自定添加collection
+- tf_different_default_graph.py # 创建新的default graph
+- tf_expand_dims.py # 在tensor的某一维增加为1的一个维度，
+- tf_gather.py  # 在tensor的指定维度上进行拼接
+- tf_get_graph_op.py    # 获得graph上定义的所有op
+- tf_global_trainable_variables_collections.py  # GLOBAL和TRAINABLE collection的区别
+- tf_layers_dense.py    # 是fulley connected layer的另一种
+- tf_layers_variables_test.py   # 查看fullcy connected layer的weights在哪个collection中
+- tf_maximum.py # 比较连个tensor的大小，返回最大值组成的新tensor。
+- tf_multinominal.py
+- tf_placeholder_assign.py
+- tf_placeholder_list.py
+- tf_reduce_sum.py
+- tf_rnn
+- tf_saver_restore
+- tf_scalar_placeholder_list_assign.py
+- tf_summary
+- tf_summary_collection.py
+- tf_summary_histogram.py
+- tf_summary_mnist.py
+- tf_summary_scalar_time.py
+- tf_tensor.py
+- tf_Variable_collection.py
+- tf_where.py

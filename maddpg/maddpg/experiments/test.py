@@ -8,7 +8,7 @@ import pickle
 import json
 import sys
 
-sys.path.append("/home/lirhea/mxxhcm/code/maddpg/")
+sys.path.append("/home/mxxmhh/mxxhcm/code/maddpg/")
 
 import maddpg_.common.tf_util as U
 from maddpg_.trainer.maddpg import MADDPGAgentTrainer
@@ -28,16 +28,12 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=1024, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
-    # parser.add_argument("--load-dir", type=str, default="./tmp/num_uav_"+str(FLAGS.num_uav)+"_radius_"+str(FLAGS.radius)
-    #                                                     +"_factor_1.0/",
-    #                     help="directory in which training state and model are loaded")
-
-    #######
-    parser.add_argument("--load-dir", type=str, default="./tmp/num_uav_"+str(FLAGS.num_uav)
-                                + "_radius_"+str(FLAGS.radius)
-                                + "_factor_"+str(FLAGS.factor)
-                                + "_constrain_" + str(FLAGS.constrain),
-                help="directory in which training state and model should be saved")
+    parser.add_argument("--load-dir", type=str, default="./tmp/num_uav_"
+                                                        + str(FLAGS.num_uav)
+                                                        + "_radius_"+str(FLAGS.radius)
+                                                        + "_factor_"+str(FLAGS.factor)
+                                                        + "_constrain_"+str(FLAGS.constrain),
+                        help="directory in which training state and model should be saved")
     # Environment
     parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
@@ -115,9 +111,8 @@ def get_trainers(env, num_adversaries, obs_shape_n, arglist):
     return trainers
 
 
-def test(arglist):
+def test(arglist, episode):
     with U.single_threaded_session():
-        for episode in range(99, 3699, 100):
             # Create environment
             env = make_env(arglist.scenario, arglist, arglist.benchmark)
             # Create agent trainers
@@ -240,7 +235,7 @@ def test(arglist):
 
                     if done or terminal:
                         ### for piaozong
-                        uav_poss_file = "/home/lirhea/UAVNumber_"+str(FLAGS.num_uav) \
+                        uav_poss_file = "/home/mxxmhh/piao/UAVNumber_"+str(FLAGS.num_uav) \
                                         + "_Radius_" + str(FLAGS.radius) \
                                         + "_ConnectConstrain_" + str(FLAGS.constrain) \
                                         + "_Episode_" + str(episode) \
@@ -290,7 +285,6 @@ def test(arglist):
                                                    instantaneous_accmulated_reward, instantaneous_dis, instantaneous_out_the_map
                                                    , len(aver_cover), bl_coverage, bl_jainindex, bl_loss, energy_efficiency, False)
                         # reset custom statistics variabl between episode and epoch-----------------------------------------
-
                         obs_n = env.reset()
                         episode_step = 0
                         episode_rewards.append(0)
@@ -372,4 +366,5 @@ if __name__ == '__main__':
     # set to use number 1 GPU
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     arglist = parse_args()
-    test(arglist)
+    for episode in range(199, 2099, 100):
+        test(arglist, episode)

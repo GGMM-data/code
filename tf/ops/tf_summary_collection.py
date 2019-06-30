@@ -2,14 +2,17 @@ import tensorflow as tf
 
 graph = tf.Graph()
 
+# model定义
 with graph.as_default():
     # model parameters
     w = tf.Variable([0.3], name="w", dtype=tf.float32)
     b = tf.Variable([0.2], name="b", dtype=tf.float32)
 
+    # inputs和outputs
     x = tf.placeholder(tf.float32, name="inputs")
     y = tf.placeholder(tf.float32, name="outputs")
 
+    # 计算逻辑以及优化过程
     with tf.name_scope('linear_model'):
         linear = w * x + b
 
@@ -37,7 +40,10 @@ with tf.Session(graph=graph) as sess:
     for i in range(100):
         #_, summ = sess.run([train, merged], feed_dict={x: inputs, y: outputs})
         #writer.add_summary(summ, global_step=i)
+        # 下面这些行和上面两行起到了一样的作用
         _, sl, sw, sb = sess.run([train, summary_loss, summary_w, summary_b], feed_dict={x: inputs, y: outputs})
+        if i % 10==0:
+            print(sl)
         writer.add_summary(sl, global_step=i)
         writer.add_summary(sw, global_step=i)
         writer.add_summary(sb, global_step=i)

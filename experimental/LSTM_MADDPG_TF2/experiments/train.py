@@ -10,7 +10,7 @@ import os
 import math
 import pickle
 
-sys.path.append("/home/lirhea/mxxhcm/code/")
+sys.path.append("/home/mxxmhh/mxxhcm/code/")
 
 import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
 from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
@@ -82,7 +82,13 @@ def train(arglist):
 		instantaneous_out_the_map = [[] for _ in range(num_tasks)]
 		energy_efficiency = [[] for _ in range(num_tasks)]
 		instantaneous_accmulated_reward = [[] for _ in range(num_tasks)]
-		
+		efficiency_list = []
+		for i in range(num_tasks):
+			efficiency_list.append(tf.placeholder(tf.float32, shape=[None], name="efficiency_placeholder"+str(i)))
+		efficiency_summary_list = []
+		for i in range(num_tasks):
+			efficiency_summary_list.append(tf.summary.scalar("efficiency%s" % i, efficiency_list[i]))
+		writer = tf.summary.FileWriter("../summary/efficiency")
 		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 		U.initialize()
 		
@@ -251,8 +257,9 @@ def train(arglist):
 						f.write(info)
 
 					# 绘制reward曲线
-					# tf.get_default_session().run(efficiency_assign_op, feed_dict={efficiency_ph: efficiency[task_index]})
-					# writer.add_summary(efficiency, global_step=global_steps[task_index])
+					efficiency_s = tf.get_default_session().run(efficiency_summary_list[task_index],
+																feed_dict={efficiency_list[task_index]: energy_efficiency[task_index]})
+					writer.add_summary(efficiency_s, global_step=task_index)
 
 					# 重置每个episode中的局部变量--------------------------------------------
 					energy_one_episode = [[] for _ in range(num_tasks)]
