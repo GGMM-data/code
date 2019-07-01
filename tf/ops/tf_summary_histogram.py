@@ -1,39 +1,20 @@
 import tensorflow as tf
+import numpy as np
 
-k = tf.placeholder(tf.float32)
-
-# Make a normal distribution, with a shifting mean
-mean_moving_normal = tf.random_normal(shape=[1000], mean=(5*k), stddev=1)
-# Record that distribution into a histogram summary
-tf.summary.histogram("normal_1000/moving_mean_50", mean_moving_normal)
-
-# mean_moving_normal = tf.random_normal(shape=[1000], mean=(5*k), stddev=1)
-# tf.summary.histogram("normal_1000/moving_mean_10", mean_moving_normal)
-# mean_moving_normal = tf.random_normal(shape=[1000], mean=(5*k), stddev=1)
-# tf.summary.histogram("normal_1000", mean_moving_normal)
-
-# mean_moving_normal = tf.random_normal(shape=[100], mean=(5*k), stddev=1)
-# tf.summary.histogram("normal_100/moving_mean_10", mean_moving_normal)
-# mean_moving_normal = tf.random_normal(shape=[100], mean=(5*k), stddev=1)
-# tf.summary.histogram("normal_100", mean_moving_normal)
-
-# mean_moving_normal = tf.random_normal(shape=[10], mean=(5*k), stddev=1)
-# tf.summary.histogram("normal_10/moving_mean_10", mean_moving_normal)
-# mean_moving_normal = tf.random_normal(shape=[10], mean=(5*k), stddev=1)
-# tf.summary.histogram("normal_10", mean_moving_normal)
-
-# Setup a session and summary writer
-sess = tf.Session()
-writer = tf.summary.FileWriter("tf_summary/histogram/")
-
+shape = 2
+x = tf.placeholder(tf.float32, shape=[shape])
+x_sum = tf.summary.histogram("x", x)
 summaries = tf.summary.merge_all()
+writer = tf.summary.FileWriter("tf_summary/histogram/")
+# Setup a session and summary writer
+with tf.Session() as sess:
+    N = 3
+    for step in range(N):
+        print(step)
+        # inputs = np.arange(shape) + 5*step
+        inputs = np.ones(shape) + 5*step
+        outputs, summ = sess.run([x, x_sum], feed_dict={x: inputs})
+        print(outputs)
+        print(type(summ))
+        writer.add_summary(summ, global_step=step)
 
-# Setup a loop and write the summaries to disk
-N = 50
-for step in range(N):
-  print(step)
-  k_val = step/float(N)
-  summ = sess.run(summaries, feed_dict={k: k_val})
-  writer.add_summary(summ, global_step=step)
-
-writer.close()

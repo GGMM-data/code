@@ -161,6 +161,7 @@ def get_session():
 def make_session(num_cpu):
     """Returns a session that will use <num_cpu> CPU's only"""
     tf_config = tf.ConfigProto(
+        device_count={"CPU": 4},
         inter_op_parallelism_threads=num_cpu,
         intra_op_parallelism_threads=num_cpu)
     return tf.Session(config=tf_config)
@@ -168,7 +169,7 @@ def make_session(num_cpu):
 
 def single_threaded_session():
     """Returns a session which will only use a single CPU"""
-    return make_session(10)
+    return make_session(1)
 
 
 ALREADY_INITIALIZED = set()

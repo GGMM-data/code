@@ -3,6 +3,7 @@ sys.path.append("/home/mxxmhh/mxxhcm/code/")
 
 import argparse
 from experimental.LSTM_MADDPG_TF2.experiments.train import train
+from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
 import os
 import time
 
@@ -54,11 +55,13 @@ def parse_args():
 
 if __name__ == '__main__':
     argslist = parse_args()
-    params = ["num_task", "history_length", "max_episode_len", "num_episodes", "save_rate", "batch_size", "gamma", "buffer_size", "num_units"]
+    params = ["num_task", "history_length", "max_episode_len", "num_episodes", "save_rate",
+              "batch_size", "gamma", "buffer_size", "num_units"]
     save_path = "policy"
     dict_arg = vars(argslist)
     for param in params:
         save_path = save_path + "_" + param + "_" + str(dict_arg[param])
+    save_path += "_UAVnumber_" + str(FLAGS.num_uav) + "_size_map_" + str(FLAGS.size_map) + "_radius_" + str(FLAGS.radius)
     argslist.save_dir = argslist.save_dir + save_path + "_debug/"
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     train(argslist)

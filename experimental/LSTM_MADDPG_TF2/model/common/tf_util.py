@@ -163,6 +163,7 @@ def get_session():
 def make_session(num_cpu):
     """Returns a session that will use <num_cpu> CPU's only"""
     config = tf.ConfigProto(
+        device_count={"CPU": 4},
         inter_op_parallelism_threads=num_cpu,
         intra_op_parallelism_threads=num_cpu)
     config.gpu_options.allow_growth = True

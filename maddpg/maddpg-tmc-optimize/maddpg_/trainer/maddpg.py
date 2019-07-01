@@ -193,7 +193,4 @@ class MADDPGAgentTrainer(AgentTrainer):
 
         self.p_update()
         self.q_update()
-
-        print("q_loss: ", q_loss, "step: ", t)
-        print("p_lossL ", p_loss, "step: ", t)
         return [q_loss, p_loss, np.mean(target_q), np.mean(rew), np.mean(target_q_next), np.std(target_q)]

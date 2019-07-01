@@ -6,7 +6,7 @@ import tensorflow as tf
 import time
 import pickle
 import sys
-sys.path.append("/home/mxxmhh/maddpg/maddpg-tmc-optimize")
+sys.path.append("/home/mxxmhh/mxxhcm/code/maddpg/maddpg-tmc-optimize")
 
 import maddpg_.common.tf_util as U
 from maddpg_.trainer.maddpg import MADDPGAgentTrainer
@@ -21,9 +21,9 @@ def parse_args():
     # Core training parameters
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
     parser.add_argument("--gamma", type=float, default=0.83, help="discount f  rractor")
-    parser.add_argument("--batch-size", type=int, default=256, help="number of episodes to optimize at the same time")
+    parser.add_argument("--batch-size", type=int, default=64, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
-    parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
+    parser.add_argument("--buffer-size", type=int, default=50000, help="buffer capacity")
     parser.add_argument("--save-dir", type=str, default="./tmp/num_uav_"+str(FLAGS.num_uav)
                                                         + "_batch_" + str(256)
                                                         + "_map_size_" + str(FLAGS.size_map)
@@ -132,7 +132,13 @@ def train(arglist):
 
         efficiency = tf.placeholder(tf.float32, shape=None, name="efficiency_placeholder")
         efficiency_summary = tf.summary.scalar("efficiency", efficiency)
+        p_losses_ph = tf.placeholder(tf.float32, shape=[env.n], name="p_loss")
+        p_losses_summary = tf.summary.histogram("loss", p_losses_ph)
+        q_losses_ph = tf.placeholder(tf.float32, shape=[env.n], name="q_loss")
+        q_losses_summary = tf.summary.histogram("loss", q_losses_ph)
+        loss_summary = tf.summary.merge([q_losses_summary, p_losses_summary], name="loss")
         writer = tf.summary.FileWriter("../summary/efficiency")
+        writer2 = tf.summary.FileWriter("../summary/loss")
 
         # Initialize
         U.initialize()
@@ -194,19 +200,12 @@ def train(arglist):
         #     print(time_end(begin, "initialize"))
         #     begin = time_begin()
         print('Starting iterations...')
-        ax = plt.gca()
         episode_begin_time = time.time()
         while True:
             # get action
             action_n = [agent.action(obs) for agent, obs in zip(trainers, obs_n)]
-            # if debug:
-            #     print(time_end(begin, "action"))
-            #     begin = time_begin()
             # environment step
             new_obs_n, rew_n, done_n, info_n = env.step(action_n)
-            # if debug:
-            #     print(time_end(begin, "env.step"))
-            #     begin = time_begin()
 
             episode_step += 1
             done = all(done_n)
@@ -320,11 +319,20 @@ def train(arglist):
                 continue
 
             # update all trainers, if not in display or benchmark mode
-            loss = None
+            p_loss_list = []
+            q_loss_list = []
             for agent in trainers:
                 agent.preupdate()
             for agent in trainers:
-                loss = agent.update(trainers, train_step)
+                temp = agent.update(trainers, train_step)
+                if temp is not None:
+                    p_loss_list.append(temp[1])
+                    q_loss_list.append(temp[0])
+            if len(p_loss_list) == env.n:
+                loss_s = tf.get_default_session().run(loss_summary,
+                                                      feed_dict={p_losses_ph: p_loss_list,
+                                                                 q_losses_ph: q_loss_list})
+                writer2.add_summary(loss_s, global_step=train_step)
 
             # save model, display training output
             if terminal and (len(episode_rewards) % arglist.save_rate == 0):
@@ -348,7 +356,7 @@ def train(arglist):
                 # draw custom statistics picture when save the model----------------------------------------------------
                 if arglist.draw_picture_train:
                     episode_number_name = train_step / arglist.max_episode_len
-                    model_name = arglist.save_dir.split('/')[-2] + '/'
+                    model_name = arglist.save_dir.split('/')[-1] + '/'
                     draw_util.draw_episode(episode_number_name, arglist.pictures_dir_train + model_name, aver_cover,
                                            j_index, instantaneous_accmulated_reward, instantaneous_dis,
                                            instantaneous_out_the_map, loss_all, len(aver_cover))

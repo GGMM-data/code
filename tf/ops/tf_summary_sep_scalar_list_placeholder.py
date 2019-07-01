@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
 
-
 number = 3
 x_ph_list = []
 for i in range(number):

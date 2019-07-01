@@ -17,4 +17,5 @@ with tf.Session() as sess:
     # inputs = np.random.randn(scope, number)
     for i in range(scope):
         out, x_s = sess.run([x, merged_summary], feed_dict={x: inputs[i]})
+        print(type(x_s))
         writer.add_summary(x_s, global_step=i)

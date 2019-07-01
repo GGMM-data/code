@@ -84,16 +84,14 @@ def train(arglist):
 		instantaneous_accmulated_reward = [[] for _ in range(num_tasks)]
 		efficiency_list = []
 		for i in range(num_tasks):
-			efficiency_list.append(tf.placeholder(tf.float32, shape=[None], name="efficiency_placeholder"+str(i)))
+			efficiency_list.append(tf.placeholder(tf.float32, shape=None, name="efficiency_placeholder"+str(i)))
 		efficiency_summary_list = []
 		for i in range(num_tasks):
 			efficiency_summary_list.append(tf.summary.scalar("efficiency%s" % i, efficiency_list[i]))
 		writer = tf.summary.FileWriter("../summary/efficiency")
+		writer2 = tf.summary.FileWriter("../summary/loss")
 		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 		U.initialize()
-		
-		# for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-		# 	print(var)
 		
 		# 1.5 生成模型保存或者恢复文件夹目录
 		if arglist.load_dir == "":
@@ -168,10 +166,8 @@ def train(arglist):
 						begin = time_begin()
 					action_n.append(action)
 
-				# environment step
-				# begin = time.time()
 				new_obs_n, rew_n, done_n = current_env.step(action_n)
-				# print(time.time() - begin)
+
 				if debug:
 					print(time_end(begin, "env.step"))
 					begin = time_begin()
@@ -258,7 +254,7 @@ def train(arglist):
 
 					# 绘制reward曲线
 					efficiency_s = tf.get_default_session().run(efficiency_summary_list[task_index],
-																feed_dict={efficiency_list[task_index]: energy_efficiency[task_index]})
+																feed_dict={efficiency_list[task_index]: energy_efficiency[task_index][-1]})
 					writer.add_summary(efficiency_s, global_step=task_index)
 
 					# 重置每个episode中的局部变量--------------------------------------------

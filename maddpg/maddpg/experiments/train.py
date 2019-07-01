@@ -320,7 +320,7 @@ def train(arglist):
                 # draw custom statistics picture when save the model----------------------------------------------------
                 if arglist.draw_picture_train:
                     episode_number_name = train_step / arglist.max_episode_len
-                    model_name = arglist.save_dir.split('/')[-2] + '/'
+                    model_name = arglist.save_dir.split('/')[-1] + '/'
                     draw_util.draw_episode(episode_number_name, arglist.pictures_dir_train + model_name, aver_cover,
                                            j_index, instantaneous_accmulated_reward, instantaneous_dis,
                                            instantaneous_out_the_map, loss_all, len(aver_cover))
