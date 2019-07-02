@@ -314,7 +314,7 @@ def train(arglist):
 							instantaneous_accmulated_reward[task_index],
 							instantaneous_dis[task_index],
 							instantaneous_out_the_map[task_index],
-							energy_efficiency,
+							energy_efficiency[task_index],
 							len(aver_cover[task_index])
 						)
 
