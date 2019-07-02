@@ -24,9 +24,9 @@ def parse_args():
     parser.add_argument("--restore", action="store_true", default=True)
     parser.add_argument("--load-dir", type=str, default="",
                         help="directory in which models are saved")
-    parser.add_argument("--save-dir", type=str, default="./tmp/",
+    parser.add_argument("--save-dir", type=str, default="../checkpoints/",
                         help="directory in which models are saved")
-    parser.add_argument("--save-rate", type=int, default=50,
+    parser.add_argument("--save-rate", type=int, default=100,
                         help="save model once every time this many episodes are completed")
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
 

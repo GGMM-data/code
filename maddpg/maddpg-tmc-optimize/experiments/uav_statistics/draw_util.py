@@ -12,6 +12,45 @@ def mkdir(path):
         os.makedirs(path)
 
 
+def draw_single_episode(path, episode_number, efficiency,
+                        coverage, fairness, energy, disconnect, over_map):
+    mkdir(path)
+    steps = len(efficiency)
+    plt.figure(figsize=(18, 10))
+    plt.subplot(3, 2, 1)
+    plt.xlabel("No. of step")
+    plt.ylabel("Energy efficiency")
+    plt.plot(range(steps), efficiency, color='b')
+
+    plt.subplot(3, 2, 2)
+    plt.xlabel("No. of step")
+    plt.ylabel("Coverage")
+    plt.plot(range(steps), coverage, color='g')
+
+    plt.subplot(3, 2, 3)
+    plt.xlabel("No. of step")
+    plt.ylabel("Fairness")
+    plt.plot(range(steps), fairness, color='r')
+
+    plt.subplot(3, 2, 4)
+    plt.xlabel("No. of step")
+    plt.ylabel("Energy")
+    plt.plot(range(steps), energy, color='c')
+
+    plt.subplot(3, 2, 5)
+    plt.xlabel("No. of step")
+    plt.ylabel("Disconnect")
+    plt.plot(range(steps), disconnect, color='m')
+
+    plt.subplot(3, 2, 6)
+    plt.xlabel("No. of step")
+    plt.ylabel("Over map counter")
+    plt.plot(range(steps), over_map, color='y')
+
+    plt.savefig(path + "/episode_" + str(episode_number) + '_info.png')
+    plt.close()
+
+
 def draw(i, path, energy, route, actions, ob_, sqrt_, r_, discon_, over_map, final_steps, Run = False):
     mkdir(path)
     label = 'epoch:' + str(FLAGS.max_epoch) + '\nUAV: ' + str(FLAGS.num_uav) + '\n map size: ' + str(FLAGS.size_map) + '\n sensing range:' + str(FLAGS.radius) \

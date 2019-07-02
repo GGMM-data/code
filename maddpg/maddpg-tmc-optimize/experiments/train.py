@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=64, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
     parser.add_argument("--buffer-size", type=int, default=50000, help="buffer capacity")
-    parser.add_argument("--save-dir", type=str, default="./tmp/num_uav_"+str(FLAGS.num_uav)
+    parser.add_argument("--save-dir", type=str, default="../checkpoints/num_uav_"+str(FLAGS.num_uav)
                                                         + "_batch_" + str(256)
                                                         + "_map_size_" + str(FLAGS.size_map)
                                                         + "_radius_"+str(FLAGS.radius)
@@ -57,13 +57,13 @@ def parse_args():
     parser.add_argument("--draw-picture-train", action="store_true", default=True)
     parser.add_argument("--draw-picture-test", action="store_true", default=False)
     parser.add_argument("--benchmark-iters", type=int, default=100000, help="number of iterations run for benchmarking")
-    parser.add_argument("--benchmark-dir", type=str, default="./benchmark_files/",
+    parser.add_argument("--benchmark-dir", type=str, default="../benchmark_files/",
                         help="directory where benchmark data is saved")
-    parser.add_argument("--plots-dir", type=str, default="./learning_curves/",
+    parser.add_argument("--plots-dir", type=str, default="../learning_curves/",
                         help="directory where plot data is saved")
-    parser.add_argument("--pictures-dir-train", type=str, default="./result_pictures/train/",
+    parser.add_argument("--pictures-dir-train", type=str, default="../result_pictures/train/",
                         help="directory where result pictures data is saved")
-    parser.add_argument("--pictures-dir-test", type=str, default="./result_pictures/test/",
+    parser.add_argument("--pictures-dir-test", type=str, default="../result_pictures/test/",
                         help="directory where result pictures data is saved")
 
     # custom parameters for uav
@@ -127,12 +127,18 @@ def train(arglist):
             begin = time_begin()
         # Create environment
         env = make_env(arglist.scenario, arglist, arglist.benchmark)
+        print(time_end(begin, "step 0"))
+        begin = time_begin()
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
+        print(time_end(begin, "step 1"))
+        begin = time_begin()
         trainers = get_trainers(env, num_adversaries, obs_shape_n, arglist)
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
-
+        print(time_end(begin, "step2"))
+        begin = time_begin()
+        
         efficiency = tf.placeholder(tf.float32, shape=None, name="efficiency_placeholder")
         efficiency_summary = tf.summary.scalar("efficiency", efficiency)
         p_losses_ph = tf.placeholder(tf.float32, shape=[env.n], name="p_loss")
@@ -162,7 +168,6 @@ def train(arglist):
         agent_info = [[[]]]  # placeholder for benchmarking info
         model_number = int(arglist.num_episodes / arglist.save_rate)
         saver = tf.train.Saver(max_to_keep=model_number)
-        obs_n = env.reset()
         episode_step = 0
         train_step = 0
         t_start = time.time()
@@ -190,7 +195,8 @@ def train(arglist):
         actions = []
         energy_one_episode = []
         route = []
-
+        obs_n = env.reset()
+        
         episode_reward_step = 0
 
         model_name = arglist.load_dir.split('/')[-3] + '/' + arglist.load_dir.split('/')[-2] + '/'
@@ -198,7 +204,7 @@ def train(arglist):
             model_name = model_name + 'greedy/'
         elif FLAGS.random_action:
             model_name = model_name + 'random/'
-
+        
         # if debug:
         #     print(time_end(begin, "initialize"))
         #     begin = time_begin()
@@ -241,6 +247,16 @@ def train(arglist):
             #     begin = time_begin()
             if done or terminal:
                 episode_number = int(train_step / arglist.max_episode_len)
+                temp_efficiency = np.array(aver_cover_one_episode) * np.array(
+                    j_index_one_episode) / np.array(energy_one_episode)
+                draw_util.draw_single_episode(arglist.save_dir, episode_number,
+                                              temp_efficiency,
+                                              aver_cover_one_episode,
+                                              j_index_one_episode,
+                                              energy_one_episode,
+                                              disconnected_number_one_episode,
+                                              over_map_one_episode)
+
                 # reset custom statistics variabl between episode and epoch---------------------------------------------
                 instantaneous_accmulated_reward.append(accmulated_reward_one_episode[-1])
                 j_index.append(j_index_one_episode[-1])

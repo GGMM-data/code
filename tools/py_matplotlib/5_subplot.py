@@ -23,3 +23,4 @@ plt.plot(x, y4, ms=10, marker='o')
 
 plt.show()
 
+print(type(l))

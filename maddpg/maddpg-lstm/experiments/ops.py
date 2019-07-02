@@ -31,9 +31,33 @@ def dimension_reduction(inputs, num_units=256, scope="dimension_reduction", reus
         return out
 
 
-# lstm模型
-# inputs: list of [batch_size, dim, time_step]
+#  lstm模型
 def lstm_model(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
+    shape = inputs[0].shape
+    lstm_size = shape[1]
+    observation_n = []
+    for i in range(len(inputs)):
+        x = inputs[i]
+        if not reuse and i == 0:
+            reuse = False
+        else:
+            reuse = True
+
+        with tf.variable_scope(scope, reuse=reuse):
+            x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size, state_size)
+            lstm_cell = rnn.BasicLSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
+            cell = rnn.MultiRNNCell([lstm_cell] * layers_number, state_is_tuple=True)
+            with tf.variable_scope("Multi_Layer_RNN"):
+                cell_outputs, states = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
+            outputs = cell_outputs[-1:, :, :]
+            outputs = tf.squeeze(outputs, 0)
+            observation_n.append(outputs)
+    return observation_n
+
+
+# dimension reduction + lstm模型
+# inputs: list of [batch_size, dim, time_step]
+def lstm_model2(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
     shape = inputs[0].shape
     observation_n = []
     for i in range(len(inputs)):
