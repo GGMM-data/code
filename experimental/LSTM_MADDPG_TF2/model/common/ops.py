@@ -1,6 +1,12 @@
 import tensorflow as tf
-import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
-from experimental.LSTM_MADDPG_TF2.model.common.distributions import make_pdtype
+import os
+import sys
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
+
+import model.common.tf_util as U
+from model.common.distributions import make_pdtype
 
 
 def discount_with_dones(rewards, dones, gamma):

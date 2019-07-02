@@ -1,20 +1,22 @@
 import sys
-sys.path.append("/home/mxxmhh/mxxhcm/code/")
+import os
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
 
 import argparse
-from experimental.LSTM_MADDPG_TF2.experiments.train import train
-from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+from experiments.train import train
+from multiagent.uav.flag import FLAGS
 import os
-import time
 
 
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
     
     parser.add_argument("--gamma", type=float, default=0.80, help="discount factor")
-    parser.add_argument("--batch-size", type=int, default=4, help="number of episodes to optimize at the same time")
+    parser.add_argument("--batch-size", type=int, default=128, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
-    parser.add_argument("--buffer-size", type=int, default=50000, help="buffer capacity")
+    parser.add_argument("--buffer-size", type=int, default=100000, help="buffer capacity")
     parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
     # rnn 长度
     parser.add_argument('--history_length', type=int, default=4, help="how many history states were used")
@@ -46,9 +48,9 @@ def parse_args():
     parser.add_argument("--display", action="store_true", default=False)
     parser.add_argument("--draw-picture-train", action="store_true", default=True)
     parser.add_argument("--draw-picture-test", action="store_true", default=False)
-    parser.add_argument("--plots-dir", type=str, default="./learning_curves/",
+    parser.add_argument("--plots-dir", type=str, default="../learning_curves/",
                         help="directory where plot data is saved")
-    parser.add_argument("--pictures-dir-train", type=str, default="./result_pictures/train/",
+    parser.add_argument("--pictures-dir-train", type=str, default="../result_pictures/train/",
                         help="directory where result pictures data is saved")
     return parser.parse_args()
 

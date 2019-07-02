@@ -1,12 +1,15 @@
 import argparse
 import gym
 import numpy as np
-import os
 import tensorflow as tf
 import time
 import pickle
 import sys
-sys.path.append("/home/mxxmhh/maddpg/maddpg-tmc")
+import os
+cwd = os.getcwd()
+path = cwd + "/../"
+print(path)
+sys.path.append(path)
 
 import maddpg_.common.tf_util as U
 from maddpg_.trainer.maddpg import MADDPGAgentTrainer

@@ -1,6 +1,13 @@
 import tensorflow as tf
-from experimental.LSTM_MADDPG_TF2.model.trainer.maddpg_actor import MADDPGAgentTrainer as MADDPG_ACTOR
-from experimental.LSTM_MADDPG_TF2.model.trainer.maddpg_critic import MADDPGAgentTrainer as MADDPG_CRITIC
+import os
+import sys
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
+print(path)
+
+from model.trainer.maddpg_actor import MADDPGAgentTrainer as MADDPG_ACTOR
+from model.trainer.maddpg_critic import MADDPGAgentTrainer as MADDPG_CRITIC
 import tensorflow.nn.rnn_cell as rnn
 import tensorflow.contrib.layers as layers
 import h5py
@@ -84,8 +91,8 @@ def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=Non
 
 
 def make_env(scenario_name, arglist, benchmark=False):
-    from experimental.LSTM_MADDPG_TF2.multiagent.environment_uav import MultiAgentEnv
-    import experimental.LSTM_MADDPG_TF2.multiagent.scenarios as scenarios
+    from multiagent.environment_uav import MultiAgentEnv
+    import multiagent.scenarios as scenarios
 
     # load scenario from script
     scenario = scenarios.load(scenario_name + ".py").Scenario()

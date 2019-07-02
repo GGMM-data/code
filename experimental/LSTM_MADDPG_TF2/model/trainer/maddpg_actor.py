@@ -1,12 +1,15 @@
-import numpy as np
-
 import tensorflow as tf
-import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
+import os
+import sys
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
 
 
-from experimental.LSTM_MADDPG_TF2.model import AgentTrainer
-from experimental.LSTM_MADDPG_TF2.model.trainer.replay_buffer import ReplayBuffer
-from experimental.LSTM_MADDPG_TF2.model.common.ops import p_train, p_act
+import model.common.tf_util as U
+from model import AgentTrainer
+from model.trainer.replay_buffer import ReplayBuffer
+from model.common.ops import p_train, p_act
 
 
 class MADDPGAgentTrainer(AgentTrainer):
@@ -99,5 +102,5 @@ class MADDPGAgentTrainer(AgentTrainer):
         p_loss = self.p_train(*(obs_n + act_n + [self.args.batch_size]))
 
         self.p_update()
-        print("step: ", t, "p_loss: ", p_loss)
+        # print("step: ", t, "p_loss: ", p_loss)
         return [p_loss]

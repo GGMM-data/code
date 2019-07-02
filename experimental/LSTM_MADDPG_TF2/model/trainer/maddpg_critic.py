@@ -1,12 +1,15 @@
 import numpy as np
-
 import tensorflow as tf
-import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
+import os
+import sys
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
 
-
-from experimental.LSTM_MADDPG_TF2.model import AgentTrainer
-from experimental.LSTM_MADDPG_TF2.model.trainer.replay_buffer import ReplayBuffer
-from experimental.LSTM_MADDPG_TF2.model.common.ops import q_train, p_act
+import model.common.tf_util as U
+from model import AgentTrainer
+from model.trainer.replay_buffer import ReplayBuffer
+from model.common.ops import q_train, p_act
 
 
 class MADDPGAgentTrainer(AgentTrainer):
@@ -84,5 +87,5 @@ class MADDPGAgentTrainer(AgentTrainer):
         # train p network
 
         self.q_update()
-        print("step: ", t, "q_loss: ", q_loss)
+        # print("step: ", t, "q_loss: ", q_loss)
         return [q_loss, np.mean(target_q), np.mean(rew), np.std(target_q)]

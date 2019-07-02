@@ -1,5 +1,4 @@
 import tensorflow as tf
-import numpy as np
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS

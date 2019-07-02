@@ -6,16 +6,17 @@ import tensorflow as tf
 import time
 import matplotlib.pyplot as plt
 import sys
-import os
 import math
 import pickle
+import os
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
 
-sys.path.append("/home/mxxmhh/mxxhcm/code/")
-
-import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
-from experimental.LSTM_MADDPG_TF2.model.trainer.history import History
-from experimental.LSTM_MADDPG_TF2.experiments.uav_statistics import draw_util
-from experimental.LSTM_MADDPG_TF2.experiments.ops import make_env, get_trainers, sample_map
+import model.common.tf_util as U
+from model.trainer.history import History
+from experiments.uav_statistics import draw_util
+from experiments.ops import make_env, get_trainers, sample_map
 
 
 def time_begin():
@@ -244,18 +245,17 @@ def train(arglist):
 					episode_end_time = time.time()
 					episode_time = episode_end_time - episode_start_time
 					episode_start_time = episode_end_time
-					with open(save_path+"train_info.txt", "a+") as f:
-						info = "Task " + str(task_index)\
-							+ ", episode-" + str(episode_number)\
-							+ ", energy_consumptions: " + str(current_env.get_energy_origin())\
-							+ ", energy_efficiency: " + str(energy_efficiency[task_index][-1])\
-							+ ", time: " + str(round(episode_time, 3))+"\n"
-						f.write(info)
+					print('Task %d, Episode: %d - energy_consumptions: %s, efficiency: %s, time %s' % (
+						task_index,
+						episode_number,
+						str(current_env.get_energy_origin()),
+						str(energy_efficiency[task_index][-1]),
+						str(round(episode_time, 3))))
 
 					# 绘制reward曲线
 					efficiency_s = tf.get_default_session().run(efficiency_summary_list[task_index],
 																feed_dict={efficiency_list[task_index]: energy_efficiency[task_index][-1]})
-					writer.add_summary(efficiency_s, global_step=task_index)
+					writer.add_summary(efficiency_s, global_step=episode_number)
 
 					# 重置每个episode中的局部变量--------------------------------------------
 					energy_one_episode = [[] for _ in range(num_tasks)]
@@ -314,6 +314,7 @@ def train(arglist):
 							instantaneous_accmulated_reward[task_index],
 							instantaneous_dis[task_index],
 							instantaneous_out_the_map[task_index],
+							energy_efficiency,
 							len(aver_cover[task_index])
 						)
 

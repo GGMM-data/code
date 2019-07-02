@@ -1,6 +1,12 @@
 import tensorflow as tf
 import numpy as np
-import experimental.LSTM_MADDPG_TF2.model.common.tf_util as U
+import os
+import sys
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
+
+import model.common.tf_util as U
 from tensorflow.python.ops import math_ops
 
 

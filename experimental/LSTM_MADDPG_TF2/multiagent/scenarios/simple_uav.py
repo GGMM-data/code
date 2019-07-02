@@ -1,10 +1,16 @@
 import numpy as np
-from experimental.LSTM_MADDPG_TF2.multiagent.core import World, Agent
-from experimental.LSTM_MADDPG_TF2.multiagent.scenario import BaseScenario
-from PIL import Image, ImageDraw
-from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
-import time
+import os
+import sys
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
 
+from multiagent.core import World, Agent
+from multiagent.scenario import BaseScenario
+from multiagent.uav.flag import FLAGS
+
+import time
+from PIL import Image, ImageDraw
 
 
 class Scenario(BaseScenario):

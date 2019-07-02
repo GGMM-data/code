@@ -6,7 +6,10 @@ import tensorflow as tf
 import time
 import pickle
 import sys
-sys.path.append("/home/mxxmhh/mxxhcm/code/maddpg/maddpg-tmc-optimize")
+cwd = os.getcwd()
+path = cwd + "/../"
+print(path)
+sys.path.append(path)
 
 import maddpg_.common.tf_util as U
 from maddpg_.trainer.maddpg import MADDPGAgentTrainer
@@ -359,7 +362,7 @@ def train(arglist):
                     model_name = arglist.save_dir.split('/')[-1] + '/'
                     draw_util.draw_episode(episode_number_name, arglist.pictures_dir_train + model_name, aver_cover,
                                            j_index, instantaneous_accmulated_reward, instantaneous_dis,
-                                           instantaneous_out_the_map, loss_all, len(aver_cover))
+                                           instantaneous_out_the_map, energy_efficiency, loss_all, len(aver_cover))
 
             # saves final episode reward for plotting training curve later
             if len(episode_rewards) > arglist.num_episodes:

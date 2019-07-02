@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..', 'multiagent'))
-from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
 
+from multiagent.uav.flag import FLAGS
 import numpy as np
 
 
@@ -144,20 +146,16 @@ def drawTest(i, path, energy, coverage, jainindex, r_, discon_, over_map, final_
     plt.close()
 
 
-def draw_episode(i, path, coverage, j_index, A_reward, A_discon, A_over_map, final_steps):
+def draw_episode(i, path, coverage, j_index, A_reward, A_discon, A_over_map, A_efficiency, final_steps):
     mkdir(path)
-    label = 'epoch:' + str(FLAGS.max_epoch) + '\nUAV: ' + str(FLAGS.num_uav) + '\n map size: ' + str(
-        FLAGS.size_map) + '\n sensing range:' + str(FLAGS.radius) \
-            + '\n constraint:' + str(FLAGS.constrain)
 
-    with open("record.file"+"5", "a+") as file:
-        record = str(i)+"\n"
-        file.write(record)
-        record = str(coverage) + "\n" + str(j_index) + "\n" + str(A_reward) + "\n"
-        file.write(record)
+    # with open("record.file"+"5", "a+") as file:
+    #     record = str(i)+"\n"
+    #     file.write(record)
+    #     record = str(coverage) + "\n" + str(j_index) + "\n" + str(A_reward) + "\n"
+    #     file.write(record)
 
     plt.figure(1,  figsize=(8, 6))  # Create a `figure' instance
-
     label = ['average cover score', 'fairness index']
     plt.xlabel('No. of time steps')
     plt.ylabel('Average attained coverage')
@@ -181,8 +179,6 @@ def draw_episode(i, path, coverage, j_index, A_reward, A_discon, A_over_map, fin
     plt.savefig(path + "/episode_" + str(i) + "_disconnect.png")
     plt.close()
 
-
-    # #
     plt.figure(4, figsize=(8, 6))  # Create a `figure' instance
     plt.xlabel('No. of time steps')
     plt.ylabel('Accumulated reward')
@@ -190,8 +186,17 @@ def draw_episode(i, path, coverage, j_index, A_reward, A_discon, A_over_map, fin
     plt.savefig(path + "/episode_" + str(i) + "_reward.png")
     plt.close()
 
-    #plt.show()
-    # # #
+    plt.figure(5, figsize=(8, 6))  # Create a `figure' instance
+    plt.xlabel('No. of time steps')
+    plt.ylabel('Energy efficiency')
+    plt.plot(range(final_steps), A_efficiency)
+    plt.savefig(path + "/episode_" + str(i) + "_efficiency.png")
+    plt.close()
+
+    # label = 'epoch:' + str(FLAGS.max_epoch) + '\nUAV: ' + str(FLAGS.num_uav) + '\n map size: ' + str(
+    # FLAGS.size_map) + '\n sensing range:' + str(FLAGS.radius)
+    # + '\n constraint:' + str(FLAGS.constrain)
+    #
     # Dx = Fig.add_subplot(324)
     # plt.xlabel('No. of episodes')
     # plt.ylabel('Instantaneous times \nof disconnection')

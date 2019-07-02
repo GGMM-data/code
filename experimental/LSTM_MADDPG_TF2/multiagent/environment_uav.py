@@ -2,7 +2,13 @@ import gym
 import numpy as np
 from gym import spaces
 import networkx as nx
-from experimental.LSTM_MADDPG_TF2.multiagent.uav.flag import FLAGS
+import os
+import sys
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
+
+from multiagent.uav.flag import FLAGS
 import time
 
 # environment for all agents in the multiagent world
