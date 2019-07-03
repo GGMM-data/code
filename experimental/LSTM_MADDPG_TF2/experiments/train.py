@@ -102,7 +102,7 @@ def train(arglist):
 				if os.path.isdir(os.path.join(arglist.save_dir, f)):
 					file_list.append(f)
 			file_list.sort(key=lambda fn: os.path.getmtime(arglist.load_dir + "/" + fn))
-			if len(file_list) > 0:
+			if len(file_list) > num_tasks:
 				load_dir = os.path.join(arglist.load_dir, file_list[-1], "model.ckpt")
 				U.load_state(load_dir)
 			print('Loading previous state...')
@@ -234,14 +234,15 @@ def train(arglist):
 					temp_efficiency = np.array(aver_cover_one_episode[task_index]) * np.array(
 						j_index_one_episode[task_index]) / np.array(energy_one_episode[task_index])
 					draw_util.draw_single_episode(
-						save_path + "/" + str(task_index) + "/",
+						save_path + "/task_" + str(task_index) + "/",
 						episode_number,
 						temp_efficiency,
 						aver_cover_one_episode[task_index],
 						j_index_one_episode[task_index],
 						energy_one_episode[task_index],
 						disconnected_number_one_episode[task_index],
-						over_map_one_episode[task_index]
+						over_map_one_episode[task_index],
+						accmulated_reward_one_episode[task_index]
 					)
 					# 记录每个episode的变量
 					energy_consumptions_for_test[task_index].append(energy_one_episode[task_index][-1])		# energy
@@ -322,10 +323,11 @@ def train(arglist):
 							arglist.pictures_dir_train + model_name + str(task_index) + "/",
 							aver_cover[task_index],
 							j_index[task_index],
-							instantaneous_accmulated_reward[task_index],
-							instantaneous_dis[task_index],
+							energy_consumptions_for_test[task_index],
 							instantaneous_out_the_map[task_index],
+							instantaneous_dis[task_index],
 							energy_efficiency,
+							instantaneous_accmulated_reward[task_index],
 							len(aver_cover[task_index])
 						)
 

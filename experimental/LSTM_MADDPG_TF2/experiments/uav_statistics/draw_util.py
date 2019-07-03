@@ -17,45 +17,6 @@ def mkdir(path):
         os.makedirs(path)
 
 
-def draw_single_episode(path, episode_number, efficiency,
-                        coverage, fairness, energy, disconnect, over_map):
-    mkdir(path)
-    steps = len(efficiency)
-    plt.figure(figsize=(18, 10))
-    plt.subplot(3, 2, 1)
-    plt.xlabel("No. of step")
-    plt.ylabel("Energy efficiency")
-    plt.plot(range(steps), efficiency, color='b')
-
-    plt.subplot(3, 2, 2)
-    plt.xlabel("No. of step")
-    plt.ylabel("Coverage")
-    plt.plot(range(steps), coverage, color='g')
-
-    plt.subplot(3, 2, 3)
-    plt.xlabel("No. of step")
-    plt.ylabel("Fairness")
-    plt.plot(range(steps), fairness, color='r')
-
-    plt.subplot(3, 2, 4)
-    plt.xlabel("No. of step")
-    plt.ylabel("Energy")
-    plt.plot(range(steps), energy, color='c')
-
-    plt.subplot(3, 2, 5)
-    plt.xlabel("No. of step")
-    plt.ylabel("Disconnect")
-    plt.plot(range(steps), disconnect, color='m')
-
-    plt.subplot(3, 2, 6)
-    plt.xlabel("No. of step")
-    plt.ylabel("Over map counter")
-    plt.plot(range(steps), over_map, color='y')
-
-    plt.savefig(path + "episode_" + str(episode_number) + '_info.png')
-    plt.close()
-
-
 def draw(i, path, energy, route, actions, ob_, sqrt_, r_, discon_, over_map, final_steps, Run = False):
     mkdir(path)
     label = 'epoch:' + str(FLAGS.max_epoch) + '\nUAV: ' + str(FLAGS.num_uav) + '\n map size: ' + str(FLAGS.size_map) + '\n sensing range:' + str(FLAGS.radius) \
@@ -100,26 +61,6 @@ def draw(i, path, energy, route, actions, ob_, sqrt_, r_, discon_, over_map, fin
     Fig.subplots_adjust(hspace=0.4)
     Fig.savefig(path + '/pic_' + str(i) + '.png')
     plt.close()
-
-    # #
-    # route = np.array(route)
-    #
-    # for uav_i in range(FLAGS.num_uav):
-    #     fig_tem = plt.figure(figsize=(10, 10))
-    #     ax = fig_tem.add_subplot(111)
-    #     x = route[uav_i][0]
-    #     y = route[uav_i][1]
-    #     x_ = route[FLAGS.num_uav * FLAGS.max_epoch - (FLAGS.num_uav - uav_i)][0]
-    #     y_ = route[FLAGS.num_uav * FLAGS.max_epoch - (FLAGS.num_uav - uav_i)][1]
-    #     l1 = ax.scatter(route[uav_i::FLAGS.num_uav, 0], route[uav_i::FLAGS.num_uav, 1], color='b', marker='o')
-    #     plt.plot(route[uav_i::FLAGS.num_uav, 0], route[uav_i::FLAGS.num_uav, 1])
-    #     l2 = ax.scatter(x, y, c='y', marker='o')
-    #     l3 = ax.scatter(x_, y_, c='r', marker='o')
-    #     plt.legend(handles = [l1, l2, l3], labels = ['track point', 'starting point', 'end point'], loc = 'best')
-    #     plt.ylim(ymin=0, ymax=FLAGS.size_map)
-    #     plt.xlim(xmin=0, xmax=FLAGS.size_map)
-    #     fig_tem.savefig(path + '/pic_' + str(i) + ':UAV_' + str(uav_i + 1) +'.png')
-    #     plt.close()
 
 
 def drawTest(i, path, energy, coverage, jainindex, r_, discon_, over_map, final_steps, BL_coverage, BL_jain, BL_loss, energy_efficiency, Run = False):
@@ -177,74 +118,90 @@ def drawTest(i, path, energy, coverage, jainindex, r_, discon_, over_map, final_
     plt.close()
 
 
-def draw_episodes(i, path, coverage, j_index, A_reward, A_discon, A_over_map, A_efficiency, final_steps):
+def draw_single_episode(path, episode_number, efficiency,
+                        coverage, fairness, energy, disconnect, over_map, reward):
     mkdir(path)
+    steps = len(efficiency)
+    plt.figure(figsize=(40, 20))
+    plt.subplot(4, 2, 1)
+    plt.xlabel("No. of step")
+    plt.ylabel("Energy efficiency")
+    plt.plot(range(steps), efficiency, color='b')
 
-    plt.figure(1,  figsize=(8, 6))  # Create a `figure' instance
-    label = ['average cover score', 'fairness index']
-    plt.xlabel('No. of time steps')
-    plt.ylabel('Average attained coverage')
-    plt.plot(range(final_steps), coverage, 'b-.', range(final_steps), j_index, 'r-')
-    plt.legend(label)
-    plt.savefig(path + "/episode_" + str(i) + "_cover_fair.png")
+    plt.subplot(4, 2, 2)
+    plt.xlabel("No. of step")
+    plt.ylabel("Coverage")
+    plt.plot(range(steps), coverage, color='g')
+
+    plt.subplot(4, 2, 3)
+    plt.xlabel("No. of step")
+    plt.ylabel("Fairness")
+    plt.plot(range(steps), fairness, color='r')
+
+    plt.subplot(4, 2, 4)
+    plt.xlabel("No. of step")
+    plt.ylabel("Energy")
+    plt.plot(range(steps), energy, color='c')
+
+    plt.subplot(4, 2, 5)
+    plt.xlabel("No. of step")
+    plt.ylabel("Disconnect")
+    plt.plot(range(steps), disconnect, color='m')
+
+    plt.subplot(4, 2, 6)
+    plt.xlabel("No. of step")
+    plt.ylabel("Over map counter")
+    plt.plot(range(steps), over_map, color='y')
+
+    plt.subplot(4, 2, 7)
+    plt.xlabel("No. of step")
+    plt.ylabel("Reward")
+    plt.plot(range(steps), over_map, color='w')
+
+    plt.savefig(path + "episode_" + str(episode_number) + '_info.png')
     plt.close()
 
-    # #
-    plt.figure(2, figsize=(8, 6))  # Create a `figure' instanc
-    plt.xlabel('No. of episodes')
-    plt.ylabel('over counter')
-    plt.plot(range(final_steps), A_over_map)
-    plt.savefig(path + "/episode_" + str(i) + "_over.png")
+
+def draw_episodes(i, path, coverage, j_index, energy, A_discon, A_over_map, A_efficiency, A_reward, final_steps):
+    mkdir(path)
+    steps = final_steps
+    plt.figure(figsize=(18, 10))
+
+    plt.subplot(4, 2, 1)
+    plt.xlabel("No. of step")
+    plt.ylabel("Fairness")
+    plt.plot(range(steps), j_index, color='r')
+
+    plt.subplot(4, 2, 2)
+    plt.xlabel("No. of step")
+    plt.ylabel("Coverage")
+    plt.plot(range(steps), coverage, color='g')
+
+    plt.subplot(4, 2, 3)
+    plt.xlabel("No. of step")
+    plt.ylabel("Energy")
+    plt.plot(range(steps), energy, color='c')
+
+    plt.subplot(4, 2, 4)
+    plt.xlabel("No. of step")
+    plt.ylabel("Energy efficiency")
+    plt.plot(range(steps), A_efficiency, color='b')
+
+    plt.subplot(4, 2, 5)
+    plt.xlabel("No. of step")
+    plt.ylabel("Disconnect")
+    plt.plot(range(steps), A_discon, color='m')
+
+    plt.subplot(4, 2, 6)
+    plt.xlabel("No. of step")
+    plt.ylabel("Over map counter")
+    plt.plot(range(steps), A_over_map, color='y')
+
+    plt.subplot(4, 2, 7)
+    plt.xlabel("No. of step")
+    plt.ylabel("Reward")
+    plt.plot(range(steps), A_reward, color='w')
+
+    plt.savefig(path
+                + "episodes_" + str(i) + '.png')
     plt.close()
-
-    plt.figure(3, figsize=(8, 6))  # Create a `figure' instance
-    plt.xlabel('No. of time steps')
-    plt.ylabel('disconnect')
-    plt.plot(range(final_steps), A_discon)
-    plt.savefig(path + "/episode_" + str(i) + "_disconnect.png")
-    plt.close()
-
-    plt.figure(4, figsize=(8, 6))  # Create a `figure' instance
-    plt.xlabel('No. of time steps')
-    plt.ylabel('Accumulated reward')
-    plt.plot(range(final_steps), A_reward)
-    plt.savefig(path + "/episode_" + str(i) + "_reward.png")
-    plt.close()
-
-    plt.figure(5, figsize=(8, 6))  # Create a `figure' instance
-    plt.xlabel('No. of time steps')
-    plt.ylabel('Energy efficiency')
-    plt.plot(range(final_steps), A_efficiency)
-    plt.savefig(path + "/episode_" + str(i) + "_efficiency.png")
-    plt.close()
-
-    # with open("record.file"+"5", "a+") as file:
-    #     record = str(i)+"\n"
-    #     file.write(record)
-    #     record = str(coverage) + "\n" + str(j_index) + "\n" + str(A_reward) + "\n"
-    #     file.write(record)
-
-    # label = 'epoch:' + str(FLAGS.max_epoch) + '\nUAV: ' + str(FLAGS.num_uav) + '\n map size: ' + str(
-    # FLAGS.size_map) + '\n sensing range:' + str(FLAGS.radius)
-    # + '\n constraint:' + str(FLAGS.constrain)
-    #
-    # Dx = Fig.add_subplot(324)
-    # plt.xlabel('No. of episodes')
-    # plt.ylabel('Instantaneous times \nof disconnection')
-    # Dx.plot(range(final_steps), A_discon, color='blue')
-    #
-    # Gx = Fig.add_subplot(325)
-    # plt.xlabel('No. of episodes')
-    # plt.ylabel('Instantaneous times \nto fly outside the map')
-    # line_ob, = Gx.plot(range(final_steps), A_over_map, color='green')
-    # plt.legend([line_ob, ], [label, ])
-    #
-    # # Hx = Fig.add_subplot(325)
-    # # plt.xlabel('No. of episodes')
-    # # plt.ylabel('loss')
-    # # # print('len loss:', len(loss), ' step:', final_steps)
-    # # Hx.plot(range(final_steps), loss, color='green')
-    #
-    # Fig.subplots_adjust(hspace=0.4)
-    # Fig.savefig(path + '/episode_' + str(i) + '.png')
-    # plt.close()
