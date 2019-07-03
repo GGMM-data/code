@@ -57,8 +57,8 @@ def parse_args():
 
 if __name__ == '__main__':
     argslist = parse_args()
-    params = ["num_task", "history_length", "max_episode_len", "num_episodes", "save_rate",
-              "batch_size", "gamma", "buffer_size", "num_units"]
+    params = ["batch_size", "buffer_size", "num_task", "history_length", "max_episode_len", "num_episodes", "save_rate",
+              "gamma", "num_units"]
     save_path = "policy"
     dict_arg = vars(argslist)
     for param in params:

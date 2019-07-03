@@ -6,12 +6,14 @@ import numpy as np
 
 def lstm(x, batch_size):
     output_size = 10
-    lstm_size = 28
+    lstm_size = 12  # hidden state and output size
 
-    x = tf.transpose(x, (1, 0, 2))
+    x = tf.transpose(x, (1, 0, 2))  ## (time_steps, batch_size, state_size)
 
     lstm = rnn.LSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
     outputs, states = tf.nn.dynamic_rnn(lstm, x, dtype=tf.float32, time_major=True)
+    print("hhhhhhhhhhhhhhhhhhhh")
+    print(outputs.shape)
     out = tf.convert_to_tensor(outputs[-1:, :, :])
     out = tf.squeeze(out, 0)
     return tf.layers.dense(out, output_size, activation=tf.nn.relu, use_bias=True)

@@ -8,6 +8,9 @@ sys.path.append(path)
 import model.common.tf_util as U
 from model.common.distributions import make_pdtype
 
+debug = True
+if debug:
+    import time
 
 def discount_with_dones(rewards, dones, gamma):
     discounted = []
@@ -77,6 +80,8 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
 # 创建p_func和lstm_func,target_p_func
 def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
             args, num_units=64, scope="trainer", reuse=None):
+    if debug:
+        t = time.time()
     with tf.variable_scope(scope, reuse=reuse):
         # ============p network建图=================
         # batch size的placeholder, []
@@ -118,6 +123,8 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
         target_act = U.function(inputs=[obs_ph_n[p_index]] + [batch_size], outputs=target_act_sample)
 
         update_target_p = make_update_exp(p_func_vars, target_p_func_vars)
+        if debug:
+            print("act time: ", time.time()-t)
         return act, update_target_p,  {'p_values': p_values, 'target_act': target_act}
 
 

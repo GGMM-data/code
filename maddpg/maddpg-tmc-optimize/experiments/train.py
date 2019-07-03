@@ -24,11 +24,10 @@ def parse_args():
     # Core training parameters
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
     parser.add_argument("--gamma", type=float, default=0.83, help="discount f  rractor")
-    parser.add_argument("--batch-size", type=int, default=64, help="number of episodes to optimize at the same time")
+    parser.add_argument("--batch-size", type=int, default=512, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
-    parser.add_argument("--buffer-size", type=int, default=50000, help="buffer capacity")
-    parser.add_argument("--save-dir", type=str, default="../checkpoints/num_uav_"+str(FLAGS.num_uav)
-                                                        + "_batch_" + str(256)
+    parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
+    parser.add_argument("--save-dir", type=str, default="../checkpoints/num_uav_" + str(FLAGS.num_uav)
                                                         + "_map_size_" + str(FLAGS.size_map)
                                                         + "_radius_"+str(FLAGS.radius)
                                                         + "_max_speed_" + str(FLAGS.max_speed)
@@ -122,22 +121,26 @@ def time_end(begin_time, info):
 
 def train(arglist):
     debug = True
+    arglist.save_dir = arglist.save_dir + "batch_size" + str(arglist.batch_size) + "buffer_size" + str(arglist.buffer_size)
     with U.single_threaded_session():
         if debug:
             begin = time_begin()
         # Create environment
         env = make_env(arglist.scenario, arglist, arglist.benchmark)
-        print(time_end(begin, "step 0"))
-        begin = time_begin()
+        if debug:
+            print(time_end(begin, "step 0"))
+            begin = time_begin()
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
-        print(time_end(begin, "step 1"))
-        begin = time_begin()
+        if debug:
+            print(time_end(begin, "step 1"))
+            begin = time_begin()
         trainers = get_trainers(env, num_adversaries, obs_shape_n, arglist)
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
-        print(time_end(begin, "step2"))
-        begin = time_begin()
+        if debug:
+            print(time_end(begin, "step2"))
+            begin = time_begin()
         
         efficiency = tf.placeholder(tf.float32, shape=None, name="efficiency_placeholder")
         efficiency_summary = tf.summary.scalar("efficiency", efficiency)
@@ -151,6 +154,9 @@ def train(arglist):
 
         # Initialize
         U.initialize()
+        if debug:
+            print(time_end(begin, "step3"))
+            begin = time_begin()
 
         # Load previous results, if necessary
         if arglist.load_dir == "":

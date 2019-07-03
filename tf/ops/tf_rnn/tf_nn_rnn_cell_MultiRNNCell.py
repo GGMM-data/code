@@ -29,14 +29,16 @@ def multi_layer_lstm(x, batch_size, reuse=True):
     #         outputs.append(cell_outputs)
 
     output_size = 10
-    lstm_size = 28
+    lstm_size = [28, 5]
     # lstm_size = 5
     layers = 2
     x = tf.transpose(x, (1, 0, 2))
-    lstm_cell = rnn.LSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
-    cell = rnn.MultiRNNCell([lstm_cell] * layers, state_is_tuple=True)
+    cells = [rnn.LSTMCell(num_units=n, forget_bias=1, state_is_tuple=True) for n in lstm_size]
+    stacked_rnn_cell = rnn.MultiRNNCell(cells) 
+    # lstm_cell = rnn.LSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
+    # cell = rnn.MultiRNNCell([lstm_cell] * layers, state_is_tuple=True)
 
-    outputs, state = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
+    outputs, state = tf.nn.dynamic_rnn(stacked_rnn_cell, x, dtype=tf.float32)
     outputs = tf.convert_to_tensor(outputs[-1:, :, :])
     outputs = tf.squeeze(outputs, 0)
     return tf.layers.dense(outputs, output_size, activation=tf.nn.relu, use_bias=True)

@@ -31,4 +31,5 @@ experimental/LSTM_MADDPG_TF2/experiments/uav_statistics/
 experimental/LSTM_MADDPG_TF2/experiments/tmp/
 experimental/LSTM_MADDPG_TF2/experiments/.info.txt
 experimental/LSTM_MADDPG_TF2/experiments/record.file*
-
+**/checkpoints/**
+**/summary/**

@@ -4,7 +4,6 @@ import sys
 cwd = os.getcwd()
 path = cwd + "/../"
 sys.path.append(path)
-print(path)
 
 from model.trainer.maddpg_actor import MADDPGAgentTrainer as MADDPG_ACTOR
 from model.trainer.maddpg_critic import MADDPGAgentTrainer as MADDPG_CRITIC
@@ -12,6 +11,7 @@ import tensorflow.nn.rnn_cell as rnn
 import tensorflow.contrib.layers as layers
 import h5py
 import numpy as np
+
 
 
 def sample_map(path):
@@ -31,9 +31,73 @@ def dimension_reduction(inputs, num_units=256, scope="dimension_reduction", reus
         return out
 
 
-# lstm模型
+#  lstm模型
+def lstm_model(inputs, reuse=False, num_units=(64, 32), scope="l"):
+    debug = False
+    if debug:
+        import time
+        t = time.time()
+    observation_n = []
+    for i in range(len(inputs)):
+        x = inputs[i]
+        if not reuse and i == 0:
+            reuse = False
+        else:
+            reuse = True
+
+        with tf.variable_scope(scope, reuse=reuse):
+            x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size, state_size)
+            cells = [rnn.LSTMCell(lstm_size, forget_bias=1, state_is_tuple=True) for lstm_size in num_units]
+            cell = rnn.MultiRNNCell(cells, state_is_tuple=True)
+            with tf.variable_scope("Multi_Layer_RNN"):
+                cell_outputs, states = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
+            outputs = cell_outputs[-1:, :, :]
+            outputs = tf.squeeze(outputs, 0)
+            observation_n.append(outputs)
+    if debug:
+        print("lstm time: ", time.time()-t)
+    return observation_n
+
+
+def lstm_model2(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
+    shape = inputs[0].shape
+    observation_n = []
+    for i in range(len(inputs)):
+        obs = inputs[i]
+        if not reuse and i == 0:
+            reuse = False
+        else:
+            reuse = True
+        x = []
+        with tf.variable_scope(scope, reuse=reuse):
+            for j in range(shape[2]):
+                dr_reuse = True
+                if j == 0 and not reuse:
+                    dr_reuse = False
+                out = layers.fully_connected(obs[:, :, j], num_outputs=num_units * 4, activation_fn=tf.nn.relu,
+                                             scope="first", reuse=dr_reuse)
+                out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu,
+                                             scope="second", reuse=dr_reuse)
+                x.append(tf.expand_dims(out, 2))
+            x = tf.concat(x, 2)
+            lstm_size = x.shape[1]
+
+        # dimension reduction 3096->1024->256
+        with tf.variable_scope(scope, reuse=reuse):
+            x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size, state_size)
+            lstm_cell = rnn.BasicLSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
+            cell = rnn.MultiRNNCell([lstm_cell] * layers_number, state_is_tuple=True)
+            with tf.variable_scope("Multi_Layer_RNN"):
+                cell_outputs, states = tf.nn.dynamic_rnn(cell, x, dtype=tf.float32)
+            outputs = cell_outputs[-1:, :, :]
+            outputs = tf.squeeze(outputs, 0)
+            observation_n.append(outputs)
+    return observation_n
+
+
+# dimension reduction + lstm模型
 # inputs: list of [batch_size, dim, time_step]
-def lstm_model(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
+def lstm_model3(inputs, reuse=False, layers_number=2, num_units=256, scope="l"):
     shape = inputs[0].shape
     observation_n = []
     for i in range(len(inputs)):

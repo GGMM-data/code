@@ -30,16 +30,16 @@ def time_end(begin_time, info):
 
 def train(arglist):
 	debug = False
+	num_tasks = arglist.num_task  # 总共有多少个任务
+	list_of_taskenv = []  # env list
+	save_path = arglist.save_dir
+	if not os.path.exists(save_path):
+		os.makedirs(save_path)
+	
 	with U.single_threaded_session():
 		if debug:
 			begin = time_begin()
 		# 1.初始化
-		num_tasks = arglist.num_task		# 总共有多少个任务
-		list_of_taskenv = []		# env list
-		save_path = arglist.save_dir
-		if not os.path.exists(save_path):
-			os.makedirs(save_path)
-
 		# 1.1创建一个actor
 		env = make_env(arglist.scenario, arglist)
 		env.set_map(sample_map(arglist.data_path + "_1.h5"))
@@ -63,13 +63,6 @@ def train(arglist):
 				critic.p = actor.p_train
 			
 		# 1.4 全局变量初始化
-		global_steps_tensor = tf.Variable(tf.zeros(num_tasks), trainable=False) # global timesteps for each env
-		global_steps_ph = tf.placeholder(tf.float32, [num_tasks])
-		global_steps_assign_op = tf.assign(global_steps_tensor, global_steps_ph)
-		
-		model_number = int(arglist.num_episodes / arglist.save_rate)
-		saver = tf.train.Saver(max_to_keep=model_number)
-		
 		episodes_rewards = [[0.0] for _ in range(num_tasks)]  # 每个元素为在一个episode中所有agents rewards的和
 		# agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
 		agent_rewards = [[[0.0] for _ in range(env.n)] for _ in range(num_tasks)]
@@ -83,14 +76,20 @@ def train(arglist):
 		instantaneous_out_the_map = [[] for _ in range(num_tasks)]
 		energy_efficiency = [[] for _ in range(num_tasks)]
 		instantaneous_accmulated_reward = [[] for _ in range(num_tasks)]
+		
+		global_steps_tensor = tf.Variable(tf.zeros(num_tasks), trainable=False)  # global timesteps for each env
+		global_steps_ph = tf.placeholder(tf.float32, [num_tasks])
+		global_steps_assign_op = tf.assign(global_steps_tensor, global_steps_ph)
+		model_number = int(arglist.num_episodes / arglist.save_rate)
+		saver = tf.train.Saver(max_to_keep=model_number)
+		
 		efficiency_list = []
 		for i in range(num_tasks):
 			efficiency_list.append(tf.placeholder(tf.float32, shape=None, name="efficiency_placeholder"+str(i)))
 		efficiency_summary_list = []
 		for i in range(num_tasks):
-			efficiency_summary_list.append(tf.summary.scalar("efficiency%s" % i, efficiency_list[i]))
+			efficiency_summary_list.append(tf.summary.scalar("efficiency_%s" % i, efficiency_list[i]))
 		writer = tf.summary.FileWriter("../summary/efficiency")
-		writer2 = tf.summary.FileWriter("../summary/loss")
 		print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 		U.initialize()
 		
@@ -232,6 +231,18 @@ def train(arglist):
 					begin = time_begin()
 				episode_number = math.ceil(global_steps[task_index] / arglist.max_episode_len)
 				if done or terminal:
+					temp_efficiency = np.array(aver_cover_one_episode[task_index]) * np.array(
+						j_index_one_episode[task_index]) / np.array(energy_one_episode[task_index])
+					draw_util.draw_single_episode(
+						save_path + "/" + str(task_index) + "/",
+						episode_number,
+						temp_efficiency,
+						aver_cover_one_episode[task_index],
+						j_index_one_episode[task_index],
+						energy_one_episode[task_index],
+						disconnected_number_one_episode[task_index],
+						over_map_one_episode[task_index]
+					)
 					# 记录每个episode的变量
 					energy_consumptions_for_test[task_index].append(energy_one_episode[task_index][-1])		# energy
 					j_index[task_index].append(j_index_one_episode[task_index][-1])		# fairness index
@@ -306,7 +317,7 @@ def train(arglist):
 					# 保存train曲线
 					if arglist.draw_picture_train:
 						model_name = save_path.split('/')[-2] + '/'
-						draw_util.draw_episode(
+						draw_util.draw_episodes(
 							episode_number,
 							arglist.pictures_dir_train + model_name + str(task_index) + "/",
 							aver_cover[task_index],
