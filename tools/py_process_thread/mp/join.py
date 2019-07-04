@@ -8,13 +8,16 @@ def run_proc(name):
 
 
 if __name__ == '__main__':
+    print("==========1. join==========")
     print("Parent process %s" % os.getpid())
     p = Process(target=run_proc, args=('test',))
     print("child process will start.")
     p.start()
     p.join()
     print("child process end.")
+
  
+    print("==========2. no join==========")
     print("Parent process %s" % os.getpid())
     p = Process(target=run_proc, args=('test',))
     print("child process will start.")

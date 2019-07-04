@@ -73,7 +73,7 @@ class MADDPGAgentTrainer(AgentTrainer):
         self.p_train = p
         
     def action(self, obs, batch_size):
-        return self.act(*(obs + batch_size))[0]
+        return self.act(*(obs + batch_size))
 
     def experience(self, obs, act, rew, done, terminal):
         # Store transition in the replay buffer.

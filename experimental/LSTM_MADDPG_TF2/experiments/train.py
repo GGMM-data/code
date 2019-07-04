@@ -4,11 +4,12 @@
 import numpy as np
 import tensorflow as tf
 import time
-import matplotlib.pyplot as plt
 import sys
 import math
 import pickle
 import os
+from multiprocessing import Pool
+
 cwd = os.getcwd()
 path = cwd + "/../"
 sys.path.append(path)
@@ -29,13 +30,15 @@ def time_end(begin_time, info):
 	
 
 def train(arglist):
-	debug = False
+	debug = True
 	num_tasks = arglist.num_task  # 总共有多少个任务
 	list_of_taskenv = []  # env list
 	save_path = arglist.save_dir
 	if not os.path.exists(save_path):
 		os.makedirs(save_path)
 	
+	pool = Pool(6)
+	print("ok")
 	with U.single_threaded_session():
 		if debug:
 			begin = time_begin()
@@ -140,32 +143,64 @@ def train(arglist):
 				for _ in range(arglist.history_length):
 					history_n[i][j].add(obs_n_list[i][j])
 				
-		# 1.9 reward figures
-		figures = [plt.figure() for _ in range(num_tasks)]
-		axes = []
-		for fig in figures:
-			axes.append(fig.gca())
+
 		if debug:
 			print(time_end(begin, "initialize"))
 			begin = time_begin()
 		# 2.训练
 		print('Starting iterations...')
 		episode_start_time = time.time()
+		state_dim = obs_shape_n[0][0]
+		# 1.9
+		# history_list = [tf.placeholder(tf.float32, shape=) for _ in range(env.n)]
+		history_list = [[] for _ in range(env.n)]
+		
+		sess = tf.get_default_session()
+		
 		while True:
+			
+			# for task_index in range(num_tasks):
+			# 	action_n = []
+			# 	# 用critic获得state,用critic给出action，
+			# 	for idx, (agent, his) in enumerate(zip(policy, history_n[task_index])):
+			# 		history_list[idx].append(his.obtain().reshape(1, state_dim, arglist.history_length))		# [1, state_dim, length]
+			#
+			# for idx in range(env.n):
+			# 	hhh = np.concatenate(history_list[idx], 0)
+			# 	temp_action = agent.action([hhh], [num_tasks])
+			# 	action_n.append(temp_action)
+			# action_array = np.array(action_n)
 			# 2.1,在num_tasks个任务上进行采样
+			# action_n = action_array[:, task_index, :]
+			
+			
 			for task_index in range(num_tasks):
-				current_actors = model_list[task_index]
-				current_env = list_of_taskenv[task_index]
+				# action_n = []
+				# # 用critic获得state,用critic给出action，
+				# for agent, his in zip(policy, history_n[task_index]):
+				# 	hiss = his.obtain().reshape(1, state_dim, arglist.history_length)		# [1, state_dim, length]
+				# 	action = agent.action([hiss], [1])
+				# 	if debug:
+				# 		print(time_end(begin, "action2"))
+				# 		begin = time_begin()
+				# 	action_n.append(action)
+
 				action_n = []
 				# 用critic获得state,用critic给出action，
+				results = []
 				for agent, his in zip(policy, history_n[task_index]):
-					hiss = his.obtain().reshape(1, obs_shape_n[0][0], arglist.history_length)		# [1, state_dim, length]
-					action = agent.action([hiss], [1])
-					if debug:
-						print(time_end(begin, "action2"))
-						begin = time_begin()
-					action_n.append(action)
-
+					hiss = his.obtain().reshape(1, state_dim, arglist.history_length)  # [1, state_dim, length]
+					results.append(pool.apply_async(agent.action, args=([hiss], [1])))
+				for action in results:
+					action_n.append(action.get())
+				pool.close()
+				pool.join()
+				
+				if debug:
+					print(time_end(begin, "action2"))
+					begin = time_begin()
+				current_actors = model_list[task_index]
+				current_env = list_of_taskenv[task_index]
 				new_obs_n, rew_n, done_n = current_env.step(action_n)
 
 				if debug:
@@ -231,19 +266,19 @@ def train(arglist):
 					begin = time_begin()
 				episode_number = math.ceil(global_steps[task_index] / arglist.max_episode_len)
 				if done or terminal:
-					temp_efficiency = np.array(aver_cover_one_episode[task_index]) * np.array(
-						j_index_one_episode[task_index]) / np.array(energy_one_episode[task_index])
-					draw_util.draw_single_episode(
-						save_path + "/task_" + str(task_index) + "/",
-						episode_number,
-						temp_efficiency,
-						aver_cover_one_episode[task_index],
-						j_index_one_episode[task_index],
-						energy_one_episode[task_index],
-						disconnected_number_one_episode[task_index],
-						over_map_one_episode[task_index],
-						accmulated_reward_one_episode[task_index]
-					)
+					# temp_efficiency = np.array(aver_cover_one_episode[task_index]) * np.array(
+					# 	j_index_one_episode[task_index]) / np.array(energy_one_episode[task_index])
+					# draw_util.draw_single_episode(
+					# 	save_path + "/task_" + str(task_index) + "/",
+					# 	episode_number,
+					# 	temp_efficiency,
+					# 	aver_cover_one_episode[task_index],
+					# 	j_index_one_episode[task_index],
+					# 	energy_one_episode[task_index],
+					# 	disconnected_number_one_episode[task_index],
+					# 	over_map_one_episode[task_index],
+					# 	accmulated_reward_one_episode[task_index]
+					# )
 					# 记录每个episode的变量
 					energy_consumptions_for_test[task_index].append(energy_one_episode[task_index][-1])		# energy
 					j_index[task_index].append(j_index_one_episode[task_index][-1])		# fairness index

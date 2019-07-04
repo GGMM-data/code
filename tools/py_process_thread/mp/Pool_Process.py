@@ -15,6 +15,7 @@ def long_time_task(name):
 
 
 if __name__ == '__main__':
+    # 1.Process
     print("Parent process %s" % os.getpid())
     p = Process(target=run_proc, args=('test',))
     print("child process will start.")
@@ -22,12 +23,12 @@ if __name__ == '__main__':
     p.join()
     print("child process end.")
 
+    # 2.Pool
     print("Paranet Process %s" % os.getpid())
-    p = Pool(4)
+    pool = Pool(4)
     for i in range(5):
-        p.apply_async(long_time_task,args=(i,))
+        pool.apply_async(long_time_task,args=(i,))
     print("Waitting for done.")
-    p.close()
-    p.join()
+    pool.close()    # 回收Pool
+    pool.join()
     print("All subprocesses done")
-
