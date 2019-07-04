@@ -33,3 +33,4 @@ experimental/LSTM_MADDPG_TF2/experiments/.info.txt
 experimental/LSTM_MADDPG_TF2/experiments/record.file*
 **/checkpoints/**
 **/summary/**
+**/result_pictures/**
