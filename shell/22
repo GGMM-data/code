@@ -1,0 +1,13 @@
+#! /bin/bash
+
+
+prefix=10.4.21.
+rm result.txt
+for i in `seq 2 255`
+do
+    echo $i
+    `ping $prefix$i -c 1 >>result.txt`
+    arp -a >>arp_mac.txt
+done
+
+#rm arp_mac.txt
