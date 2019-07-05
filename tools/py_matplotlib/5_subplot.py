@@ -36,6 +36,7 @@ plt.plot(x, y6, ms=10, marker='3')
 
 plt.subplot(3, 3, 7)
 plt.plot(x, y7, ms=10, marker='4')
+plt.subplots_adjust(hspace=0.4)
 plt.savefig("5.png")
 
 # plt.show()

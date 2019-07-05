@@ -33,7 +33,7 @@ def dimension_reduction(inputs, num_units=256, scope="dimension_reduction", reus
 
 #  lstm模型
 def lstm_model(inputs, reuse=False, num_units=(64, 32), scope="l"):
-    debug = True
+    debug = False
     if debug:
         import time
         t = time.time()

@@ -322,17 +322,6 @@ class MultiAgentEnv(gym.Env):
         self.coverage_delta = np.sum(flag)
         self.final = np.add(self.final, flag)
         self.M = self.final / self.max_epoch
-        # self.coverage_delta = 0
-        # for x in range(self.size):
-        #     for y in range(self.size):
-        #         cov = self._is_covered(self.PoI[x * self.size + y])
-        #         if cov > 0:
-        #             self._add_matrix(x, y, self.final, 1)   # final每个step加1,至多max_epoch
-        #             self.coverage_delta += 1    # 当前step覆盖了多少个cell
-        #             # M 每项最多是1
-        #             self._set_matrix(x, y, self.M,
-        #                           float(self._get_matrix(x, y, self.final)) / self.max_epoch
-        #                          )
         if self.debug:
             print(self.time_end(begin, "M"))
             begin = self.time_begin()

@@ -30,16 +30,17 @@ def time_end(begin_time, info):
 	
 
 def train(arglist):
-	debug = True
+	debug = False
 	num_tasks = arglist.num_task  # 总共有多少个任务
 	list_of_taskenv = []  # env list
 	save_path = arglist.save_dir
 	if not os.path.exists(save_path):
 		os.makedirs(save_path)
 	
-	pool = Pool(6)
+
 	print("ok")
 	with U.single_threaded_session():
+		pool = Pool(6)
 		if debug:
 			begin = time_begin()
 		# 1.初始化
@@ -175,32 +176,30 @@ def train(arglist):
 			
 			
 			for task_index in range(num_tasks):
-				# action_n = []
-				# # 用critic获得state,用critic给出action，
-				# for agent, his in zip(policy, history_n[task_index]):
-				# 	hiss = his.obtain().reshape(1, state_dim, arglist.history_length)		# [1, state_dim, length]
-				# 	action = agent.action([hiss], [1])
-				# 	if debug:
-				# 		print(time_end(begin, "action2"))
-				# 		begin = time_begin()
-				# 	action_n.append(action)
-
 				action_n = []
 				# 用critic获得state,用critic给出action，
-				results = []
 				for agent, his in zip(policy, history_n[task_index]):
-					hiss = his.obtain().reshape(1, state_dim, arglist.history_length)  # [1, state_dim, length]
-					results.append(pool.apply_async(agent.action, args=([hiss], [1])))
-				for action in results:
-					action_n.append(action.get())
-				pool.close()
-				pool.join()
+					hiss = his.obtain().reshape(1, state_dim, arglist.history_length)		# [1, state_dim, length]
+					action = agent.action([hiss], [1])
+					action_n.append(action[0])
+
+				# action_n = []
+				# # 用critic获得state,用critic给出action，
+				# results = []
+				# for agent, his in zip(policy, history_n[task_index]):
+				# 	hiss = his.obtain().reshape(1, state_dim, arglist.history_length)  # [1, state_dim, length]
+				# 	results.append(pool.apply_async(agent.action, args=([hiss], [1])))
+				# for action in results:
+				# 	action_n.append(action.get())
+				# pool.close()
+				# pool.join()
 				
 				if debug:
 					print(time_end(begin, "action2"))
 					begin = time_begin()
 				current_actors = model_list[task_index]
 				current_env = list_of_taskenv[task_index]
+				# new_obs_n, rew_n, done_n = pool.apply(current_env, args=(action_n, ))
 				new_obs_n, rew_n, done_n = current_env.step(action_n)
 
 				if debug:
@@ -256,29 +255,31 @@ def train(arglist):
 				over_map_one_episode[task_index].append(over_map_counter[task_index])
 				# disconnected counter
 				disconnected_number_counter[task_index] += current_env.get_dis()
-				disconnected_number_one_episode[task_index].append(disconnected_number_counter)
+				disconnected_number_one_episode[task_index].append(disconnected_number_counter[task_index])
 				# reward
 				episode_reward_step[task_index] += np.mean(rew_n)
-				accmulated_reward_one_episode[task_index].append(episode_reward_step)
+				accmulated_reward_one_episode[task_index].append(episode_reward_step[task_index])
 
 				if debug:
 					print(time_end(begin, "others"))
 					begin = time_begin()
+
 				episode_number = math.ceil(global_steps[task_index] / arglist.max_episode_len)
 				if done or terminal:
-					# temp_efficiency = np.array(aver_cover_one_episode[task_index]) * np.array(
-					# 	j_index_one_episode[task_index]) / np.array(energy_one_episode[task_index])
-					# draw_util.draw_single_episode(
-					# 	save_path + "/task_" + str(task_index) + "/",
-					# 	episode_number,
-					# 	temp_efficiency,
-					# 	aver_cover_one_episode[task_index],
-					# 	j_index_one_episode[task_index],
-					# 	energy_one_episode[task_index],
-					# 	disconnected_number_one_episode[task_index],
-					# 	over_map_one_episode[task_index],
-					# 	accmulated_reward_one_episode[task_index]
-					# )
+					model_name = save_path.split('/')[-2] + '/'
+					temp_efficiency = np.array(aver_cover_one_episode[task_index]) * np.array(
+						j_index_one_episode[task_index]) / np.array(energy_one_episode[task_index])
+					draw_util.draw_single_episode(
+						arglist.pictures_dir_train + model_name + "/task_" + str(task_index) + "/",
+						episode_number,
+						temp_efficiency,
+						aver_cover_one_episode[task_index],
+						j_index_one_episode[task_index],
+						energy_one_episode[task_index],
+						disconnected_number_one_episode[task_index],
+						over_map_one_episode[task_index],
+						accmulated_reward_one_episode[task_index]
+					)
 					# 记录每个episode的变量
 					energy_consumptions_for_test[task_index].append(energy_one_episode[task_index][-1])		# energy
 					j_index[task_index].append(j_index_one_episode[task_index][-1])		# fairness index
@@ -352,20 +353,19 @@ def train(arglist):
 					
 					# 保存train曲线
 					if arglist.draw_picture_train:
-						model_name = save_path.split('/')[-2] + '/'
+						# model_name = save_path.split('/')[-2] + '/'
 						draw_util.draw_episodes(
 							episode_number,
-							arglist.pictures_dir_train + model_name + str(task_index) + "/",
+							arglist.pictures_dir_train + model_name + "episodes_task_" + str(task_index) + "/",
 							aver_cover[task_index],
 							j_index[task_index],
 							energy_consumptions_for_test[task_index],
-							instantaneous_out_the_map[task_index],
 							instantaneous_dis[task_index],
-							energy_efficiency,
+							instantaneous_out_the_map[task_index],
+							energy_efficiency[task_index],
 							instantaneous_accmulated_reward[task_index],
 							len(aver_cover[task_index])
 						)
-
 				# saves final episode reward for plotting training curve later
 				if episode_number > arglist.num_episodes:
 					rew_file_name = arglist.plots_dir + arglist.exp_name + '_rewards.pkl'

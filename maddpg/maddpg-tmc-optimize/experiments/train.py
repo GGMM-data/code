@@ -120,7 +120,7 @@ def time_end(begin_time, info):
 
 
 def train(arglist):
-    debug = True
+    debug = False
     arglist.save_dir = arglist.save_dir + "batch_size" + str(arglist.batch_size) + "buffer_size" + str(arglist.buffer_size)
     with U.single_threaded_session():
         if debug:
@@ -252,16 +252,19 @@ def train(arglist):
             #     print(time_end(begin, "others"))
             #     begin = time_begin()
             if done or terminal:
+                model_name = arglist.save_dir.split('/')[-1] + '/'
                 episode_number = int(train_step / arglist.max_episode_len)
                 temp_efficiency = np.array(aver_cover_one_episode) * np.array(
                     j_index_one_episode) / np.array(energy_one_episode)
-                draw_util.draw_single_episode(arglist.save_dir, episode_number,
+                draw_util.draw_single_episode(arglist.pictures_dir_train + model_name + "single_episode/",
+                                              episode_number,
                                               temp_efficiency,
                                               aver_cover_one_episode,
                                               j_index_one_episode,
                                               energy_one_episode,
                                               disconnected_number_one_episode,
-                                              over_map_one_episode)
+                                              over_map_one_episode,
+                                              accmulated_reward_one_episode)
 
                 # reset custom statistics variabl between episode and epoch---------------------------------------------
                 instantaneous_accmulated_reward.append(accmulated_reward_one_episode[-1])
@@ -305,8 +308,10 @@ def train(arglist):
                 if arglist.draw_picture_test:
                     if len(episode_rewards) % arglist.save_rate == 0:
                         episode_number_name = train_step / arglist.max_episode_len
-                        draw_util.drawTest(episode_number_name, arglist.pictures_dir_test + model_name,
-                                           energy_consumptions_for_test, aver_cover, j_index,
+                        draw_util.drawTest(episode_number_name,
+                                           arglist.pictures_dir_train + model_name,
+                                           energy_consumptions_for_test,
+                                           aver_cover, j_index,
                                            instantaneous_accmulated_reward, instantaneous_dis, instantaneous_out_the_map
                                            , len(aver_cover), bl_coverage, bl_jainindex, bl_loss, energy_efficiency, False)
                 # reset custom statistics variabl between episode and epoch---------------------------------------------
@@ -382,9 +387,16 @@ def train(arglist):
                 if arglist.draw_picture_train:
                     episode_number_name = train_step / arglist.max_episode_len
                     model_name = arglist.save_dir.split('/')[-1] + '/'
-                    draw_util.draw_episode(episode_number_name, arglist.pictures_dir_train + model_name, aver_cover,
-                                           j_index, instantaneous_accmulated_reward, instantaneous_dis,
-                                           instantaneous_out_the_map, energy_efficiency, loss_all, len(aver_cover))
+                    draw_util.draw_episodes(episode_number_name,
+                                            arglist.pictures_dir_train + model_name,
+                                            aver_cover,
+                                            j_index,
+                                            energy_consumptions_for_test,
+                                            instantaneous_dis,
+                                            instantaneous_out_the_map,
+                                            energy_efficiency,
+                                            instantaneous_accmulated_reward,
+                                            len(aver_cover))
 
             # saves final episode reward for plotting training curve later
             if len(episode_rewards) > arglist.num_episodes:
