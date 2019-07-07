@@ -156,8 +156,7 @@ def draw_single_episode(path, episode_number, efficiency,
     plt.subplot(4, 2, 7)
     plt.xlabel("No. of step")
     plt.ylabel("Reward")
-    for r in reward:
-        plt.plot(range(steps), r, color='w')
+    plt.plot(range(steps), reward, color='w')
 
     plt.savefig(path + "episode_" + str(episode_number) + '_info.png')
     plt.close()
