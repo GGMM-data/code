@@ -1,4 +1,3 @@
-LSTM_MADDPG_TF/
 pytorch/datasets/mnist/processed/
 pytorch/datasets/mnist/raw/
 pytorch/datasets/cifar/cifar-100-python/
@@ -19,18 +18,10 @@ tools/py_matplotlib/*png
 **/tf_summary/
 # delete all pycache files
 **/__pycache__/
-experimental/LSTM_MADDPG_TF2/data/
-maddpg/**/experiments/result_pictures/
 maddpg/**/experiments/benchmark_files/
 maddpg/**/experiments/learning_curves/
-maddpg/**/experiments/tmp/
-experimental/LSTM_MADDPG_TF2/experiments/result_pictures/
-experimental/LSTM_MADDPG_TF2/experiments/benchmark_files/
-experimental/LSTM_MADDPG_TF2/experiments/learning_curves/
-experimental/LSTM_MADDPG_TF2/experiments/uav_statistics/
-experimental/LSTM_MADDPG_TF2/experiments/tmp/
-experimental/LSTM_MADDPG_TF2/experiments/.info.txt
-experimental/LSTM_MADDPG_TF2/experiments/record.file*
+**/experiments/tmp/**
 **/checkpoints/**
 **/summary/**
 **/result_pictures/**
+data/
