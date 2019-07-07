@@ -388,7 +388,7 @@ def train(arglist):
                     episode_number_name = train_step / arglist.max_episode_len
                     model_name = arglist.save_dir.split('/')[-1] + '/'
                     draw_util.draw_episodes(episode_number_name,
-                                            arglist.pictures_dir_train + model_name,
+                                            arglist.pictures_dir_train + model_name + "all_episodes",
                                             aver_cover,
                                             j_index,
                                             energy_consumptions_for_test,
