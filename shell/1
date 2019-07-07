@@ -104,4 +104,3 @@ function proxyv6_off(){
 	unset HTTP_PROXY
 	unset HTTPS_PROXY
 }
-

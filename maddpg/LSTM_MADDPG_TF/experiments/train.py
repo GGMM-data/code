@@ -270,7 +270,7 @@ def train(arglist):
 					temp_efficiency = np.array(aver_cover_one_episode[task_index]) * np.array(
 						j_index_one_episode[task_index]) / np.array(energy_one_episode[task_index])
 					draw_util.draw_single_episode(
-						arglist.pictures_dir_train + model_name + "/single_episode_task_" + str(task_index) + "/",
+						arglist.pictures_dir_train + model_name + "single_episode_task_" + str(task_index) + "/",
 						episode_number,
 						temp_efficiency,
 						aver_cover_one_episode[task_index],
