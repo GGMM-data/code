@@ -254,7 +254,7 @@ def draw_single_episode(path, episode_number, efficiency,
     plt.subplot(4, 2, 7)
     plt.xlabel("No. of step")
     plt.ylabel("Reward")
-    plt.plot(range(steps), over_map, color='w')
+    plt.plot(range(steps), over_map, color='k')
 
     plt.savefig(path + "episode_" + str(episode_number) + '_info.png')
     plt.close()
@@ -267,23 +267,23 @@ def draw_episodes(i, path, coverage, j_index, energy, A_discon, A_over_map, A_ef
 
     plt.subplot(4, 2, 1)
     plt.xlabel("No. of step")
+    plt.ylabel("Energy efficiency")
+    plt.plot(range(steps), A_efficiency, color='b')
+
+    plt.subplot(4, 2, 2)
+    plt.xlabel("No. of step")
     plt.ylabel("Fairness")
     plt.plot(range(steps), j_index, color='r')
 
-    plt.subplot(4, 2, 2)
+    plt.subplot(4, 2, 3)
     plt.xlabel("No. of step")
     plt.ylabel("Coverage")
     plt.plot(range(steps), coverage, color='g')
 
-    plt.subplot(4, 2, 3)
+    plt.subplot(4, 2, 4)
     plt.xlabel("No. of step")
     plt.ylabel("Energy")
     plt.plot(range(steps), energy, color='c')
-
-    plt.subplot(4, 2, 4)
-    plt.xlabel("No. of step")
-    plt.ylabel("Energy efficiency")
-    plt.plot(range(steps), A_efficiency, color='b')
 
     plt.subplot(4, 2, 5)
     plt.xlabel("No. of step")
@@ -298,7 +298,7 @@ def draw_episodes(i, path, coverage, j_index, energy, A_discon, A_over_map, A_ef
     plt.subplot(4, 2, 7)
     plt.xlabel("No. of step")
     plt.ylabel("Reward")
-    plt.plot(range(steps), A_reward, color='w')
+    plt.plot(range(steps), A_reward, color='k')
 
     plt.savefig(path
                 + "episodes_" + str(i) + '.png')

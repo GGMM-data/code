@@ -68,9 +68,7 @@ def plot_value_array(i, predictions_array, true_label):
 
 rows = 5
 cols = 3
-num_imags = rows * cols
-plt.figure(figsize=(2*2*cols, 2*rows))
-for i in range(num_imags):
+num_imags = rows * cols plt.figure(figsize=(2*2*cols, 2*rows)) for i in range(num_imags):
     plt.subplot(rows, 2*cols, 2*i+1)
     plot_image(i, predictions, test_labels, test_images)
     plt.subplot(rows, 2*cols, 2*i+2)

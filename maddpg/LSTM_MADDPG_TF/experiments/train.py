@@ -30,13 +30,12 @@ def time_end(begin_time, info):
         
 
 def train(arglist):
-        debug = False
+        debug = True
         num_tasks = arglist.num_task  # 总共有多少个任务
         list_of_taskenv = []  # env list
         save_path = arglist.save_dir
         if not os.path.exists(save_path):
                 os.makedirs(save_path)
-        
 
         print("ok")
         with U.single_threaded_session():
@@ -144,7 +143,6 @@ def train(arglist):
                                 for _ in range(arglist.history_length):
                                         history_n[i][j].add(obs_n_list[i][j])
                                 
-
                 if debug:
                         print(time_end(begin, "initialize"))
                         begin = time_begin()
@@ -155,11 +153,9 @@ def train(arglist):
                 # 1.9
                 # history_list = [tf.placeholder(tf.float32, shape=) for _ in range(env.n)]
                 history_list = [[] for _ in range(env.n)]
-                
                 sess = tf.get_default_session()
                 
                 while True:
-                        
                         # for task_index in range(num_tasks):
                         #       action_n = []
                         #       # 用critic获得state,用critic给出action，
@@ -174,7 +170,6 @@ def train(arglist):
                         # 2.1,在num_tasks个任务上进行采样
                         # action_n = action_array[:, task_index, :]
                         
-                        
                         for task_index in range(num_tasks):
                                 action_n = []
                                 # 用critic获得state,用critic给出action，
@@ -182,7 +177,6 @@ def train(arglist):
                                         hiss = his.obtain().reshape(1, state_dim, arglist.history_length)               # [1, state_dim, length]
                                         action = agent.action([hiss], [1])
                                         action_n.append(action[0])
-
                                 # action_n = []
                                 # # 用critic获得state,用critic给出action，
                                 # results = []
@@ -208,7 +202,6 @@ def train(arglist):
                                 
                                 local_steps[task_index] += 1            # 更新局部计数器
                                 global_steps[task_index] += 1           # 更新全局计数器
-                                
                                 done = all(done_n)
                                 terminal = (local_steps[task_index] >= arglist.max_episode_len)
                                 # 收集experience
@@ -220,7 +213,7 @@ def train(arglist):
                                 obs_n_list[task_index] = new_obs_n
                                 if debug:
                                         print(time_end(begin, "experience"))
-                                        begin = time_begin()
+                                begin = time_begin()
                                 # 2.2，优化每一个任务的critic
                                 for i, rew in enumerate(rew_n):
                                         episodes_rewards[task_index][-1] += rew
@@ -232,16 +225,17 @@ def train(arglist):
                                         critic.update(current_actors, global_steps[task_index])
                                         
                                 if debug:
-                                        print(time_end(begin, "update critic"))
-                                        begin = time_begin()
+                                        pass
+                                print(time_end(begin, "update critic"))
+                                begin = time_begin()
                                 # 2.3，优化actor
                                 # policy_step += 1
                                 # print("policy steps: ", policy_step)
                                 for actor, critic in zip(policy, current_actors):
                                         actor.change_p(critic.p)
                                         actor.update(policy, global_steps[task_index])
+                                print(time_end(begin, "update actor"))
                                 if debug:
-                                        print(time_end(begin, "update actor"))
                                         begin = time_begin()
                                 # 2.4 记录和更新train信息
                                 # energy
@@ -308,16 +302,17 @@ def train(arglist):
                                         writer.add_summary(efficiency_s, global_step=episode_number)
 
                                         # 重置每个episode中的局部变量--------------------------------------------
-                                        energy_one_episode = [[] for _ in range(num_tasks)]
-                                        j_index_one_episode = [[] for _ in range(num_tasks)]
-                                        aver_cover_one_episode = [[] for _ in range(num_tasks)]
-                                        over_map_counter = np.zeros(num_tasks)
-                                        over_map_one_episode = [[] for _ in range(num_tasks)]
-                                        disconnected_number_counter = np.zeros(num_tasks)
-                                        disconnected_number_one_episode = [[] for _ in range(num_tasks)]
-                                        episode_reward_step = np.zeros(num_tasks)
-                                        accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
-                                        route_one_episode = [[] for _ in range(num_tasks)]
+                                        if task_index == num_tasks - 1:
+                                                energy_one_episode = [[] for _ in range(num_tasks)]
+                                                j_index_one_episode = [[] for _ in range(num_tasks)]
+                                                aver_cover_one_episode = [[] for _ in range(num_tasks)]
+                                                over_map_counter = np.zeros(num_tasks)
+                                                over_map_one_episode = [[] for _ in range(num_tasks)]
+                                                disconnected_number_counter = np.zeros(num_tasks)
+                                                disconnected_number_one_episode = [[] for _ in range(num_tasks)]
+                                                episode_reward_step = np.zeros(num_tasks)
+                                                accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
+                                                route_one_episode = [[] for _ in range(num_tasks)]
                                         
                                         # 重置局部变量
                                         obs_n_list[task_index] = current_env.reset()  # 重置env

@@ -9,3 +9,8 @@ for i in range(len(color)):
     plt.plot(x, y+i, color=color[i])
 
 plt.show()
+
+
+plt.plot(range(10), range(10), color='w')
+plt.show()
+

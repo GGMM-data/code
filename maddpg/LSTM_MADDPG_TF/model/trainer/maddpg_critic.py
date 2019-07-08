@@ -62,7 +62,8 @@ class MADDPGAgentTrainer(AgentTrainer):
             return
         if not t % 100 == 0:  # only update every 100 steps
             return
-
+        
+        print("HHHH")
         # collect replay sample from all agents
         obs_n = []  # 长度为n的list，list每隔元素为[batch_size, state_size, history_length]
         obs_next_n = []     # list的每个元素是[bath_size, action_dim]
