@@ -1,22 +1,18 @@
 import argparse
-import gym
 import numpy as np
 import os
 import tensorflow as tf
 import time
 import pickle
 import sys
-cwd = os.getcwd()
-path = cwd + "/../"
-print(path)
-sys.path.append(path)
+
+sys.path.append(os.getcwd() + "/../")
 
 import maddpg_.common.tf_util as U
 from maddpg_.trainer.maddpg import MADDPGAgentTrainer
 import tensorflow.contrib.layers as layers
 from uav_statistics import draw_util
 from multiagent.uav.flag import FLAGS
-import matplotlib.pyplot as plt
 
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
@@ -24,7 +20,7 @@ def parse_args():
     # Core training parameters
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
     parser.add_argument("--gamma", type=float, default=0.83, help="discount f  rractor")
-    parser.add_argument("--batch-size", type=int, default=512, help="number of episodes to optimize at the same time")
+    parser.add_argument("--batch-size", type=int, default=256, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
     parser.add_argument("--save-dir", type=str, default="../checkpoints/num_uav_" + str(FLAGS.num_uav)
@@ -111,17 +107,17 @@ def get_trainers(env, num_adversaries, obs_shape_n, arglist):
 
 
 def time_begin():
-	return time.time()
+    return time.time()
 
 
 def time_end(begin_time, info):
-	print(info)
-	return time.time() - begin_time
+    print(info)
+    return time.time() - begin_time
 
 
 def train(arglist):
     debug = False
-    arglist.save_dir = arglist.save_dir + "batch_size" + str(arglist.batch_size) + "buffer_size" + str(arglist.buffer_size)
+    arglist.save_dir = arglist.save_dir + "_batch_size_" + str(arglist.batch_size) + "_buffer_size_" + str(arglist.buffer_size)
     with U.single_threaded_session():
         if debug:
             begin = time_begin()
@@ -388,7 +384,7 @@ def train(arglist):
                     episode_number_name = train_step / arglist.max_episode_len
                     model_name = arglist.save_dir.split('/')[-1] + '/'
                     draw_util.draw_episodes(episode_number_name,
-                                            arglist.pictures_dir_train + model_name + "all_episodes",
+                                            arglist.pictures_dir_train + model_name + "all_episodes/",
                                             aver_cover,
                                             j_index,
                                             energy_consumptions_for_test,
@@ -412,6 +408,6 @@ def train(arglist):
         
         
 if __name__ == '__main__':
-    os.environ['CUDA_VISIBLE_DEVICES'] = '9'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     arglist = parse_args()
     train(arglist)

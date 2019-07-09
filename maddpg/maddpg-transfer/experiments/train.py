@@ -8,7 +8,6 @@ import sys
 import math
 import pickle
 import os
-from multiprocessing import Pool
 
 cwd = os.getcwd()
 path = cwd + "/../"
@@ -17,17 +16,8 @@ sys.path.append(path)
 import model.common.tf_util as U
 from model.trainer.history import History
 from experiments.uav_statistics import draw_util
-from experiments.ops import make_env, get_trainers, sample_map
+from experiments.ops import make_env, get_trainers, sample_map, time_end, time_begin
 
-
-def time_begin():
-        return time.time()
-
-
-def time_end(begin_time, info):
-        print(info)
-        return time.time() - begin_time
-        
 
 def train(arglist):
         debug = False
@@ -63,7 +53,8 @@ def train(arglist):
                         for actor, critic in zip(policy, model_list[task_index]):
                                 actor.add_p(critic.name)
                                 critic.p = actor.p_train
-                        
+                print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
+
                 # 1.4 全局变量初始化
                 episodes_rewards = [[0.0] for _ in range(num_tasks)]  # 每个元素为在一个episode中所有agents rewards的和
                 # agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
@@ -92,10 +83,25 @@ def train(arglist):
                 for i in range(num_tasks):
                         efficiency_summary_list.append(tf.summary.scalar("efficiency_%s" % i, efficiency_list[i]))
                 writer = tf.summary.FileWriter("../summary/efficiency")
-                print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
+
+                # 1.5 episode局部变量初始化
+                local_steps = np.zeros(num_tasks)  # local timesteps for each env
+                t_start = time.time()
+
+                energy_one_episode = [[] for _ in range(num_tasks)]
+                j_index_one_episode = [[] for _ in range(num_tasks)]
+                aver_cover_one_episode = [[] for _ in range(num_tasks)]
+                over_map_counter = np.zeros(num_tasks)
+                over_map_one_episode = [[] for _ in range(num_tasks)]
+                disconnected_number_counter = np.zeros(num_tasks)
+                disconnected_number_one_episode = [[] for _ in range(num_tasks)]
+                episode_reward_step = np.zeros(num_tasks)  # 累加一个episode里每一步的所有智能体的平均reward
+                accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
+                route_one_episode = [[] for _ in range(num_tasks)]
+                
                 U.initialize()
                 
-                # 1.5 生成模型保存或者恢复文件夹目录
+                # 1.6 生成模型保存或者恢复文件夹目录
                 if arglist.load_dir == "":
                         arglist.load_dir = save_path
                 if arglist.display or arglist.restore or arglist.benchmark:
@@ -110,21 +116,6 @@ def train(arglist):
                         print('Loading previous state...')
                 
                 global_steps = tf.get_default_session().run(global_steps_tensor)
-                
-                # 1.6 episode局部变量初始化
-                local_steps = np.zeros(num_tasks)  # local timesteps for each env
-                t_start = time.time()
-                
-                energy_one_episode = [[] for _ in range(num_tasks)]
-                j_index_one_episode = [[] for _ in range(num_tasks)]
-                aver_cover_one_episode = [[] for _ in range(num_tasks)]
-                over_map_counter = np.zeros(num_tasks)
-                over_map_one_episode = [[] for _ in range(num_tasks)]
-                disconnected_number_counter = np.zeros(num_tasks)
-                disconnected_number_one_episode = [[] for _ in range(num_tasks)]
-                episode_reward_step = np.zeros(num_tasks)               # 累加一个episode里每一步的所有智能体的平均reward
-                accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
-                route_one_episode = [[] for _ in range(num_tasks)]
                 
                 # 1.7 初始化ENV
                 obs_n_list = []
@@ -141,60 +132,29 @@ def train(arglist):
                                 history_n[i].append(history)
                                 for _ in range(arglist.history_length):
                                         history_n[i][j].add(obs_n_list[i][j])
-                                
                 if debug:
                         print(time_end(begin, "initialize"))
                         begin = time_begin()
+                
                 # 2.训练
                 print('Starting iterations...')
                 episode_start_time = time.time()
                 state_dim = obs_shape_n[0][0]
-                # 1.9
-                # history_list = [tf.placeholder(tf.float32, shape=) for _ in range(env.n)]
-                history_list = [[] for _ in range(env.n)]
-                sess = tf.get_default_session()
                 
                 while True:
-                        # for task_index in range(num_tasks):
-                        #       action_n = []
-                        #       # 用critic获得state,用critic给出action，
-                        #       for idx, (agent, his) in enumerate(zip(policy, history_n[task_index])):
-                        #               history_list[idx].append(his.obtain().reshape(1, state_dim, arglist.history_length))            # [1, state_dim, length]
-                        #
-                        # for idx in range(env.n):
-                        #       hhh = np.concatenate(history_list[idx], 0)
-                        #       temp_action = agent.action([hhh], [num_tasks])
-                        #       action_n.append(temp_action)
-                        # action_array = np.array(action_n)
-                        # 2.1,在num_tasks个任务上进行采样
-                        # action_n = action_array[:, task_index, :]
-                        
                         for task_index in range(num_tasks):
+                                current_env = list_of_taskenv[task_index]
                                 action_n = []
                                 # 用critic获得state,用critic给出action，
                                 for agent, his in zip(policy, history_n[task_index]):
                                         hiss = his.obtain().reshape(1, state_dim, arglist.history_length)               # [1, state_dim, length]
                                         action = agent.action([hiss], [1])
                                         action_n.append(action[0])
-                                # action_n = []
-                                # # 用critic获得state,用critic给出action，
-                                # results = []
-                                # for agent, his in zip(policy, history_n[task_index]):
-                                #       hiss = his.obtain().reshape(1, state_dim, arglist.history_length)  # [1, state_dim, length]
-                                #       results.append(pool.apply_async(agent.action, args=([hiss], [1])))
-                                # for action in results:
-                                #       action_n.append(action.get())
-                                # pool.close()
-                                # pool.join()
-                                
                                 if debug:
                                         print(time_end(begin, "action2"))
                                         begin = time_begin()
-                                current_actors = model_list[task_index]
-                                current_env = list_of_taskenv[task_index]
-                                # new_obs_n, rew_n, done_n = pool.apply(current_env, args=(action_n, ))
                                 new_obs_n, rew_n, done_n = current_env.step(action_n)
-
+                                current_critics = model_list[task_index]
                                 if debug:
                                         print(time_end(begin, "env.step"))
                                         begin = time_begin()
@@ -205,7 +165,7 @@ def train(arglist):
                                 terminal = (local_steps[task_index] >= arglist.max_episode_len)
                                 # 收集experience
                                 for i in range(env.n):
-                                        current_actors[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
+                                        current_critics[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
                                         policy[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
                                         
                                 # 更新obs
@@ -218,10 +178,10 @@ def train(arglist):
                                         episodes_rewards[task_index][-1] += rew
                                         agent_rewards[task_index][i][-1] += rew
                                 
-                                for critic in current_actors:
+                                for critic in current_critics:
                                         critic.preupdate()
-                                for critic in current_actors:
-                                        critic.update(current_actors, global_steps[task_index])
+                                for critic in current_critics:
+                                        critic.update(current_critics, global_steps[task_index])
                                         
                                 if debug:
                                         print(time_end(begin, "update critic"))
@@ -229,13 +189,13 @@ def train(arglist):
                                 # 2.3，优化actor
                                 # policy_step += 1
                                 # print("policy steps: ", policy_step)
-                                for actor, critic in zip(policy, current_actors):
+                                for actor, critic in zip(policy, current_critics):
                                         actor.change_p(critic.p)
                                         actor.update(policy, global_steps[task_index])
                                 if debug:
                                         print(time_end(begin, "update actor"))
                                         begin = time_begin()
-                                # 2.4 记录和更新train信息
+                                # 2.4 记录和更新train过程
                                 # energy
                                 energy_one_episode[task_index].append(current_env.get_energy())
                                 # fair index

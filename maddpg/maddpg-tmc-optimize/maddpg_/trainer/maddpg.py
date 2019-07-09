@@ -82,9 +82,10 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, optimizer, grad_norm_cl
         act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action"+str(i)) for i in range(len(act_space_n))]
         target_ph = tf.placeholder(tf.float32, [None], name="target")
 
-        q_input = tf.concat(obs_ph_n + act_ph_n, 1)
         if local_q_func:
             q_input = tf.concat([obs_ph_n[q_index], act_ph_n[q_index]], 1)
+        else:
+            q_input = tf.concat(obs_ph_n + act_ph_n, 1)
         q = q_func(q_input, 1, scope="q_func", num_units=num_units)[:,0]
         q_func_vars = U.scope_vars(U.absolute_scope_name("q_func"))
 

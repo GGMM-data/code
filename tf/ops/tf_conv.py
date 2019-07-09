@@ -9,8 +9,7 @@ def clipped_error(x):
   except:
     return tf.where(tf.abs(x) < 1.0, 0.5 * tf.square(x), tf.abs(x) - 0.5)
 
-def conv2d(inputs, output_dim, kernel_size, stride, initializer, activation_fn,
-           padding='VALID', data_format='NHWC', name="conv2d", reuse=False):
+def conv2d(inputs, output_dim, kernel_size, stride, initializer, activation_fn, padding='VALID', data_format='NHWC', name="conv2d", reuse=False):
     kernel_shape = None
     with tf.variable_scope(name, reuse=reuse):
         if data_format == 'NCHW':

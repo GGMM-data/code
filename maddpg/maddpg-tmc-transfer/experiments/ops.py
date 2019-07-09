@@ -1,11 +1,13 @@
 import tensorflow as tf
 import os
 import sys
+cwd = os.getcwd()
+path = cwd + "/../"
+sys.path.append(path)
 
-sys.path.append(os.getcwd() + "/../")
-
-from model.trainer.maddpg_actor import MADDPGAgentTrainer as MADDPG_ACTOR
-from model.trainer.maddpg_critic import MADDPGAgentTrainer as MADDPG_CRITIC
+from model.trainer.maddpg_actor_trainer import MADDPGAgentTrainer as ACTOR_TRAINER
+from model.trainer.maddpg_critic_trainer import MADDPGAgentTrainer as CRITIC_TRAINER
+from model.trainer.maddpg_actor_act import MADDPGAgentTrainer as ACT
 import tensorflow.nn.rnn_cell as rnn
 import tensorflow.contrib.layers as layers
 import h5py
@@ -13,41 +15,56 @@ import numpy as np
 import time
 
 
-def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, is_actor=True, actor=None):
+def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, actors=None, actor_env_name=None, type=0):
+    trainer = None
     trainers = []
-    model = mlp_model
     lstm = lstm_model
-    if is_actor:
-        trainer = MADDPG_ACTOR
-        for i in range(num_adversaries):
-            trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
-                local_q_func=(arglist.adv_policy == 'ddpg')))
-        for i in range(num_adversaries, env.n):
-            trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
-                local_q_func=(arglist.good_policy == 'ddpg')))
-    else:
-        trainer = MADDPG_CRITIC
+    model = mlp_model
 
+    if type == 0:
+        trainer = ACT
         for i in range(num_adversaries):
             trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actor, arglist,
+                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
                 local_q_func=(arglist.adv_policy == 'ddpg')))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actor, arglist,
+                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
                 local_q_func=(arglist.good_policy == 'ddpg')))
+    elif type == 1:
+        trainer = CRITIC_TRAINER
+        for i in range(num_adversaries):
+            trainers.append(trainer(
+                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actors, arglist,
+                local_q_func=(arglist.adv_policy == 'ddpg')))
+        for i in range(num_adversaries, env.n):
+            trainers.append(trainer(
+                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actors, arglist,
+                local_q_func=(arglist.good_policy == 'ddpg')))
+    elif type == 2:
+        trainer = ACTOR_TRAINER
+        for i in range(num_adversaries):
+            trainers.append(trainer(
+                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i,
+                actor_env_name + "agent_%d" % i, arglist,
+                local_q_func=(arglist.adv_policy == 'ddpg')))
+        for i in range(num_adversaries, env.n):
+            trainers.append(trainer(
+                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i,
+                actor_env_name + "agent_%d" % i, arglist,
+                local_q_func=(arglist.good_policy == 'ddpg')))
+    
     return trainers
 
 
-def time_begin():
-    return time.time()
-
-
-def time_end(begin_time, info):
-    print(info)
-    return time.time() - begin_time
+def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=None):
+    # This model takes as input an observation and returns values of all actions
+    with tf.variable_scope(scope, reuse=reuse):
+        out = input
+        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
+        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
+        out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
+        return out
 
 
 def sample_map(path):
@@ -179,31 +196,19 @@ def q_model(inputs, num_outputs, scope, reuse=False,  num_units=64):
         return out
 
 
-# multi perception layers
-def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=None):
-    # This model takes as input an observation and returns values of all actions
-    with tf.variable_scope(scope, reuse=reuse):
-        out = input
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
-        return out
-
-
-def make_env(scenario_name, arglist, benchmark=False):
+def make_env(scenario_name, benchmark=False):
     from multiagent.environment_uav import MultiAgentEnv
     import multiagent.scenarios as scenarios
 
-    # load scenario from script
     scenario = scenarios.load(scenario_name + ".py").Scenario()
-    # create world
     world = scenario.make_world()
-    # create multiagent environment
     if benchmark:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
     else:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
+
+
 
 
 
@@ -215,3 +220,10 @@ def clipped_error(x):
     return tf.where(tf.abs(x) < 1.0, 0.5 * tf.square(x), tf.abs(x) - 0.5)
 
 
+def time_begin():
+    return time.time()
+
+
+def time_end(begin_time, info):
+    print(info)
+    return time.time() - begin_time

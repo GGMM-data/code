@@ -3,35 +3,33 @@ import matplotlib.pyplot as plt
 from skimage import data
 import numpy as np
 
-def conv(img):
-    if len(img.shape) == 3:
-        img = tf.reshape(img, [1]+img.get_shape().as_list())
-    fiter = tf.random_normal([3, 3, 3, 1])
-    print(type(filter))
-    img = tf.nn.conv2d(img, fiter, strides=[1, 1, 1, 1], padding='SAME')
-    print(img.get_shape())
-    return img
+inputs = tf.placeholder(tf.float32, shape=[None, 512, 512, 3], name="inputs")
+filters = tf.get_variable("weigths", [3, 3, 3, 1])
+outputs = tf.nn.conv2d(inputs, filters, strides=[1, 1, 1, 1], padding='SAME')
 
 init_op = tf.global_variables_initializer()
-if __name__ == "__main__":
-    # img = data.text()
-  
-  config = tf.ConfigProto()
-  config.gpu_options.allow_growth = True
-  with tf.Session(config=config) as sess:
-    sess.run(init_op)
-    img = data.astronaut()
-    print(img.shape)
-    plt.imshow(img)
-    plt.show()
-    
-    print(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES))
-    # 输出为空
 
-    x = tf.placeholder(tf.float32, shape=(img.shape))
-    y = conv(x)
-    result = sess.run(y, feed_dict={x: img})
-    print(type(result))
-    result = np.squeeze(result) 
-    plt.imshow(result)
-    plt.show()
+if __name__ == "__main__":
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    with tf.Session(config=config) as sess:
+        # 1.初始化
+        sess.run(init_op)
+
+        # 2.查看所有有可训练的VARIABLES
+        for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+            print(var)
+
+        # 3.输入
+        img = data.astronaut()
+        print("inputs shape: ", img.shape)
+        img = np.expand_dims(img, 0)
+        print(img.shape)
+
+        # 3.模型预测
+        result = sess.run(outputs, feed_dict={inputs: img})
+
+        # 4.查看结果
+        print(type(result))
+        print(result.shape)
+
