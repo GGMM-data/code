@@ -365,11 +365,12 @@ def train(arglist):
                                                 )
                                 # saves final episode reward for plotting training curve later
                                 if episode_number > arglist.num_episodes:
-                                        rew_file_name = arglist.plots_dir + arglist.exp_name + '_rewards.pkl'
+                                        rew_file_name = arglist.plots_dir + arglist.exp_name + str(task_index) + '_rewards.pkl'
                                         with open(rew_file_name, 'wb') as fp:
                                                 pickle.dump(final_ep_rewards, fp)
-                                        agrew_file_name = arglist.plots_dir + arglist.exp_name + '_agrewards.pkl'
+                                        agrew_file_name = arglist.plots_dir + arglist.exp_name + str(task_index) +  '_agrewards.pkl'
                                         with open(agrew_file_name, 'wb') as fp:
                                                 pickle.dump(final_ep_ag_rewards, fp)
                                         print('...Finished total of {} episodes.'.format(episode_number))
-                                        break
+                        if episode_number > arglist.num_episodes:
+                                break
