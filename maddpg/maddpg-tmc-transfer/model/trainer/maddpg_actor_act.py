@@ -22,19 +22,15 @@ class MADDPGAgentTrainer(AgentTrainer):
             obs_shape = list(obs_shape_n[i])
             obs_shape.append(args.history_length)
             obs_ph_n.append(U.BatchInput((obs_shape), name="observation"+str(i)).get())
-        self.obs_ph_n = obs_ph_n
-        self.act_space_n = act_space_n
-        self.model = model
-        self.lstm_model = lstm_model
-        self.local_q_func = local_q_func
         
+        self.local_q_func = local_q_func
         self.act, self.p_debug = p_act(
             scope=self.name,
-            make_obs_ph_n=self.obs_ph_n,
-            act_space_n=self.act_space_n,
+            make_obs_ph_n=obs_ph_n,
+            act_space_n=act_space_n,
             p_index=self.agent_index,
-            p_func=self.model,
-            lstm_model=self.lstm_model,
+            p_func=model,
+            lstm_model=lstm_model,
             num_units=self.args.num_units,
             use_lstm=False,
             reuse=False

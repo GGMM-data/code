@@ -32,30 +32,37 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
             local_q_func=False, scope="trainer", reuse=None, num_units=64, use_lstm=True):
     with tf.variable_scope(scope, reuse=reuse):
         # ===================q network开始建图=================
+        # set up placeholders
+        # batch size placeholder
         batch_size = tf.placeholder(tf.int32, shape=[], name="bs")
-        # 创建分布
-        act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]
-        # 创建观测placeholder
-        obs_ph_n = make_obs_ph_n  # set up placeholders
+        # action placeholder
+        act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]    # 创建分布
+        act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action" + str(i)) for i in range(len(act_space_n))]
+        # observation placeholder
+        obs_ph_n = make_obs_ph_n  # 创建obs placeholder
+        # target q placeholder
+        target_ph = tf.placeholder(tf.float32, [None], name="target")  # 在运行时计算，然后传入，只跟loss有关
+        
         # 在这里进行dimension reduction
         if use_lstm:
             observation_n = lstm_model(obs_ph_n, scope="lstm", reuse=reuse)
         else:
             observation_n = [tf.squeeze(o, 2) for o in obs_ph_n]
-        act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action" + str(i)) for i in range(len(act_space_n))]
-        target_ph = tf.placeholder(tf.float32, [None], name="target")  # 在运行时计算，然后传入，只跟loss有关
         # 所有智能体的obs和action
         if local_q_func:
             q_input = tf.concat([observation_n[q_index], act_ph_n[q_index]], 1)
         else:
             q_input = tf.concat(observation_n + act_ph_n, 1)
         q = q_func(q_input, 1, scope="q_func", num_units=num_units)[:, 0]  # 计算q值
+        
         q_func_vars = U.scope_vars(U.absolute_scope_name("q_func"))  # q network网络参数
         if use_lstm:
             lstm_func_vars = U.scope_vars(U.absolute_scope_name("lstm"))  # lstm参数
+        
         q_loss = tf.reduce_mean(tf.square(q - target_ph))  # mse loss
         q_reg = tf.reduce_mean(tf.square(q))
         loss = q_loss  # + 1e-3 * q_reg
+        
         if use_lstm:
             optimize_expr = U.minimize_and_clip(optimizer, loss, q_func_vars + lstm_func_vars, grad_norm_clipping)
         else:
@@ -86,11 +93,12 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
         # ============p network建图=================
         # batch size的placeholder, []
         batch_size = tf.placeholder(tf.int32, shape=[], name="bs")
-        # 创建action的分布用来采样
-        act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]
-        # 创建observation的placeholder # list of [batch_size, dim, time_step]
+        # observation placeholder, list of [batch_size, dim, time_step]
         obs_ph_n = make_obs_ph_n
-        # 所有智能体的obs, list of [batch_size, state_dim]
+
+        # action distribution
+        act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]  # 创建action的分布用来采样
+
         if use_lstm:
             observation_n = lstm_model(obs_ph_n, reuse=reuse, scope="lstm")
         else:
@@ -129,30 +137,28 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
 def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_model, optimizer,
             grad_norm_clipping=None, local_q_func=False, num_units=64, scope="trainer", reuse=None, use_lstm=True):
     with tf.variable_scope(scope, reuse=reuse):
-        # batch size的placeholder, []
-        batch_size = tf.placeholder(tf.int32, shape=[], name="bs")
-        # 创建action的分布用来采样
-        act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]
-        # 创建observation的placeholder # list of [batch_size, dim, time_step]
-        obs_ph_n = make_obs_ph_n
-        # action的placeholder, list of [batch_size, action_dim
-        act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action"+str(i)) for i in range(len(act_space_n))]
-        # 所有智能体的obs, list of [batch_size, state_dim]
+        # placeholder
+        # batch size placeholder
+        batch_size = tf.placeholder(tf.int32, shape=[], name="bs")  # batch size的placeholder, []
+        # action placeholder, list of [batch_size, action_dim]
+        act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]  # 创建action的分布用来采样
+        act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action" + str(i)) for i in range(len(act_space_n))]
+        # observation placeholder
+        obs_ph_n = make_obs_ph_n    # 创建observation的placeholder, list of [batch_size, state_dim, time_step]
+        
         if use_lstm:
             observation_n = lstm_model(obs_ph_n, reuse=reuse, scope="lstm")
             lstm_vars = U.scope_vars(U.absolute_scope_name("lstm"))
         else:
-            observation_n = [tf.squeeze(o, 2) for o in obs_ph_n]
-        # 当前智能体的局部obs, [batch_size, state_dim]
-        p_input = observation_n[p_index]
-    
+            observation_n = [tf.squeeze(o, 2) for o in obs_ph_n]    # 所有智能体的obs, list of [batch_size, state_dim]
+        p_input = observation_n[p_index]    # 当前智能体的局部obs, [batch_size, state_dim]
+        
+    # p是多个actor公用的，q是每一个critic有一个
     with tf.variable_scope(p_scope, reuse=reuse):
         # 计算局部p值，最后用来产生action, [batch_size, action_dim]
-        p = p_func(p_input, int(act_pdtype_n[p_index].param_shape()[0]), scope="p_func", reuse=reuse, num_units=num_units)
+        p = p_func(p_input, int(act_pdtype_n[p_index].param_shape()[0]), scope="p_func", reuse=True, num_units=num_units)
         # p函数的参数
         p_func_vars = U.scope_vars(U.absolute_scope_name("p_func"))
-        # 目标p值的参数
-        target_p_func_vars = U.scope_vars(U.absolute_scope_name("target_p_func"))
         # wrap parameters in distribution,Pd.logits
         act_pd = act_pdtype_n[p_index].pdfromflat(p)  #
         # act_sample = act_pd.sample()    # [batch_size, action_dim]
@@ -160,18 +166,18 @@ def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_m
         # 更新action
         act_input_n = act_ph_n + []
         act_input_n[p_index] = act_pd.sample()  # [batch_size, action]
+
+        # 目标p值的参数
+        target_p_func_vars = U.scope_vars(U.absolute_scope_name("target_p_func"))
+        update_target_p = make_update_exp(p_func_vars, target_p_func_vars)  # 函数调用
         
-    with tf.variable_scope(scope, reuse=reuse):
-        # 所有智能体的s和a, [batch_size, concat_dim]
-        q_input = tf.concat(observation_n + act_input_n, 1)
+    with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+        q_input = tf.concat(observation_n + act_input_n, 1)     # 所有智能体的s和a, [batch_size, concat_dim]
         if local_q_func:
             q_input = tf.concat([obs_ph_n[p_index], act_input_n[p_index]], 1)
-        q = q_func(q_input, 1, scope="q_func", reuse=reuse, num_units=num_units)[:, 0]  # 计算Q(s,a), [batch_size,]
+        q = q_func(q_input, 1, scope="q_func", reuse=True, num_units=num_units)[:, 0]  # 计算Q(s,a), [batch_size,]
         
-        # 函数调用
-        update_target_p = make_update_exp(p_func_vars, target_p_func_vars)
-
-    with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+        # loss
         pg_loss = - tf.reduce_mean(q)    # policy gradient loss ???
         loss = pg_loss + p_reg * 1e-3   # 使用每一个critic计算的loss都是不同的，第一次需要建图，以后就不需要了
         

@@ -31,7 +31,7 @@ def train(arglist):
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
-        actor_0 = get_trainers(env, "actor", num_adversaries, obs_shape_n, arglist, type=0)
+        actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
 
         # 1.2创建每个任务的actor trainer和critic trainer
         critic_list = []  # 所有任务critic的list
@@ -41,7 +41,7 @@ def train(arglist):
             critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
                                     obs_shape_n, arglist, actors=actor_0, type=1)
             actor_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, actor_env_name="actor", type=2)
+                                    obs_shape_n, arglist, actor_env_name="actor_", type=2)
             actor_list.append(actor_trainers)
             critic_list.append(critic_trainers)
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
@@ -92,6 +92,9 @@ def train(arglist):
 
         # Initialize
         U.initialize()
+        
+        for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+            print(var)
         if debug:
             print(time_end(begin, "init step"))
             begin = time_begin()
@@ -164,18 +167,12 @@ def train(arglist):
                     episodes_rewards[task_index][-1] += rew
                     agent_rewards[task_index][i][-1] += rew
                 
-                # 2.2，优化每一个任务的critic
+                # 2.2，优化每一个任务的critic and acotr
                 for critic in current_critics:
                     critic.preupdate()
                 for critic in current_critics:
                     critic.update(current_critics, global_steps[task_index])
-                if debug:
-                    print(time_end(begin, "update critic"))
-                    begin = time_begin()
                     
-                # 2.3，优化actor
-                for actor in current_actors:
-                    actor.preupdate()
                 for actor in current_actors:
                     actor.update(current_actors, current_critics, global_steps[task_index])
                 if debug:

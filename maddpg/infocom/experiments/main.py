@@ -22,14 +22,6 @@ def parse_args():
     parser.add_argument('--history_length', type=int, default=1, help="how many history states were used")
     parser.add_argument("--save-dir", type=str, default="../checkpoints/",
                         help="directory in which models are saved")
-    # parser.add_argument("--save-dir", type=str, default="../checkpoints/num_uav_" + str(FLAGS.num_uav)
-    #                                                     + "_map_size_" + str(FLAGS.size_map)
-    #                                                     + "_radius_"+str(FLAGS.radius)
-    #                                                     + "_max_speed_" + str(FLAGS.max_speed)
-    #                                                     + "_factor_"+str(FLAGS.factor)
-    #                                                     + "_constrain_" + str(FLAGS.constrain),
-    #                     help="directory in which training state and model should be saved")
-
     # Environment
     parser.add_argument("--cnn-format", type=str, default='NHWC', help="cnn_format")
     parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")

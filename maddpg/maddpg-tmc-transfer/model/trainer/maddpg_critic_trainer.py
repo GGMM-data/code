@@ -46,7 +46,6 @@ class MADDPGAgentTrainer(AgentTrainer):
         self.replay_buffer = ReplayBuffer(args, obs_shape_n[0], act_space_n[0].n)
         self.max_replay_buffer_len = args.batch_size * args.max_episode_len
         self.replay_sample_index = None
-        self.p = None
 
     def experience(self, obs, act, rew, done, terminal):
         # Store transition in the replay buffer.

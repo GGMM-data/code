@@ -19,25 +19,20 @@ class MADDPGAgentTrainer(AgentTrainer):
             obs_shape = list(obs_shape_n[i])
             obs_shape.append(args.history_length)
             obs_ph_n.append(U.BatchInput((obs_shape), name="observation" + str(i)).get())
-        self.obs_ph_n = obs_ph_n
-        self.act_space_n = act_space_n
-        self.model = model
-        self.lstm_model = lstm_model
-        self.local_q_func = local_q_func
-        self.optimizer = tf.train.AdamOptimizer(learning_rate=self.args.lr)
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.args.lr)
         
         self.p_train, self.p_update = p_train(
             scope=self.name,
             p_scope=actor_env,
-            make_obs_ph_n=self.obs_ph_n,
-            act_space_n=self.act_space_n,
+            make_obs_ph_n=obs_ph_n,
+            act_space_n=act_space_n,
             p_index=self.agent_index,
-            p_func=self.model,
-            q_func=self.model,
-            lstm_model=self.lstm_model,
-            optimizer=self.optimizer,
+            p_func=model,
+            q_func=model,
+            lstm_model=lstm_model,
+            optimizer=optimizer,
             grad_norm_clipping=0.5,
-            local_q_func=self.local_q_func,
+            local_q_func=local_q_func,
             num_units=self.args.num_units,
             reuse=True,
             use_lstm=False

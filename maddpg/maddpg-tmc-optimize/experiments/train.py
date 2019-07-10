@@ -9,110 +9,9 @@ import sys
 sys.path.append(os.getcwd() + "/../")
 
 import maddpg_.common.tf_util as U
-from maddpg_.trainer.maddpg import MADDPGAgentTrainer
-import tensorflow.contrib.layers as layers
-from uav_statistics import draw_util
+from experiments.ops import time_begin, time_end, make_env, mlp_model, get_trainers
+from experiments.uav_statistics import draw_util
 from multiagent.uav.flag import FLAGS
-
-def parse_args():
-    parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
-
-    # Core training parameters
-    parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
-    parser.add_argument("--gamma", type=float, default=0.83, help="discount f  rractor")
-    parser.add_argument("--batch-size", type=int, default=256, help="number of episodes to optimize at the same time")
-    parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
-    parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
-    parser.add_argument("--save-dir", type=str, default="../checkpoints/num_uav_" + str(FLAGS.num_uav)
-                                                        + "_map_size_" + str(FLAGS.size_map)
-                                                        + "_radius_"+str(FLAGS.radius)
-                                                        + "_max_speed_" + str(FLAGS.max_speed)
-                                                        + "_factor_"+str(FLAGS.factor)
-                                                        + "_constrain_" + str(FLAGS.constrain),
-                        help="directory in which training state and model should be saved")
-
-    # Environment
-    parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
-    parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
-    parser.add_argument("--num-episodes", type=int, default=4000, help="number of episodes")
-    parser.add_argument("--num-adversaries", type=int, default=0, help="number of adversaries")
-    parser.add_argument("--good-policy", type=str, default="maddpg", help="policy for good agents")
-    parser.add_argument("--adv-policy", type=str, default="maddpg", help="policy of adversaries")
-
-    #
-    parser.add_argument("--load-dir", type=str, default="./tmp/policy_f_1_u_7_r_3_c_5_with_wall/2599/",
-                        help="directory in which training state and model are loaded")
-    parser.add_argument("--exp-name", type=str, default="simple_uav", help="name of the experiment")
-    parser.add_argument("--save-rate", type=int, default=100,
-                        help="save model once every time this many episodes are completed")
-    # Evaluation
-    parser.add_argument("--restore", action="store_true", default=False)
-    parser.add_argument("--display", action="store_true", default=False)
-    parser.add_argument("--benchmark", action="store_true", default=False)
-    parser.add_argument("--draw-picture-train", action="store_true", default=True)
-    parser.add_argument("--draw-picture-test", action="store_true", default=False)
-    parser.add_argument("--benchmark-iters", type=int, default=100000, help="number of iterations run for benchmarking")
-    parser.add_argument("--benchmark-dir", type=str, default="../benchmark_files/",
-                        help="directory where benchmark data is saved")
-    parser.add_argument("--plots-dir", type=str, default="../learning_curves/",
-                        help="directory where plot data is saved")
-    parser.add_argument("--pictures-dir-train", type=str, default="../result_pictures/train/",
-                        help="directory where result pictures data is saved")
-    parser.add_argument("--pictures-dir-test", type=str, default="../result_pictures/test/",
-                        help="directory where result pictures data is saved")
-
-    # custom parameters for uav
-    return parser.parse_args()
-
-
-def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=None):
-    # This model takes as input an observation and returns values of all actions
-    with tf.variable_scope(scope, reuse=reuse):
-        out = input
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
-        return out
-
-
-def make_env(scenario_name, arglist, benchmark=False):
-    from multiagent.environment_uav import MultiAgentEnv
-    import multiagent.scenarios as scenarios
-
-    # load scenario from script
-    scenario = scenarios.load(scenario_name + ".py").Scenario()
-    # create world
-    world = scenario.make_world()
-    # create multiagent environment
-    if benchmark:
-        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
-    else:
-        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
-    return env
-
-
-def get_trainers(env, num_adversaries, obs_shape_n, arglist):
-    trainers = []
-    model = mlp_model
-    trainer = MADDPGAgentTrainer
-    for i in range(num_adversaries):
-        trainers.append(trainer(
-            "agent_%d" % i, model, obs_shape_n, env.action_space, i, arglist,
-            local_q_func=(arglist.adv_policy=='ddpg')))
-    for i in range(num_adversaries, env.n):
-        trainers.append(trainer(
-            "agent_%d" % i, model, obs_shape_n, env.action_space, i, arglist,
-            local_q_func=(arglist.good_policy=='ddpg')))
-    return trainers
-
-
-def time_begin():
-    return time.time()
-
-
-def time_end(begin_time, info):
-    print(info)
-    return time.time() - begin_time
 
 
 def train(arglist):
@@ -132,7 +31,7 @@ def train(arglist):
         if debug:
             print(time_end(begin, "step 1"))
             begin = time_begin()
-        trainers = get_trainers(env, num_adversaries, obs_shape_n, arglist)
+        trainers = get_trainers(env, "task_", num_adversaries, obs_shape_n, arglist)
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
         if debug:
             print(time_end(begin, "step2"))
@@ -150,6 +49,8 @@ def train(arglist):
 
         # Initialize
         U.initialize()
+        for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+            print(var)
         if debug:
             print(time_end(begin, "step3"))
             begin = time_begin()
@@ -232,14 +133,14 @@ def train(arglist):
 
             # increment custom statistics variables in the epoch--------------------------------------------------------
             episode_reward_step += np.mean(rew_n)
-            j_index_one_episode.append(env._get_jain_index())
-            over_map_counter += env._get_over_map()
+            j_index_one_episode.append(env.get_jain_index())
+            over_map_counter += env.get_over_map()
             over_map_one_episode.append(over_map_counter)
-            disconnected_number_counter += env._get_dis()
+            disconnected_number_counter += env.get_dis()
             disconnected_number_one_episode.append(disconnected_number_counter)
-            aver_cover_one_episode.append(env._get_aver_cover())
-            energy_one_episode.append(env._get_energy())
-            s_route = env._get_state()
+            aver_cover_one_episode.append(env.get_aver_cover())
+            energy_one_episode.append(env.get_energy())
+            s_route = env.get_state()
             for route_i in range(0, FLAGS.num_uav * 2, 2):
                 tmp = [s_route[route_i], s_route[route_i + 1]]
                 route.append(tmp)
@@ -277,7 +178,7 @@ def train(arglist):
                 writer.add_summary(efficiency_s, global_step=episode_number)
                 # plt fig
                 print('Episode: %d - energy_consumptions: %s, efficiency: %s, time %s' % (train_step / arglist.max_episode_len,
-                                                            str(env._get_energy_origin()),
+                                                            str(env.get_energy_origin()),
                                                             str(energy_efficiency[-1]),
                                                             str(round(episode_end_time - episode_begin_time, 3))))
                 episode_begin_time = episode_end_time
@@ -405,9 +306,4 @@ def train(arglist):
                 print('...Finished total of {} episodes.'.format(len(episode_rewards)))
                 break
         # plt.show()
-        
-        
-if __name__ == '__main__':
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-    arglist = parse_args()
-    train(arglist)
+

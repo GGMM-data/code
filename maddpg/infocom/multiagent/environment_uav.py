@@ -576,7 +576,7 @@ class MultiAgentEnv(gym.Env):
         total_cover = np.sum(self.M)
         return total_cover / (self.size ** 2)
 
-    def get_state(self):
+    def get_agent_pos(self):
         tmp = []
         for state in self.state:
             tmp.append(state[0])

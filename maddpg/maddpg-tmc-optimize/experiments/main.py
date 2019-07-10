@@ -18,17 +18,8 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=256, help="number of episodes to optimize at the same time")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
-    parser.add_argument("--num-task", type=int, default=1, help="number of tasks")
-    parser.add_argument('--history_length', type=int, default=1, help="how many history states were used")
     parser.add_argument("--save-dir", type=str, default="../checkpoints/",
                         help="directory in which models are saved")
-    # parser.add_argument("--save-dir", type=str, default="../checkpoints/num_uav_" + str(FLAGS.num_uav)
-    #                                                     + "_map_size_" + str(FLAGS.size_map)
-    #                                                     + "_radius_"+str(FLAGS.radius)
-    #                                                     + "_max_speed_" + str(FLAGS.max_speed)
-    #                                                     + "_factor_"+str(FLAGS.factor)
-    #                                                     + "_constrain_" + str(FLAGS.constrain),
-    #                     help="directory in which training state and model should be saved")
 
     # Environment
     parser.add_argument("--cnn-format", type=str, default='NHWC', help="cnn_format")
@@ -67,7 +58,7 @@ def parse_args():
 
 if __name__ == '__main__':
     argslist = parse_args()
-    params = ["batch_size", "buffer_size", "num_task", "history_length", "max_episode_len", "num_episodes", "save_rate",
+    params = ["batch_size", "buffer_size", "max_episode_len", "num_episodes", "save_rate",
               "gamma", "num_units"]
     save_path = "policy"
     dict_arg = vars(argslist)
@@ -75,5 +66,5 @@ if __name__ == '__main__':
         save_path = save_path + "_" + param + "_" + str(dict_arg[param])
     save_path += "_UAVnumber_" + str(FLAGS.num_uav) + "_size_map_" + str(FLAGS.size_map) + "_radius_" + str(FLAGS.radius)
     argslist.save_dir = argslist.save_dir + save_path + "_debug/"
-    os.environ['CUDA_VISIBLE_DEVICES'] = '8'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
     train(argslist)
