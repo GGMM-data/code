@@ -551,39 +551,39 @@ class MultiAgentEnv(gym.Env):
         return dx
 
     # custom return to global train------------------------------------------------------------------------------------
-    def _get_energy(self):
+    def get_energy(self):
         return np.mean(self.energy.copy() / self.SUT_ENERGY)
 
-    def _get_energy_origin(self):
+    def get_energy_origin(self):
         return np.mean(self.energy.copy())
 
-    def _get_jain_index(self):
+    def get_jain_index(self):
         return self.jain_index
 
-    def _get_delta_c(self):
+    def get_delta_c(self):
         return self.delta
 
-    def _get_dis(self):
+    def get_dis(self):
         return self.dis
 
-    def _get_over_map(self):
+    def get_over_map(self):
         return self.over_map
 
-    def _get_original_r(self):
+    def get_original_r(self):
         return self.o_r
 
-    def _get_aver_cover(self):
+    def get_aver_cover(self):
         total_cover = np.sum(self.M)
         return total_cover / (self.size ** 2)
 
-    def _get_state(self):
+    def get_state(self):
         tmp = []
         for state in self.state:
             tmp.append(state[0])
             tmp.append(state[1])
         return tmp
 
-    def _get_original_r(self):
+    def get_original_r(self):
         return self.o_r
 
 
