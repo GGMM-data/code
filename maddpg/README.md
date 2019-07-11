@@ -2,6 +2,7 @@
 maddpg-tmc:maddpg上改的，发表在tmc上
 maddpg-tmc-optimize:相对于maddpg-tmc，在obs上改了一点点，提高训练速度，效果没有改变
 maddpg-tmc-transfer:相对于maddpg-tmc，在obs上改了一点点，同时使用distral框架，实现迁移学习，buffer是自己实现的，actor和critic分开
+maddpg-tmc-buffer-transfer:和maddpg-tmc-transfer的区别在于，这里的buffer在上面的基础上做了一点改进
 maddpg-tmc-total-transfer:相对于maddpg-tmc，在obs上改了一点点，同时使用distral框架，实现迁移学习，buffer是原文的，acotr和critic在一起
 **这个**maddpg-tmc-seperate-transfer:相对于maddpg-tmc，在obs上改了一点点，同时使用distral框架，实现迁移学习，buffer是原文的，acotr和critic分开
 
