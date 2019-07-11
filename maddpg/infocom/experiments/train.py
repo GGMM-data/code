@@ -25,7 +25,6 @@ def train(arglist):
         with U.single_threaded_session():
                 if debug:
                         begin = time_begin()
-
                 # 1.1创建每个任务的actor trainer和critic trainer
                 trainers_list = []
                 env = make_env(arglist.scenario)
@@ -147,7 +146,7 @@ def train(arglist):
                                 done = all(done_n)
                                 terminal = (local_steps[task_index] >= arglist.max_episode_len)
                                 # 收集experience
-                                for i in range(env.n):
+                                for i in range(current_env.n):
                                         current_trainer[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], new_obs_n[i], done_n[i], terminal)
                                 
                                 # 更新obs

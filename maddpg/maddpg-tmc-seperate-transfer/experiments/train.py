@@ -1,37 +1,36 @@
+import numpy as np
 import os
+import tensorflow as tf
 import time
 import pickle
 import sys
-import numpy as np
-import tensorflow as tf
+import math
 
 sys.path.append(os.getcwd() + "/../")
 
-import model.common.tf_util as U
-from experiments.ops import make_env, get_trainers, time_begin, time_end
-from model.trainer.history import History
-from uav_statistics import draw_util
-import math
+import maddpg_.common.tf_util as U
+from experiments.ops import time_begin, time_end, mkdir, make_env, get_trainers
+from experiments.uav_statistics import draw_util
+
 
 def train(arglist):
-    
     debug = False
     num_tasks = arglist.num_task  # 总共有多少个任务
     list_of_taskenv = []  # env list
     save_path = arglist.save_dir
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    
+
     with U.single_threaded_session():
         if debug:
             begin = time_begin()
-        # 1.1创建一个公用的actor
-        env = make_env(arglist.scenario)
+        # 1.1创建每个任务的actor trainer和critic trainer
+        env = make_env(arglist.scenario, arglist.benchmark)
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
         actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
-
+        
         # 1.2创建每个任务的actor trainer和critic trainer
         critic_list = []  # 所有任务critic的list
         actor_list = []
@@ -43,9 +42,10 @@ def train(arglist):
                                     obs_shape_n, arglist, actor_env_name="actor_", type=2)
             actor_list.append(actor_trainers)
             critic_list.append(critic_trainers)
+
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
 
-        # 1.4 全局变量初始化
+        # 1.2 全局变量初始化
         episodes_rewards = [[0.0] for _ in range(num_tasks)]  # 每个元素为在一个episode中所有agents rewards的和
         # agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
         agent_rewards = [[[0.0] for _ in range(env.n)] for _ in range(num_tasks)]
@@ -74,10 +74,8 @@ def train(arglist):
             efficiency_summary_list.append(tf.summary.scalar("efficiency_%s" % i, efficiency_list[i]))
         writer = tf.summary.FileWriter("../summary/efficiency")
 
-        # 1.6 episode局部变量初始化
+        # 1.3 局部变量初始化
         local_steps = np.zeros(num_tasks)  # local timesteps for each env
-        t_start = time.time()
-
         energy_one_episode = [[] for _ in range(num_tasks)]
         j_index_one_episode = [[] for _ in range(num_tasks)]
         aver_cover_one_episode = [[] for _ in range(num_tasks)]
@@ -91,92 +89,79 @@ def train(arglist):
 
         # Initialize
         U.initialize()
-        
         for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
             print(var)
         if debug:
-            print(time_end(begin, "init step"))
+            print(time_end(begin, "step3"))
             begin = time_begin()
             
-        # 1.6 加载checkpoints
-        # Load previous results, if necessary
+        # 1.4 加载checkpoints
         if arglist.load_dir == "":
             arglist.load_dir = save_path
         if arglist.display or arglist.restore or arglist.benchmark:
             print('Loading previous state...')
             U.load_state(arglist.load_dir)
-
         global_steps = tf.get_default_session().run(global_steps_tensor)
-        # 1.7 初始化ENV
+
+        # 1.5 初始化ENV
         obs_n_list = []
         for i in range(num_tasks):
             obs_n = list_of_taskenv[i].reset()
             obs_n_list.append(obs_n)
-
-        # 1.8 生成maddpg 加上rnn之后的输入seq，
-        history_n = [[] for _ in range(num_tasks)]
-        for i in range(num_tasks):
-            for j in range(len(obs_n_list[i])):  # 生成每个智能体长度为history_length的观测
-                history = History(arglist, [obs_shape_n[j][0]])
-                history_n[i].append(history)
-                for _ in range(arglist.history_length):
-                    history_n[i][j].add(obs_n_list[i][j])
+               
         if debug:
             print(time_end(begin, "initialize"))
             begin = time_begin()
-            
         # 2.训练
+        t_start = time.time()
         print('Starting iterations...')
         episode_start_time = time.time()
         state_dim = obs_shape_n[0][0]
-        
+
         while True:
             for task_index in range(num_tasks):
                 # 2.1更新环境，采集样本
                 current_env = list_of_taskenv[task_index]
-                action_n = []
-                # 用critic获得state,用critic给出action，
-                for agent, his in zip(actor_0, history_n[task_index]):
-                    hiss = his.obtain().reshape(1, state_dim, arglist.history_length)  # [1, state_dim, length]
-                    action = agent.action([hiss], [1])
-                    action_n.append(action[0])
-                new_obs_n, rew_n, done_n, _ = current_env.step(action_n)
+                # get action
+                action_n = [agent.action(obs) for agent, obs in zip(actor_0, obs_n_list[task_index])]
+                # environment step
+                new_obs_n, rew_n, done_n, info_n = current_env.step(action_n)
                 current_critics = critic_list[task_index]
                 current_actors = actor_list[task_index]
                 if debug:
                     print(time_end(begin, "env.step"))
                     begin = time_begin()
-
                 local_steps[task_index] += 1  # 更新局部计数器
                 global_steps[task_index] += 1  # 更新全局计数器
                 done = all(done_n)
                 terminal = (local_steps[task_index] >= arglist.max_episode_len)
                 # 收集experience
                 for i in range(env.n):
-                    current_critics[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], done_n[i], terminal)
-
+                    current_critics[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], new_obs_n[i],
+                                                  done_n[i], terminal)
+                    # current_trainers[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], new_obs_n[i],
+                    #                             done_n[i], terminal)
+        
                 # 更新obs
                 obs_n_list[task_index] = new_obs_n
-                if debug:
-                    print(time_end(begin, "experience"))
-                    begin = time_begin()
                 # 更新reward
                 for i, rew in enumerate(rew_n):
                     episodes_rewards[task_index][-1] += rew
                     agent_rewards[task_index][i][-1] += rew
-                
+        
                 # 2.2，优化每一个任务的critic and acotr
                 for critic in current_critics:
                     critic.preupdate()
                 for critic in current_critics:
                     critic.update(current_critics, global_steps[task_index])
-                    
-                for actor in current_actors:
-                    actor.update(current_actors, current_critics, global_steps[task_index])
+
+                for index, actor in enumerate(current_actors):
+                    actor.update(current_actors, current_critics, global_steps[task_index], index)
+
                 if debug:
                     print(time_end(begin, "update actor"))
                     begin = time_begin()
-                    
+        
                 # 2.4 记录和更新train信息
                 # energy
                 energy_one_episode[task_index].append(current_env.get_energy())
@@ -198,7 +183,7 @@ def train(arglist):
                 if debug:
                     print(time_end(begin, "others"))
                     begin = time_begin()
-
+        
                 episode_number = math.ceil(global_steps[task_index] / arglist.max_episode_len)
                 if done or terminal:
                     model_name = save_path.split('/')[-2] + '/'
@@ -228,7 +213,7 @@ def train(arglist):
                     energy_efficiency[task_index].append(aver_cover_one_episode[task_index][-1]
                                                          * j_index_one_episode[task_index][-1] /
                                                          energy_one_episode[task_index][-1])  # efficiency
-    
+            
                     episode_end_time = time.time()
                     episode_time = episode_end_time - episode_start_time
                     episode_start_time = episode_end_time
@@ -238,13 +223,13 @@ def train(arglist):
                         str(current_env.get_energy_origin()),
                         str(energy_efficiency[task_index][-1]),
                         str(round(episode_time, 3))))
-    
+            
                     # 绘制reward曲线
                     efficiency_s = tf.get_default_session().run(efficiency_summary_list[task_index],
                                                                 feed_dict={efficiency_list[task_index]:
                                                                                energy_efficiency[task_index][-1]})
                     writer.add_summary(efficiency_s, global_step=episode_number)
-    
+            
                     # 应该在每个重置每个episode中的局部变量--------------------------------------------
                     if task_index == num_tasks - 1:
                         energy_one_episode = [[] for _ in range(num_tasks)]
@@ -257,16 +242,16 @@ def train(arglist):
                         episode_reward_step = np.zeros(num_tasks)
                         accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
                         route_one_episode = [[] for _ in range(num_tasks)]
-    
+            
                     # 重置局部变量
                     obs_n_list[task_index] = current_env.reset()  # 重置env
                     local_steps[task_index] = 0  # 重置局部计数器
-    
+            
                     # 更新全局变量
                     episodes_rewards[task_index].append(0)  # 添加新的元素
                     for reward in agent_rewards[task_index]:
                         reward.append(0)
-
+        
                 # save model, display training output
                 if terminal and (episode_number % arglist.save_rate == 0):
                     tf.get_default_session().run(global_steps_assign_op, feed_dict={global_steps_ph: global_steps})
@@ -285,13 +270,13 @@ def train(arglist):
                                 global_steps[task_index], episode_number, save_rate_mean_reward,
                                 [np.mean(rew[-arglist.save_rate:]) for rew in agent_rewards[task_index]],
                                 round(time.time() - t_start, 3)))
-    
+            
                     t_start = time.time()
-    
+            
                     final_ep_rewards[task_index].append(save_rate_mean_reward)
                     for rew in agent_rewards[task_index]:
                         final_ep_ag_rewards[task_index].append(np.mean(rew[-arglist.save_rate:]))
-    
+            
                     # 保存train曲线
                     if arglist.draw_picture_train:
                         # model_name = save_path.split('/')[-2] + '/'
@@ -309,6 +294,7 @@ def train(arglist):
                         )
                 # saves final episode reward for plotting training curve later
                 if episode_number > arglist.num_episodes:
+                    mkdir(arglist.plots_dir)
                     rew_file_name = arglist.plots_dir + arglist.exp_name + str(task_index) + '_rewards.pkl'
                     with open(rew_file_name, 'wb') as fp:
                         pickle.dump(final_ep_rewards, fp)
@@ -318,3 +304,4 @@ def train(arglist):
                         print('...Finished total of {} episodes.'.format(episode_number))
             if episode_number > arglist.num_episodes:
                 break
+

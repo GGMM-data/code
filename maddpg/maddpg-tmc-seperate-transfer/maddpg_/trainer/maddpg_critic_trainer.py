@@ -6,10 +6,10 @@ cwd = os.getcwd()
 path = cwd + "/../"
 sys.path.append(path)
 
-import model.common.tf_util as U
-from model import AgentTrainer
-from model.trainer.replay_buffer import ReplayBuffer
-from model.common.ops import q_train
+import maddpg_.common.tf_util as U
+from maddpg_ import AgentTrainer
+from maddpg_.trainer.replay_buffer import ReplayBuffer
+from maddpg_.common.ops import q_train
 
 
 class MADDPGAgentTrainer(AgentTrainer):
@@ -19,12 +19,10 @@ class MADDPGAgentTrainer(AgentTrainer):
         self.n = len(obs_shape_n)
         self.agent_index = agent_index
         self.args = args
+        
         obs_ph_n = []
-
         for i in range(self.n):
-            obs_shape = list(obs_shape_n[i])
-            obs_shape.append(args.history_length)
-            obs_ph_n.append(U.BatchInput((obs_shape), name="observation"+str(i)).get())
+            obs_ph_n.append(U.BatchInput(obs_shape_n[i], name="observation"+str(i)).get())
 
         # Create all the functions necessary to train the model
         self.q_train, self.q_update, self.q_debug = q_train(
@@ -43,46 +41,49 @@ class MADDPGAgentTrainer(AgentTrainer):
             use_lstm=False
         )
 
-        self.replay_buffer = ReplayBuffer(args, obs_shape_n[0], act_space_n[0].n)
+        self.replay_buffer = ReplayBuffer(args.buffer_size)
         self.max_replay_buffer_len = args.batch_size * args.max_episode_len
         self.replay_sample_index = None
 
-    def experience(self, obs, act, rew, done, terminal):
+    def experience(self, obs, act, rew, new_obs, done, terminal):
         # Store transition in the replay buffer.
-        self.replay_buffer.add(obs, act, rew, float(done), terminal)
+        self.replay_buffer.add(obs, act, rew, new_obs, float(done))
 
     def preupdate(self):
         self.replay_sample_index = None
 
     def update(self, agents, t):
         # 训练critic
-        if len(self.replay_buffer) < self.max_replay_buffer_len: # replay buffer is not large enough
+        if len(self.replay_buffer) < self.max_replay_buffer_len:    # replay buffer is not large enough
             return
         if not t % 100 == 0:  # only update every 100 steps
             return
         
-        # print("HHHH")
+        self.replay_sample_index = self.replay_buffer.make_index(self.args.batch_size)
         # collect replay sample from all agents
-        obs_n = []  # 长度为n的list，list每隔元素为[batch_size, state_size, history_length]
-        obs_next_n = []     # list的每个元素是[bath_size, action_dim]
+        obs_n = []
+        obs_next_n = []
         act_n = []
+        index = self.replay_sample_index
         for i in range(self.n):
-            obs, act, rew, obs_next, done = agents[i].replay_buffer.sample()
+            # buffer
+            obs, act, rew, obs_next, done = agents[i].replay_buffer.sample_index(index)
             obs_n.append(obs)
             obs_next_n.append(obs_next)
             act_n.append(act)
-        obs, act, rew, obs_next, done = self.replay_buffer.sample()
+        obs, act, rew, obs_next, done = self.replay_buffer.sample_index(index)
+
 
         # train q network
         num_sample = 1
         target_q = 0.0
         for i in range(num_sample):
-            target_act_next_n = [self.actors[i].p_debug['target_act'](*([obs_next_n[j]] + [self.args.batch_size])) for j in range(self.n)]
-            target_q_next = self.q_debug['target_q_values'](*(obs_next_n + target_act_next_n + [self.args.batch_size]))
+            target_act_next_n = [self.actors[j].p_debug['target_act'](obs_next_n[i]) for j in range(self.n)]
+            target_q_next = self.q_debug['target_q_values'](*(obs_next_n + target_act_next_n))
             target_q += rew + self.args.gamma * (1.0 - done) * target_q_next
         target_q /= num_sample
 
-        q_loss = self.q_train(*(obs_n + act_n + [target_q] + [self.args.batch_size]))
+        q_loss = self.q_train(*(obs_n + act_n + [target_q]))
         # train p network
 
         self.q_update()
