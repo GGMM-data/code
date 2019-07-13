@@ -188,7 +188,7 @@ if __name__ == "__main__":
         worker_threads.append(t)
     COORD.join(worker_threads)
 
-    # plt.plot(np.arange(len(GLOBAL_RUNNING_R)), GLOBAL_RUNNING_R)
-    # plt.xlabel('step')
-    # plt.ylabel('Total moving reward')
-    # plt.show()
+    plt.plot(np.arange(len(GLOBAL_RUNNING_R)), GLOBAL_RUNNING_R)
+    plt.xlabel('step')
+    plt.ylabel('Total moving reward')
+    plt.show()

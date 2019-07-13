@@ -156,20 +156,6 @@ def train(arglist):
                 sess = tf.get_default_session()
                 
                 while True:
-                        # for task_index in range(num_tasks):
-                        #       action_n = []
-                        #       # 用critic获得state,用critic给出action，
-                        #       for idx, (agent, his) in enumerate(zip(policy, history_n[task_index])):
-                        #               history_list[idx].append(his.obtain().reshape(1, state_dim, arglist.history_length))            # [1, state_dim, length]
-                        #
-                        # for idx in range(env.n):
-                        #       hhh = np.concatenate(history_list[idx], 0)
-                        #       temp_action = agent.action([hhh], [num_tasks])
-                        #       action_n.append(temp_action)
-                        # action_array = np.array(action_n)
-                        # 2.1,在num_tasks个任务上进行采样
-                        # action_n = action_array[:, task_index, :]
-                        
                         for task_index in range(num_tasks):
                                 action_n = []
                                 # 用critic获得state,用critic给出action，
@@ -177,16 +163,6 @@ def train(arglist):
                                         hiss = his.obtain().reshape(1, state_dim, arglist.history_length)               # [1, state_dim, length]
                                         action = agent.action([hiss], [1])
                                         action_n.append(action[0])
-                                # action_n = []
-                                # # 用critic获得state,用critic给出action，
-                                # results = []
-                                # for agent, his in zip(policy, history_n[task_index]):
-                                #       hiss = his.obtain().reshape(1, state_dim, arglist.history_length)  # [1, state_dim, length]
-                                #       results.append(pool.apply_async(agent.action, args=([hiss], [1])))
-                                # for action in results:
-                                #       action_n.append(action.get())
-                                # pool.close()
-                                # pool.join()
                                 
                                 if debug:
                                         print(time_end(begin, "action2"))
