@@ -12,14 +12,7 @@ action_array = np.array(action)
 print(action_array.shape)
 for a in action_array:
     print(a)
+
 print("==================================")
 print(action_array[:,0,:])
 print(action_array[:,1,:])
-
-# action_array_T = action_array.transpose()
-# print(action_array_T.shape)
-# for a in action_array_T:
-    # print(a)
-
-
-
