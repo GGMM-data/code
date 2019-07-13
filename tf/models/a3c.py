@@ -10,11 +10,13 @@ global_net_scope = 'GLOBAL_NET'
 lr_actor = 0.001
 lr_critic = 0.001
 beta = 0.001
-global_episode = 0
-max_global_episode = 1000
 update_global_number = 10
 gamma = 0.9
 
+global_episode_number = 0
+max_global_episode_number = 1000
+
+global_episode_reward = []
 
 env = gym.make(env_name)
 state_dim = env.observation_space.shape[0]
@@ -32,8 +34,8 @@ class ACNet(object):
                 self.action = tf.placeholder(tf.int32, [None, ], 'action')
                 self.target_value = tf.placeholder(tf.float32, [None, 1], 'target_value')
 
-                self.action_prob, self.value, self.actor_params, self.critic_params = self._build_net(scope)
-                td_error = tf.subtract(self.target_value, self.value, name='td_error')
+                self.action_prob, self.state_value, self.actor_params, self.critic_params = self._build_net(scope)
+                td_error = tf.subtract(self.target_value, self.state_value, name='td_error')
             with tf.name_scope('critic_loss'):
                 self.critic_loss = tf.reduce_mean(tf.square(td_error))
 
@@ -65,17 +67,17 @@ class ACNet(object):
 
         with tf.variable_scope('critic'):
             critic_layer = tf.layers.dense(self.state, 100, tf.nn.relu, kernel_initializer=w_initializer, name='critic_layer')
-            value = tf.layers.dense(critic_layer, 1, kernel_initializer=w_initializer, name='state_value')
+            state_value = tf.layers.dense(critic_layer, 1, kernel_initializer=w_initializer, name='state_value')
 
         actor_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=scope+'/actor')
         critic_params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=scope+'/critic')
-        return action_prob, value, actor_params, critic_params
+        return action_prob, state_value, actor_params, critic_params
 
     def update_global(self, feed_dict):
         sess.run([self.update_actor_params_op, self.update_critic_params_op], feed_dict)
     
     def pull_global(self):
-        sess.run([self.pull_actor_params_op, self.pull_actor_prams_op])
+        sess.run([self.pull_actor_params_op, self.pull_critic_params_op])
 
     def choose_action(self, state):
         prob_weights = sess.run(self.action_prob, feed_dict={self.state: state[np.newaxis, :]})
@@ -90,11 +92,12 @@ class Worker(object):
         self.ac = ACNet(name, global_ac)
 
     def work(self):
+        global global_episode_number, global_episode_reward
         state_list = []
         action_list = []
         reward_list = []
         total_step = 0
-        while not coord.should_stop() and global_episode < max_global_episode:
+        while not coord.should_stop() and global_episode_number < max_global_episode_number:
             state = self.env.reset()
             returns = 0
             while True:
@@ -107,7 +110,7 @@ class Worker(object):
                 state_list.append(state)
                 action_list.append(action)
                 reward_list.append(reward)
-                if total_step % UPDATE_GLOBAL_NUMBERs == 0 or done:
+                if total_step % update_global_number == 0 or done:
                     if done:
                         next_state_value = 0
                     else:
@@ -115,12 +118,14 @@ class Worker(object):
 
                     target_value = []
                     for r in reward_list[::-1]:
-                        state_value = r + gamma * state_value
-                    targe_value.reverse()
+                        next_state_value = r + gamma * next_state_value
+                        target_value.append(next_state_value)
+                    target_value.reverse()
+                    state_array, action_array, target_value_array = np.vstack(state_list), np.array(action_list), np.vstack(target_value)
                     feed_dict = {
-                        self.ac.state: state_list,
-                        self.ac.action: action_list,
-                        self.target_value: target_value,
+                        self.ac.state: state_array,
+                        self.ac.action: action_array,
+                        self.ac.target_value: target_value_array,
                     }
                     self.ac.update_global(feed_dict)
                     state_list, action_list, reward_list = [], [], []
@@ -130,11 +135,15 @@ class Worker(object):
                 state = next_state
                 total_step += 1
                 if done:
+                    global_episode_reward.append(returns)
+                    print(self.name, "episode: ", global_episode_number, "episode reward: ", global_episode_reward[-1])
+                    with lock:
+                        global_episode_number += 1
                     break
 
 if __name__ == "__main__":
+    lock = threading.Lock()
     with tf.Session() as sess:
-        init_op = tf.global_variables_initializer()
         with tf.device("/cpu:0"):
             optimizer_actor = tf.train.RMSPropOptimizer(lr_actor, name='RMSProp_actor')
             optimizer_critic = tf.train.RMSPropOptimizer(lr_critic, name='RMSProp_critic')
@@ -145,6 +154,7 @@ if __name__ == "__main__":
                 workers.append(Worker(name, global_ac))
 
         coord = tf.train.Coordinator()
+        init_op = tf.global_variables_initializer()
         sess.run(init_op)
         
         worker_threads = []

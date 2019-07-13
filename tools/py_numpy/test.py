@@ -15,7 +15,7 @@ import gym
 import os
 import shutil
 import matplotlib.pyplot as plt
-
+import dis
 
 GAME = 'CartPole-v0'
 OUTPUT_GRAPH = True
@@ -135,14 +135,12 @@ class Worker(object):
                         buffer_v_target.append(v_s_)
                     buffer_v_target.reverse()
                     buffer_s, buffer_a, buffer_v_target = np.vstack(buffer_s), np.array(buffer_a), np.vstack(buffer_v_target)
-                    print(buffer_s.shape, buffer_a.shape, buffer_v_target.shape)
                     feed_dict = {
                         self.AC.s: buffer_s,
                         self.AC.a_his: buffer_a,
                         self.AC.v_target: buffer_v_target,
                     }
                     self.AC.update_global(feed_dict)
-
                     buffer_s, buffer_a, buffer_r = [], [], []
                     self.AC.pull_global()
 
@@ -153,12 +151,12 @@ class Worker(object):
                         GLOBAL_RUNNING_R.append(ep_r)
                     else:
                         GLOBAL_RUNNING_R.append(0.99 * GLOBAL_RUNNING_R[-1] + 0.01 * ep_r)
-                    # print(
-                    #     self.name,
-                    #     "Ep:", GLOBAL_EP,
-                    #     "| Ep_r: %i" % GLOBAL_RUNNING_R[-1],
-                    #       )
-                    # GLOBAL_EP += 1
+                    print(
+                        self.name,
+                        "Episode:", GLOBAL_EP,
+                        "| Ep_reward: %i" % GLOBAL_RUNNING_R[-1],
+                          )
+                    GLOBAL_EP += 1
                     break
 
 
@@ -177,11 +175,10 @@ if __name__ == "__main__":
 
     COORD = tf.train.Coordinator()
     SESS.run(tf.global_variables_initializer())
-
-    if OUTPUT_GRAPH:
-        if os.path.exists(LOG_DIR):
-            shutil.rmtree(LOG_DIR)
-        tf.summary.FileWriter(LOG_DIR, SESS.graph)
+    # if OUTPUT_GRAPH:
+    #     if os.path.exists(LOG_DIR):
+    #         shutil.rmtree(LOG_DIR)
+    #     tf.summary.FileWriter(LOG_DIR, SESS.graph)
 
     worker_threads = []
     for worker in workers:
@@ -191,7 +188,7 @@ if __name__ == "__main__":
         worker_threads.append(t)
     COORD.join(worker_threads)
 
-    plt.plot(np.arange(len(GLOBAL_RUNNING_R)), GLOBAL_RUNNING_R)
-    plt.xlabel('step')
-    plt.ylabel('Total moving reward')
-    plt.show()
+    # plt.plot(np.arange(len(GLOBAL_RUNNING_R)), GLOBAL_RUNNING_R)
+    # plt.xlabel('step')
+    # plt.ylabel('Total moving reward')
+    # plt.show()
