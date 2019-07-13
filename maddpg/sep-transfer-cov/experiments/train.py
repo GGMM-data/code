@@ -109,6 +109,8 @@ def train(arglist):
         obs_n_list = []
         for i in range(num_tasks):
             obs_n = list_of_taskenv[i].reset()
+            list_of_taskenv[i].set_map(
+                        sample_map(arglist.data_path + "_" + str(i + 1) + ".h5"))
             obs_n_list.append(obs_n)
                
         if debug:

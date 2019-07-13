@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
     parser.add_argument("--num-episodes", type=int, default=4000, help="number of episodes")
     parser.add_argument("--save-rate", type=int, default=100, help="save model once every time this many episodes are completed")
-    parser.add_argument("--data-path", type=str, default="../data/chengdu",
+    parser.add_argument("--data-path", type=str, default="../data/test",
                         help="directory in which map data are saved")
     
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
