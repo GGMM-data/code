@@ -71,7 +71,7 @@ def draw(i, path, energy, route, actions, ob_, sqrt_, r_, discon_, over_map, fin
     #     plt.close()
 
 
-def drawTest(i, path, energy, coverage, jainindex, r_, discon_, over_map, final_steps, BL_coverage, BL_jain, BL_loss, energy_efficiency, Run = False):
+def drawTest(i, path, energy_efficiency, energy, coverage, jainindex, r_, discon_, over_map, final_steps, BL_coverage, BL_jain, BL_loss, Run = False):
     mkdir(path)
     label = 'epoch:' + str(FLAGS.max_epoch) + '\nUAV: ' + str(FLAGS.num_uav) + '\n map size: ' + str(FLAGS.size_map) + '\n sensing range:' + str(FLAGS.radius) \
             + '\n constraint:' + str(FLAGS.constrain) + '\n average energy efficiency:' + str(np.mean(energy_efficiency)) \

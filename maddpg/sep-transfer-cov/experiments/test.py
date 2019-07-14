@@ -47,8 +47,8 @@ def test(arglist):
         mkdir(arglist.pictures_dir_test + model_name)
         model_index_step = 0
         model_number_total = arglist.num_train_episodes / arglist.save_rate
-        max_model_index = 0
-        max_average_energy_efficiency = 0
+        max_model_index = np.zeros(num_tasks)
+        max_average_energy_efficiency = np.zeros(num_tasks)
 
         while True:
             if model_index_step >= model_number_total:
@@ -180,22 +180,33 @@ def test(arglist):
                         
                         writer.add_summary(efficiency_s, global_step=episode_number)
                         if arglist.draw_picture_test:
-                            if episode_number % arglist.save_rate == 0:
-                                if np.mean(energy_efficiency) > max_average_energy_efficiency:
-                                    max_model_index = model_index_step * arglist.save_rate - 1
-                                    max_average_energy_efficiency = np.mean(energy_efficiency)
-                                with open(arglist.pictures_dir_test + model_name + str(task_index) + 'test_report' + '.txt', 'a+') as file:
+                            # if episode_number % arglist.save_rate == 0:
+                            if episode_number % arglist.num_test_episodes == 0:
+                                if np.mean(energy_efficiency[task_index]) > max_average_energy_efficiency[task_index]:
+                                    max_model_index[task_index] = model_index_step * arglist.save_rate
+                                    max_average_energy_efficiency[task_index] = np.mean(energy_efficiency[task_index])
+                                with open(arglist.pictures_dir_test + model_name + "task_" + str(task_index) + '_test_report' + '.txt', 'a+') as file:
                                     report = '\nModel-' + str(model_index_step * arglist.save_rate - 1) + \
                                              '-testing ' + str(arglist.num_test_episodes) + ' episodes\'s result:' + \
-                                             '\nAverage average attained coverage: ' + str(np.mean(aver_cover)) + \
-                                             '\nAverage Jaint\'s fairness index: ' + str(np.mean(j_index)) + \
-                                             '\nAverage normalized average energy consumptions:' + str(np.mean(energy_consumptions_for_test)) + \
-                                             '\nAverage energy efficiency:' + str(np.mean(energy_efficiency)) + '\n'
+                                             '\nAverage average attained coverage: ' + str(np.mean(aver_cover[task_index])) + \
+                                             '\nAverage Jaint\'s fairness index: ' + str(np.mean(j_index[task_index])) + \
+                                             '\nAverage normalized average energy consumptions:' + str(np.mean(energy_consumptions_for_test[task_index])) + \
+                                             '\nAverage energy efficiency:' + str(np.mean(energy_efficiency[task_index])) + '\n'
                                     file.write(report)
-                                draw_util.drawTest(model_index_step * arglist.save_rate - 1, arglist.pictures_dir_test + model_name,
-                                                   energy_consumptions_for_test, aver_cover, j_index,
-                                                   instantaneous_accmulated_reward, instantaneous_dis, instantaneous_out_the_map
-                                                   , len(aver_cover), bl_coverage, bl_jainindex, bl_loss, energy_efficiency, False)
+                                draw_util.drawTest(model_index_step * arglist.save_rate,
+                                                   arglist.pictures_dir_test + model_name + "task_"+str(task_index)+"/",
+                                                   energy_efficiency[task_index],
+                                                   energy_consumptions_for_test[task_index],
+                                                   aver_cover[task_index],
+                                                   j_index[task_index],
+                                                   instantaneous_accmulated_reward[task_index],
+                                                   instantaneous_dis[task_index],
+                                                   instantaneous_out_the_map[task_index],
+                                                   len(aver_cover[task_index]),
+                                                   bl_coverage,
+                                                   bl_jainindex,
+                                                   bl_loss,
+                                                   False)
                         # reset custom statistics variabl between episode and epoch------------------------------------
                         
                         if task_index == num_tasks - 1:

@@ -44,7 +44,21 @@ class ReplayBuffer(object):
         return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones)
 
     def make_index(self, batch_size):
-        return [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
+        indexes = []
+        length = 0
+        while len(indexes) < batch_size:
+            while True:
+                index = random.randint(length, len(self._storage) - 1)
+                # sample one not wraps current pointer
+                if index - length < self._next_idx <= index:
+                    continue
+                if np.array(self._storage[(index - length):index, 4]).any():
+                    continue
+                break
+            indexes.append(index)
+
+        # indexes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
+        return indexes
 
     def make_latest_index(self, batch_size):
         idx = [(self._next_idx - 1 - i) % self._maxsize for i in range(batch_size)]

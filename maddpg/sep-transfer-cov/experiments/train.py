@@ -219,13 +219,19 @@ def train(arglist):
                     episode_end_time = time.time()
                     episode_time = episode_end_time - episode_start_time
                     episode_start_time = episode_end_time
-                    print('Task %d, Episode: %d - energy_consumptions: %s, efficiency: %s, time %s' % (
-                        task_index,
-                        episode_number,
-                        str(current_env.get_energy_origin()),
-                        str(energy_efficiency[task_index][-1]),
-                        str(round(episode_time, 3))))
-            
+                    with open(arglist.pictures_dir_train + model_name + "task_" + str(task_index) + '_train_info' + '.txt', 'a+') as f:
+                        info = "Task index: %d, Episode number %d, energy consumption: %s, efficiency: %s, time: %s" % (
+                               task_index, episode_number, str(current_env.get_energy_origin()),
+                               str(energy_efficiency[task_index][-1]), str(round(episode_time, 3)))
+                        f.write(info)
+                    print(info)
+                    # print('Task %d, Episode: %d - energy_consumptions: %s, efficiency: %s, time %s' % (
+                    #     task_index,
+                    #     episode_number,
+                    #     str(current_env.get_energy_origin()),
+                    #     str(energy_efficiency[task_index][-1]),
+                    #     str(round(episode_time, 3))))
+                    
                     # 绘制reward曲线
                     efficiency_s = tf.get_default_session().run(efficiency_summary_list[task_index],
                                                                 feed_dict={efficiency_list[task_index]:
