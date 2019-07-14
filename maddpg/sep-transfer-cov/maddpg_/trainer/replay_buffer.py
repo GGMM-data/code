@@ -52,11 +52,10 @@ class ReplayBuffer(object):
                 # sample one not wraps current pointer
                 if index - length < self._next_idx <= index:
                     continue
-                if np.array(self._storage[(index - length):index, 4]).any():
+                if any(self._storage[(index - length):index, 4]):
                     continue
                 break
             indexes.append(index)
-
         # indexes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return indexes
 
