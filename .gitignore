@@ -16,6 +16,7 @@ tools/py_matplotlib/*png
 **/.idea/
 **/**pyc
 **/tf_summary/
+**/learning_curves/**
 # delete all pycache files
 **/__pycache__/
 maddpg/**/experiments/benchmark_files/
