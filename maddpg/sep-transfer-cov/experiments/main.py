@@ -13,19 +13,29 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
 
-    parser.add_argument("--train", action="store_true", default=True)
-    parser.add_argument("--test", action="store_true", default=False)
+    # parser.add_argument("--train", action="store_true", default=True)
+    parser.add_argument("--train", action="store_true", default=False)
+    parser.add_argument("--test", action="store_true", default=True)
+    # parser.add_argument("--test", action="store_true", default=False)
     parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
     parser.add_argument("--batch-size", type=int, default=256, help="number of episodes to optimize at the same time")
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
-    parser.add_argument("--num-episodes", type=int, default=4000, help="number of episodes")
-    parser.add_argument("--save-rate", type=int, default=100, help="save model once every time this many episodes are completed")
-    parser.add_argument("--data-path", type=str, default="../data/test",
+    parser.add_argument("--num-train-episodes", type=int, default=4000, help="number of episodes")
+    parser.add_argument("--num-test-episodes", type=int, default=50, help="number of episodes")
+    parser.add_argument("--save-rate", type=int, default=100,
+                        help="save model once every time this many episodes are completed")
+    parser.add_argument("--train-data-dir", type=str, default="../data/train/",
+                        help="directory in which map data are saved")
+    parser.add_argument("--train-data-name", type=str, default="train",
+                        help="directory in which map data are saved")
+    parser.add_argument("--test-data-dir", type=str, default="../data/test/",
+                        help="directory in which map data are saved")
+    parser.add_argument("--test-data-name", type=str, default="test",
                         help="directory in which map data are saved")
     
     parser.add_argument("--lr", type=float, default=1e-2, help="learning rate for Adam optimizer")
-    parser.add_argument("--gamma", type=float, default=0.83, help="discount f  rractor")
+    parser.add_argument("--gamma", type=float, default=0.83, help="discount factor")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
     parser.add_argument("--save-dir", type=str, default="../checkpoints/",
                         help="directory in which models are saved")
@@ -57,7 +67,8 @@ def parse_args():
 if __name__ == '__main__':
     argslist = parse_args()
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    params = ["batch_size", "buffer_size", "num_task", "max_episode_len", "save_rate", "gamma", "num_units"]
+    params = ["batch_size", "buffer_size", "num_task", "train_data_name", "max_episode_len",
+              "save_rate", "gamma", "num_units"]
     save_path = "policy"
     dict_arg = vars(argslist)
     for param in params:
@@ -68,9 +79,8 @@ if __name__ == '__main__':
 
     # train
     if argslist.train:
-        argslist.num_episodes = 4000
         train(argslist)
     # test
     if test:
-        argslist.num_episodes = 100
+        argslist.draw_picture_test = True
         test(argslist)

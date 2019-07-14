@@ -4,11 +4,12 @@ import tensorflow as tf
 import math
 import pickle
 import sys
+import time
 
 sys.path.append(os.getcwd() + "/../")
 
 import maddpg_.common.tf_util as U
-from experiments.ops import time_begin, time_end, mkdir, make_env, get_trainers
+from experiments.ops import time_begin, time_end, mkdir, make_env, get_trainers, sample_map
 from experiments.uav_statistics import draw_util
 
 
@@ -16,33 +17,21 @@ def test(arglist):
     debug = False
     num_tasks = arglist.num_task  # 总共有多少个任务
     list_of_taskenv = []  # env list
-    load_path = arglist.load_dir
     with U.single_threaded_session():
         if debug:
             begin = time_begin()
-        # 1.1创建每个任务的actor trainer和critic trainer
-        trainers_list = []
+        # 1.1创建common actor
         env = make_env(arglist.scenario, arglist.benchmark)
+        env.set_map(sample_map(arglist.test_data_dir + arglist.test_data_name + "_1.h5"))
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
+        actors = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
         for i in range(num_tasks):
             list_of_taskenv.append(make_env(arglist.scenario))
-            trainers = get_trainers(list_of_taskenv[i],
-                                    "task_" + str(i + 1) + "_",
-                                    num_adversaries,
-                                    obs_shape_n,
-                                    arglist)
-            trainers_list.append(trainers)
-    
+            env.set_map(sample_map(arglist.test_data_dir + arglist.test_data_name + "_" + str(i) + ".h5"))
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
-    
-        global_steps_tensor = tf.Variable(tf.zeros(num_tasks), trainable=False)  # global timesteps for each env
-        global_steps_ph = tf.placeholder(tf.float32, [num_tasks])
-        global_steps_assign_op = tf.assign(global_steps_tensor, global_steps_ph)
-        model_number = int(arglist.num_episodes / arglist.save_rate)
-        saver = tf.train.Saver(max_to_keep=model_number)
-    
+
         efficiency_list = []
         for i in range(num_tasks):
             efficiency_list.append(tf.placeholder(tf.float32, shape=None, name="efficiency_placeholder" + str(i)))
@@ -50,20 +39,14 @@ def test(arglist):
         for i in range(num_tasks):
             efficiency_summary_list.append(tf.summary.scalar("efficiency_%s" % i, efficiency_list[i]))
         writer = tf.summary.FileWriter("../summary/efficiency")
-    
-        # Initialize
+        
+        # 1.2 Initialize
         U.initialize()
-        for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-            print(var)
-
-        if debug:
-            print(time_end(begin, "initialize"))
-            begin = time_begin()
-            
+        
         model_name = arglist.load_dir.split('/')[-2] + '/'
         mkdir(arglist.pictures_dir_test + model_name)
         model_index_step = 0
-        model_number_total = arglist.train_num_episodes / arglist.save_rate
+        model_number_total = arglist.num_train_episodes / arglist.save_rate
         max_model_index = 0
         max_average_energy_efficiency = 0
 
@@ -77,22 +60,13 @@ def test(arglist):
             else:
                 model_index_step += 1
             
-            # 1.4 加载checkpoints
-            if arglist.load_dir == "":
-                arglist.load_dir = arglist.save_dir
-            if arglist.display or arglist.restore or arglist.benchmark:
-                print('Loading previous state...')
-                model_load_dir = arglist.load_dir + str(model_index_step * arglist.save_rate - 1) + '/'
-                U.load_state(arglist.load_dir)
-            # global_steps = tf.get_default_session().run(global_steps_tensor)
+            # 2.1 加载checkpoints
+            print('Loading previous state...')
+            model_load_dir = os.path.join(arglist.load_dir, str(model_index_step * arglist.save_rate), 'model.ckpt')
+            U.load_state(model_load_dir)
 
-            # 1.5 初始化ENV
-            obs_n_list = []
-            for i in range(num_tasks):
-                obs_n = list_of_taskenv[i].reset()
-                obs_n_list.append(obs_n)
-
-            # 1.2 全局变量初始化
+            # 2.2 全局变量初始化
+            global_steps = np.zeros(num_tasks)  # global timesteps for each env
             episodes_rewards = [[0.0] for _ in range(num_tasks)]  # 每个元素为在一个episode中所有agents rewards的和
             # agent_rewards[i]中的每个元素记录单个agent在一个episode中所有rewards的和
             agent_rewards = [[[0.0] for _ in range(env.n)] for _ in range(num_tasks)]
@@ -107,7 +81,7 @@ def test(arglist):
             energy_efficiency = [[] for _ in range(num_tasks)]
             instantaneous_accmulated_reward = [[] for _ in range(num_tasks)]
 
-            # 1.3 局部变量初始化
+            # 2.3 局部变量初始化
             local_steps = np.zeros(num_tasks)  # local timesteps for each env
             energy_one_episode = [[] for _ in range(num_tasks)]
             j_index_one_episode = [[] for _ in range(num_tasks)]
@@ -120,20 +94,25 @@ def test(arglist):
             accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
             route_one_episode = [[] for _ in range(num_tasks)]
             
-
             bl_coverage = 0.8
             bl_jainindex = 0.8
             bl_loss = 100
-            energy_efficiency = []
 
+            # 2.4 初始化ENV
+            obs_n_list = []
+            for i in range(num_tasks):
+                obs_n = list_of_taskenv[i].reset()
+                obs_n_list.append(obs_n)
+                
+            # 3 test
+            episode_start_time = time.time()
             print('Starting iterations...')
             while True:
                 for task_index in range(num_tasks):
-                    # 2.1更新环境，采集样本
+                    # 3.1更新环境
                     current_env = list_of_taskenv[task_index]
-                    current_trainers = trainers_list[task_index]
                     # get action
-                    action_n = [agent.action(obs) for agent, obs in zip(trainers, obs_n)]
+                    action_n = [agent.action(obs) for agent, obs in zip(actors, obs_n)]
                     # environment step
                     new_obs_n, rew_n, done_n, info_n = current_env.step(action_n)
                     if debug:
@@ -143,10 +122,6 @@ def test(arglist):
                     global_steps[task_index] += 1  # 更新全局计数器
                     done = all(done_n)
                     terminal = (local_steps[task_index] >= arglist.max_episode_len)
-                    # 收集experience
-                    for i in range(env.n):
-                        current_trainers[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], new_obs_n[i],
-                                                       done_n[i], terminal)
 
                     # 更新obs
                     obs_n_list[task_index] = new_obs_n
@@ -172,18 +147,57 @@ def test(arglist):
                     route = current_env.get_agent_pos()
                     route_one_episode[task_index].append(route)
 
+                    episode_number = math.ceil(global_steps[task_index] / arglist.max_episode_len)
                     if done or terminal:
-                        # reset custom statistics variabl between episode and epoch---------------------------------------------
-                        instantaneous_accmulated_reward.append(accmulated_reward_one_episode[-1])
-                        j_index.append(j_index_one_episode[-1])
-                        instantaneous_dis.append(disconnected_number_one_episode[-1])
-                        instantaneous_out_the_map.append(over_map_one_episode[-1])
-                        aver_cover.append(aver_cover_one_episode[-1])
-                        energy_consumptions_for_test.append(energy_one_episode[-1])
-                        energy_efficiency.append(aver_cover_one_episode[-1] * j_index_one_episode[-1] / energy_one_episode[-1])
-                        print('Episode: %d - energy_consumptions: %s ' % (train_step / arglist.max_episode_len,
-                                                                        str(env._get_energy_origin())))
+                        # 记录每个episode的变量
+                        energy_consumptions_for_test[task_index].append(energy_one_episode[task_index][-1])  # energy
+                        j_index[task_index].append(j_index_one_episode[task_index][-1])  # fairness index
+                        aver_cover[task_index].append(aver_cover_one_episode[task_index][-1])  # coverage
+                        instantaneous_dis[task_index].append(
+                            disconnected_number_one_episode[task_index][-1])  # disconnected
+                        instantaneous_out_the_map[task_index].append(
+                            over_map_one_episode[task_index][-1])  # out of the map
+                        instantaneous_accmulated_reward[task_index].append(
+                            accmulated_reward_one_episode[task_index][-1])  # reward
+                        energy_efficiency[task_index].append(aver_cover_one_episode[task_index][-1]
+                                                             * j_index_one_episode[task_index][-1] /
+                                                             energy_one_episode[task_index][-1])  # efficiency
 
+                        episode_end_time = time.time()
+                        episode_time = episode_end_time - episode_start_time
+                        episode_start_time = episode_end_time
+                        print('Task %d, Episode: %d - energy_consumptions: %s, efficiency: %s, time %s' % (
+                            task_index,
+                            episode_number,
+                            str(current_env.get_energy_origin()),
+                            str(energy_efficiency[task_index][-1]),
+                            str(round(episode_time, 3))))
+                        
+                        # 绘制reward曲线
+                        efficiency_s = tf.get_default_session().run(efficiency_summary_list[task_index],
+                                                                    feed_dict={efficiency_list[task_index]:
+                                                                                   energy_efficiency[task_index][-1]})
+                        
+                        writer.add_summary(efficiency_s, global_step=episode_number)
+                        if arglist.draw_picture_test:
+                            if episode_number % arglist.save_rate == 0:
+                                if np.mean(energy_efficiency) > max_average_energy_efficiency:
+                                    max_model_index = model_index_step * arglist.save_rate - 1
+                                    max_average_energy_efficiency = np.mean(energy_efficiency)
+                                with open(arglist.pictures_dir_test + model_name + str(task_index) + 'test_report' + '.txt', 'a+') as file:
+                                    report = '\nModel-' + str(model_index_step * arglist.save_rate - 1) + \
+                                             '-testing ' + str(arglist.num_test_episodes) + ' episodes\'s result:' + \
+                                             '\nAverage average attained coverage: ' + str(np.mean(aver_cover)) + \
+                                             '\nAverage Jaint\'s fairness index: ' + str(np.mean(j_index)) + \
+                                             '\nAverage normalized average energy consumptions:' + str(np.mean(energy_consumptions_for_test)) + \
+                                             '\nAverage energy efficiency:' + str(np.mean(energy_efficiency)) + '\n'
+                                    file.write(report)
+                                draw_util.drawTest(model_index_step * arglist.save_rate - 1, arglist.pictures_dir_test + model_name,
+                                                   energy_consumptions_for_test, aver_cover, j_index,
+                                                   instantaneous_accmulated_reward, instantaneous_dis, instantaneous_out_the_map
+                                                   , len(aver_cover), bl_coverage, bl_jainindex, bl_loss, energy_efficiency, False)
+                        # reset custom statistics variabl between episode and epoch------------------------------------
+                        
                         if task_index == num_tasks - 1:
                             energy_one_episode = [[] for _ in range(num_tasks)]
                             j_index_one_episode = [[] for _ in range(num_tasks)]
@@ -196,38 +210,25 @@ def test(arglist):
                             accmulated_reward_one_episode = [[] for _ in range(num_tasks)]
                             route_one_episode = [[] for _ in range(num_tasks)]
 
-                        if arglist.draw_picture_test:
-                            if len(episode_rewards) % arglist.save_rate == 0:
-                                if np.mean(energy_efficiency) > max_average_energy_efficiency:
-                                    max_model_index = model_index_step * arglist.save_rate - 1
-                                    max_average_energy_efficiency = np.mean(energy_efficiency)
-                                with open(arglist.pictures_dir_test + model_name + 'test_report' + '.txt', 'a+') as file:
-                                    report = '\nModel-' + str(model_index_step * arglist.save_rate - 1) + \
-                                             '-testing ' + str(arglist.num_episodes) + ' episodes\'s result:' + \
-                                             '\nAverage average attained coverage: ' + str(np.mean(aver_cover)) + \
-                                             '\nAverage Jaint\'s fairness index: ' + str(np.mean(j_index)) + \
-                                             '\nAverage normalized average energy consumptions:' + str(np.mean(energy_consumptions_for_test)) + \
-                                             '\nAverage energy efficiency:' + str(np.mean(energy_efficiency)) + '\n'
-                                    file.write(report)
-                                draw_util.drawTest(model_index_step * arglist.save_rate - 1, arglist.pictures_dir_test + model_name,
-                                                   energy_consumptions_for_test, aver_cover, j_index,
-                                                   instantaneous_accmulated_reward, instantaneous_dis, instantaneous_out_the_map
-                                                   , len(aver_cover), bl_coverage, bl_jainindex, bl_loss, energy_efficiency, False)
-                        # reset custom statistics variabl between episode and epoch----------------------------------------
+                        # 重置局部变量
+                        obs_n_list[task_index] = current_env.reset()  # 重置env
+                        current_env.set_map(
+                            sample_map(arglist.test_data_dir + arglist.test_data_name + "_" + str(task_index + 1) + ".h5"))
+                        local_steps[task_index] = 0  # 重置局部计数器
 
-                    # for displaying learned policies
-                    if arglist.draw_picture_test:
-                        if len(episode_rewards) > arglist.num_episodes:
-                            break
-                        continue
+                        # 更新全局变量
+                        episodes_rewards[task_index].append(0)  # 添加新的元素
+                        for reward in agent_rewards[task_index]:
+                            reward.append(0)
 
-                    # saves final episode reward for plotting training curve later
-                    if len(episode_rewards) > arglist.num_episodes:
-                        rew_file_name = arglist.plots_dir + arglist.exp_name + '_rewards.pkl'
+                    if episode_number > arglist.num_test_episodes:
+                        mkdir(arglist.plots_dir)
+                        rew_file_name = arglist.plots_dir + arglist.exp_name + str(task_index) + '_rewards.pkl'
                         with open(rew_file_name, 'wb') as fp:
                             pickle.dump(final_ep_rewards, fp)
-                        agrew_file_name = arglist.plots_dir + arglist.exp_name + '_agrewards.pkl'
+                        agrew_file_name = arglist.plots_dir + arglist.exp_name + str(task_index) + '_agrewards.pkl'
                         with open(agrew_file_name, 'wb') as fp:
                             pickle.dump(final_ep_ag_rewards, fp)
-                        print('...Finished total of {} episodes.'.format(len(episode_rewards)))
-                        break
+                            print('...Finished total of {} episodes.'.format(episode_number))
+                if episode_number > arglist.num_test_episodes:
+                    break

@@ -309,7 +309,7 @@ class MultiAgentEnv(gym.Env):
         # less than or equal 1
         energy_delta_rate = np.sum(self.energy - self.old_energy) * 1.0 / (self.SUE_ENERGY * self.uav)
         if self.debug:
-            print(self.time_end(begin, "energy"))
+            print(self.time_ejnd(begin, "energy"))
             begin = self.time_begin()
 
         # every step coverage increment

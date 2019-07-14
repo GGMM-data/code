@@ -26,7 +26,7 @@ def train(arglist):
             begin = time_begin()
         # 1.1创建每个任务的actor trainer和critic trainer
         env = make_env(arglist.scenario, arglist.benchmark)
-        env.set_map(sample_map(arglist.data_path + "_1.h5"))
+        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
         
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
@@ -65,7 +65,7 @@ def train(arglist):
         global_steps_tensor = tf.Variable(tf.zeros(num_tasks), trainable=False)  # global timesteps for each env
         global_steps_ph = tf.placeholder(tf.float32, [num_tasks])
         global_steps_assign_op = tf.assign(global_steps_tensor, global_steps_ph)
-        model_number = int(arglist.num_episodes / arglist.save_rate)
+        model_number = int(arglist.num_train_episodes / arglist.save_rate)
         saver = tf.train.Saver(max_to_keep=model_number)
 
         efficiency_list = []
@@ -91,8 +91,8 @@ def train(arglist):
 
         # Initialize
         U.initialize()
-        for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-            print(var)
+        # for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+        #     print(var)
         if debug:
             print(time_end(begin, "step3"))
             begin = time_begin()
@@ -110,7 +110,7 @@ def train(arglist):
         for i in range(num_tasks):
             obs_n = list_of_taskenv[i].reset()
             list_of_taskenv[i].set_map(
-                        sample_map(arglist.data_path + "_" + str(i + 1) + ".h5"))
+                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i + 1) + ".h5"))
             obs_n_list.append(obs_n)
                
         if debug:
@@ -143,9 +143,7 @@ def train(arglist):
                 for i in range(env.n):
                     current_critics[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], new_obs_n[i],
                                                   done_n[i], terminal)
-                    # current_trainers[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], new_obs_n[i],
-                    #                             done_n[i], terminal)
-        
+
                 # 更新obs
                 obs_n_list[task_index] = new_obs_n
                 # 更新reward
@@ -250,7 +248,7 @@ def train(arglist):
                     # 重置局部变量
                     obs_n_list[task_index] = current_env.reset()  # 重置env
                     current_env.set_map(
-                        sample_map(arglist.data_path + "_" + str(task_index + 1) + ".h5"))
+                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(task_index + 1) + ".h5"))
                     local_steps[task_index] = 0  # 重置局部计数器
             
                     # 更新全局变量
@@ -261,7 +259,7 @@ def train(arglist):
                 # save model, display training output
                 if terminal and (episode_number % arglist.save_rate == 0):
                     tf.get_default_session().run(global_steps_assign_op, feed_dict={global_steps_ph: global_steps})
-                    save_dir_custom = save_path + str(episode_number) + '/model.ckpt'
+                    save_dir_custom = os.path.join(save_path, str(episode_number), 'model.ckpt')
                     U.save_state(save_dir_custom, saver=saver)
                     # print statement depends on whether or not there are adversaries
                     # 最新save_rate个episode的平均reward
@@ -299,7 +297,7 @@ def train(arglist):
                             len(aver_cover[task_index])
                         )
                 # saves final episode reward for plotting training curve later
-                if episode_number > arglist.num_episodes:
+                if episode_number > arglist.num_train_episodes:
                     mkdir(arglist.plots_dir)
                     rew_file_name = arglist.plots_dir + arglist.exp_name + str(task_index) + '_rewards.pkl'
                     with open(rew_file_name, 'wb') as fp:
@@ -308,6 +306,6 @@ def train(arglist):
                     with open(agrew_file_name, 'wb') as fp:
                         pickle.dump(final_ep_ag_rewards, fp)
                         print('...Finished total of {} episodes.'.format(episode_number))
-            if episode_number > arglist.num_episodes:
+            if episode_number > arglist.num_train_episodes:
                 break
 
