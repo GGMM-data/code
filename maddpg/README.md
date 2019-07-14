@@ -7,7 +7,7 @@ maddpg-tmc-total-transfer:相对于maddpg-tmc，在obs上改了一点点，同�
 **这个**maddpg-tmc-seperate-transfer:相对于maddpg-tmc，在obs上改了一点点，同时使用distral框架，实现迁移学习，buffer是原文的，acotr和critic分开
 
 ## 下面几个改的比较多
-maddpg-transfer:为了提高训练速度，改了许多其他地方，没有使用lstm，同时使用distral框架，性能有所下降
+maddpg-transfer:为了提高训练速度，改了许多其他地方，没有使用lstm，同时使用distral框架，性能有所下降，buffer是改了的。
 maddpg-lstm-transfer:为了提高训练速度，改了许多其他地方，使用lstm，同时使用distral框架，性能有所下降
 maddpg-lstm:为了提高训练速度，改了许多其他地方，使用lstm，同时使用distral框架，但是只有一个任务性能有所下降
 

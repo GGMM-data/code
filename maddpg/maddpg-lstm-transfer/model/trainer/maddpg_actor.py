@@ -19,8 +19,8 @@ class MADDPGAgentTrainer(AgentTrainer):
         self.n = len(obs_shape_n)
         self.agent_index = agent_index
         self.args = args
+        
         obs_ph_n = []
-
         for i in range(self.n):
             obs_shape = list(obs_shape_n[i])
             obs_shape.append(args.history_length)
