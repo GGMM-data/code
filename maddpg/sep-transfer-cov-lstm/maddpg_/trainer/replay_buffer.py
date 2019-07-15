@@ -58,13 +58,13 @@ class ReplayBuffer(object):
         while len(indexes) < batch_size:
             while True:
                 index = random.randint(self.history_length - 1, len(self._storage) - 1)
-                # sample one not wraps current pointer
+                # sample one not wraps current pointer, because dont't have previous history_length state
                 if index - self.history_length < self._next_idx <= index:
                     continue
                 # todo change code to fit this line
-                if index > self._next_idx:
-                    continue
-                if (np.array(self._storage[index - self.history_length:index])[:, 4]).any():
+                print(index, self.history_length)
+                index = 3
+                if (np.array(self._storage[index - self.history_length+1:index+1])[:, 4]).any():
                     continue
                 break
             indexes.append(index)

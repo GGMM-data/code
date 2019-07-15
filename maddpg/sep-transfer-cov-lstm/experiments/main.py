@@ -18,7 +18,7 @@ def parse_args():
     #parser.add_argument("--test", action="store_true", default=True)
     parser.add_argument("--test", action="store_true", default=False)
     parser.add_argument("--num-task", type=int, default=1, help="number of tasks")
-    parser.add_argument('--history-length', type=int, default=2, help="how many history states were used")
+    parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
     parser.add_argument("--batch-size", type=int, default=2, help="number of episodes to optimize at the same time")
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
