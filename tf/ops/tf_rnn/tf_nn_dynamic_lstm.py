@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow.nn.rnn_cell as rnn
+import time
 import numpy as np
 
 
@@ -21,7 +22,8 @@ def lstm(x, batch_size):
 
 def train():
 
-    mnist = input_data.read_data_sets("/home/mxxmhh/MNIST_data", one_hot=True)
+    mnist = input_data.read_data_sets("~/MNIST_data", one_hot=True)
+    print("mnist dataset length:", mnist.train.num_examples)
 
     train_batch_size = 128
     test_batch_size = 1024
@@ -37,7 +39,7 @@ def train():
     optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.9).minimize(loss)
 
     correct_prediction = tf.equal(tf.argmax(predicted_y, 1), tf.argmax(y, 1))
-    # tf.cast改变Tensor的类型
+    # tf.cast
     predict_accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
 
     sess_conf = tf.ConfigProto()
@@ -48,6 +50,7 @@ def train():
         for i in range(episodes):
             train_accuracy = 0
             epoches = mnist.train.num_examples // train_batch_size
+            begin_time = time.time()
             for j in range(epoches):
                 batch_xs, batch_ys = mnist.train.next_batch(train_batch_size)
                 batch_xs = np.reshape(np.array(batch_xs), [train_batch_size, 28, 28])
@@ -55,6 +58,7 @@ def train():
                 _, accuracy = sess.run([optimizer, predict_accuracy],
                                        feed_dict={x: batch_xs, y: batch_ys, batch_size: train_batch_size})
                 train_accuracy += accuracy
+            print("Episode %d, train time: %f" % (i, time.time()-begin_time))
             train_accuracy = train_accuracy / epoches
             # print(total_accuracy)
 

@@ -21,7 +21,7 @@ def parse_args():
     parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
     # parser.add_argument('--use-lstm', action="store_true", default=False, help="use lstm?")
     parser.add_argument('--use-lstm', action="store_true", default=True, help="use lstm?")
-    parser.add_argument("--batch-size", type=int, default=128, help="number of episodes to optimize at the same time")
+    parser.add_argument("--batch-size", type=int, default=2, help="number of episodes to optimize at the same time")
     parser.add_argument("--train-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
     parser.add_argument("--test-data-name", type=str, default="test",
