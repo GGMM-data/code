@@ -325,4 +325,5 @@ def train(arglist):
                         print('...Finished total of {} episodes.'.format(episode_number))
             if episode_number > arglist.num_train_episodes:
                 break
-
+            if episode_number > 400:
+                break
