@@ -4,7 +4,7 @@
     "ipv4_server_port": "8889",
     "ipv6_server_port": "8888",
     "ipv4_local_port": "1080",
-    "ipv6_local_port": "1081",
+    "ipv6_local_port": "1080",
     "ipv4_ss_password": "123456", 
     "ipv6_ss_password": "123456"
 }
