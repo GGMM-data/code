@@ -4,7 +4,7 @@ import time
 import random
 import tensorflow as tf
 
-def add(index):
+def add(args, index):
     sess = tf.Session()
     y = tf.ones([1,2])
     print(sess.run(y))
@@ -28,22 +28,20 @@ if __name__ == "__main__":
     length = 50
     
     begin_time = time.time()
-    jobs = []
+
+    # 1.pool.map multi threads
     pool = mp.Pool(4)
     pool.map(add, range(length))
-    end_time = time.time()
-    time1 = end_time - begin_time
 
+    end_time = time.time()
+
+    time1 = end_time - begin_time
     begin_time = time.time()
+
+    # 2.single thread
     for i in range(length):
         add(i)
+
     print("total time: ", time1)
     print("total time: ", time.time() - begin_time)
-
-    #for i in range(4):
-    #    pool.apply_async(mp.Process(target=add, args=(i,)))
-    #pool.close()
-    #pool.join()
     print("Done")
-
-
