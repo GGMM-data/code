@@ -18,18 +18,18 @@ def discount_with_dones(rewards, dones, gamma):
     return discounted[::-1]
 
 
-def make_update_exp(vals, target_vals, session=None):
+def make_update_exp(vals, target_vals):
     polyak = 1.0 - 1e-2
     expression = []
     for var, var_target in zip(sorted(vals, key=lambda v: v.name), sorted(target_vals, key=lambda v: v.name)):
         expression.append(var_target.assign(polyak * var_target + (1.0-polyak) * var))
     expression = tf.group(*expression)
-    return U.function([], [], updates=[expression], session=session)
+    return U.function([], [], updates=[expression])
 
 
 # 优化critic用的是MSE,怎么用到actor,actor用来选择action
 def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, args, grad_norm_clipping=None,
-            local_q_func=False, scope="trainer", reuse=None, num_units=64, use_lstm=True, session=None):
+            local_q_func=False, scope="trainer", reuse=None, num_units=64, use_lstm=True):
     with tf.variable_scope(scope, reuse=reuse):
         # ===================q network开始建图=================
         # set up placeholders
@@ -72,8 +72,8 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
         
         # 创建可调用函数
         train = U.function(inputs=obs_ph_n + act_ph_n + [target_ph], outputs=loss,
-                           updates=[optimize_expr], session=session)
-        q_values = U.function(obs_ph_n + act_ph_n, q, session=session)
+                           updates=[optimize_expr])
+        q_values = U.function(obs_ph_n + act_ph_n, q)
         
         # ==================target q network建图===============
         target_q = q_func(q_input, 1, scope="target_q_func", num_units=num_units)[:, 0]
@@ -81,15 +81,15 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
         # ===================target q network建图结束======================
         
         # 创建可调用函数
-        update_target_q = make_update_exp(q_func_vars, target_q_func_vars, session=session)
-        target_q_values = U.function(obs_ph_n + act_ph_n, target_q, session=session)
+        update_target_q = make_update_exp(q_func_vars, target_q_func_vars)
+        target_q_values = U.function(obs_ph_n + act_ph_n, target_q)
         
         return train, update_target_q, {'q_values': q_values, 'target_q_values': target_q_values}
 
 
 # 创建p_func和lstm_func,target_p_func
 def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
-            num_units=64, scope="trainer", reuse=None, use_lstm=True, session=None):
+            num_units=64, scope="trainer", reuse=None, use_lstm=True):
     with tf.variable_scope(scope, reuse=reuse):
         # ============p network建图=================
         # batch size的placeholder, []
@@ -116,9 +116,9 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
         # ============p network建图结束=================
         
         # 采样aciton的函数调用
-        act = U.function(inputs=[obs_ph_n[p_index]], outputs=act_sample, session=session)
+        act = U.function(inputs=[obs_ph_n[p_index]], outputs=act_sample)
         # p value的函数调用
-        p_values = U.function([obs_ph_n[p_index]], p, session=session)
+        p_values = U.function([obs_ph_n[p_index]], p)
         
         # ============target p network建图=================
         target_p = p_func(p_input, int(act_pdtype_n[p_index].param_shape()[0]), scope="target_p_func", reuse=reuse,
@@ -129,7 +129,7 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
         # ============p target network建图结束=================
 
         # target action的函数调用
-        target_act = U.function(inputs=[obs_ph_n[p_index]], outputs=target_act_sample, session=session)
+        target_act = U.function(inputs=[obs_ph_n[p_index]], outputs=target_act_sample)
         return act,  {'p_values': p_values, 'target_act': target_act}
         # update_target_p = make_update_exp(p_func_vars, target_p_func_vars)    # 更新目标p网络的参数
         # return act, update_target_p,  {'p_values': p_values, 'target_act': target_act}
@@ -137,7 +137,7 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
 
 # 优化actor用的是policy gradient,怎么用到critic,把所有任务的performance measure加起来？？？把scope传进来就ok了。
 def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_model, optimizer,
-            grad_norm_clipping=None, local_q_func=False, num_units=64, scope="trainer", reuse=None, use_lstm=True, session=None):
+            grad_norm_clipping=None, local_q_func=False, num_units=64, scope="trainer", reuse=None, use_lstm=True):
     with tf.variable_scope(scope, reuse=reuse):
         # placeholder
         # batch size placeholder
@@ -172,7 +172,7 @@ def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_m
 
         # 目标p值的参数
         target_p_func_vars = U.scope_vars(U.absolute_scope_name("target_p_func"))
-        update_target_p = make_update_exp(p_func_vars, target_p_func_vars, session=session)  # 函数调用
+        update_target_p = make_update_exp(p_func_vars, target_p_func_vars)  # 函数调用
         
     with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
         q_input = tf.concat(observation_n + act_input_n, 1)     # 所有智能体的s和a, [batch_size, concat_dim]
@@ -193,5 +193,5 @@ def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_m
 
         # 创建可以调用的函数，就是往里面喂数据
         # train的调用函数，输入必须是list，
-        train = U.function(inputs=obs_ph_n + act_ph_n, outputs=loss, updates=[optimize_expr], session=session)
+        train = U.function(inputs=obs_ph_n + act_ph_n, outputs=loss, updates=[optimize_expr])
         return train, update_target_p

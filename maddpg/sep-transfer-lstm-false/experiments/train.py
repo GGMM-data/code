@@ -6,6 +6,7 @@ import pickle
 import sys
 import math
 import queue
+import threading
 
 sys.path.append(os.getcwd() + "/../")
 
@@ -165,8 +166,11 @@ def train(arglist):
                 # 2.2，优化每一个任务的critic and acotr
                 for critic in current_critics:
                     critic.preupdate()
-                for critic in current_critics:
-                    critic.update(current_critics, global_steps[task_index])
+                if arglist.mp:
+                    pass
+                else:
+                    for critic in current_critics:
+                        critic.update(current_critics, global_steps[task_index])
 
                 for index, actor in enumerate(current_actors):
                     actor.update(current_actors, current_critics, global_steps[task_index], index)

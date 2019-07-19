@@ -15,23 +15,19 @@ def parse_args():
 
     # use lstm
     parser.add_argument('--use-lstm', action="store_true", default=True, help="use lstm?")
-    parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
-    # transfer
-    parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
-    # batch size 16
-    parser.add_argument("--batch-size", type=int, default=16, help="batch size")
-    # train data name
+    # not transfer
+    parser.add_argument("--num-task", type=int, default=1, help="number of tasks")
+    # batch_size 16
+    parser.add_argument("--batch-size", type=int, default=16, help="number of episodes to optimize at the same time")
     parser.add_argument("--train-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
     parser.add_argument("--test-data-name", type=str, default="test",
                         help="directory in which map data are saved")
-    # not multi thread
-    parser.add_argument("--mp", action="store_true", default=False, help="multiprocess")
     # train
     parser.add_argument("--train", action="store_true", default=True)
     # not test
     parser.add_argument("--test", action="store_true", default=False)
-
+    parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
     parser.add_argument("--num-train-episodes", type=int, default=4000, help="number of episodes")
@@ -86,9 +82,9 @@ if __name__ == '__main__':
         save_path = save_path + "_" + param + "_" + str(dict_arg[param])
     save_path += "_UAVnumber_" + str(FLAGS.num_uav) + "_size_map_" + str(FLAGS.size_map) + "_radius_" + str(FLAGS.radius)
     argslist.save_dir = argslist.save_dir + save_path + "_debug/"
-    argslist.load_dir = argslist.save_dir
     print(argslist.save_dir)
-    
+    argslist.load_dir = argslist.save_dir
+
     # train
     if argslist.train:
         train(argslist)

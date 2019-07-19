@@ -5,9 +5,7 @@ import time
 import pickle
 import sys
 import math
-import threading
 import queue
-import multiprocessing as mp
 
 sys.path.append(os.getcwd() + "/../")
 
@@ -18,7 +16,6 @@ from experiments.uav_statistics import draw_util
 
 def train(arglist):
     debug = False
-    multi_process = arglist.mp
     num_tasks = arglist.num_task  # 总共有多少个任务
     list_of_taskenv = []  # env list
     save_path = arglist.save_dir
@@ -26,17 +23,16 @@ def train(arglist):
         os.makedirs(save_path)
 
     with U.single_threaded_session():
-        sess = tf.get_default_session()
         if debug:
             begin = time_begin()
         # 1.1创建每个任务的actor trainer和critic trainer
         env = make_env(arglist.scenario, arglist.benchmark)
-        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
+        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name))
         
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
-        actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0, session=sess)
+        actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
         
         # 1.2创建每个任务的actor trainer和critic trainer
         critic_list = []  # 所有任务critic的list
@@ -44,9 +40,9 @@ def train(arglist):
         for i in range(num_tasks):
             list_of_taskenv.append(make_env(arglist.scenario))
             critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
+                                    obs_shape_n, arglist, actors=actor_0, type=1)
             actor_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, actor_env_name="actor_", type=2, session=sess)
+                                    obs_shape_n, arglist, actor_env_name="actor_", type=2)
             actor_list.append(actor_trainers)
             critic_list.append(critic_trainers)
 
@@ -115,7 +111,7 @@ def train(arglist):
         for i in range(num_tasks):
             obs_n = list_of_taskenv[i].reset()
             list_of_taskenv[i].set_map(
-                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i + 1) + ".h5"))
+                        sample_map(arglist.train_data_dir + arglist.train_data_name))
             obs_n_list.append(obs_n)
                
         if debug:
@@ -169,30 +165,11 @@ def train(arglist):
                 # 2.2，优化每一个任务的critic and acotr
                 for critic in current_critics:
                     critic.preupdate()
+                for critic in current_critics:
+                    critic.update(current_critics, global_steps[task_index])
 
-                if multi_process:
-                    jobs = []
-                    # coord = tf.train.Coordinator()
-                    for critic in current_critics:
-                        #jobs.append(threading.Thread(target=critic.update, args=(current_critics, global_steps[task_index])))
-                        critic.update(current_critics, global_steps[task_index])
-                    # for j in jobs:
-                    #     j.start()
-                    # coord.join(jobs)
-
-                    coord2 = tf.train.Coordinator()
-                    jobs2 = []
-                    for index, actor in enumerate(current_actors):
-                        jobs2.append(threading.Thread(target=actor.update, args=(current_actors, current_critics, global_steps[task_index], index,)))
-                    for j in jobs2:
-                        j.start()
-                    coord2.join(jobs2)
-                else:
-                    for critic in current_critics:
-                        critic.update(current_critics, global_steps[task_index])
-
-                    for index, actor in enumerate(current_actors):
-                        actor.update(current_actors, current_critics, global_steps[task_index], index)
+                for index, actor in enumerate(current_actors):
+                    actor.update(current_actors, current_critics, global_steps[task_index], index)
 
                 if debug:
                     print(time_end(begin, "update actor"))
@@ -288,7 +265,7 @@ def train(arglist):
                     # 重置局部变量
                     obs_n_list[task_index] = current_env.reset()  # 重置env
                     current_env.set_map(
-                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(task_index + 1) + ".h5"))
+                        sample_map(arglist.train_data_dir + arglist.train_data_name))
                     local_steps[task_index] = 0  # 重置局部计数器
             
                     # 更新全局变量

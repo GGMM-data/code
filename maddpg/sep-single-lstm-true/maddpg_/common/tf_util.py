@@ -249,7 +249,7 @@ def save_state(fname, saver=None):
 # ================================================================
 
 
-def function(inputs, outputs, updates=None, givens=None, session=None):
+def function(inputs, outputs, updates=None, givens=None):
     """Just like Theano function. Take a bunch of tensorflow placeholders and expersions
     computed based on those placeholders and produces f(inputs) -> outputs. Function f takes
     values to be feed to the inputs placeholders and produces the values of the experessions
@@ -281,17 +281,17 @@ def function(inputs, outputs, updates=None, givens=None, session=None):
         value will also have the same shape.
     """
     if isinstance(outputs, list):
-        return _Function(inputs, outputs, updates, givens=givens, session=session)
+        return _Function(inputs, outputs, updates, givens=givens)
     elif isinstance(outputs, (dict, collections.OrderedDict)):
-        f = _Function(inputs, outputs.values(), updates, givens=givens, session=session)
+        f = _Function(inputs, outputs.values(), updates, givens=givens)
         return lambda *args, **kwargs: type(outputs)(zip(outputs.keys(), f(*args, **kwargs)))
     else:
-        f = _Function(inputs, [outputs], updates, givens=givens, session=session)
+        f = _Function(inputs, [outputs], updates, givens=givens)
         return lambda *args, **kwargs: f(*args, **kwargs)[0]
 
 
 class _Function(object):
-    def __init__(self, inputs, outputs, updates, givens, check_nan=False, session=None):
+    def __init__(self, inputs, outputs, updates, givens, check_nan=False):
         for inpt in inputs:
             if not issubclass(type(inpt), TfInput):
                 assert len(inpt.op.inputs) == 0, "inputs should all be placeholders of rl_algs.common.TfInput"
@@ -301,7 +301,6 @@ class _Function(object):
         self.outputs_update = list(outputs) + [self.update_group]
         self.givens = {} if givens is None else givens
         self.check_nan = check_nan
-        self.session = session
 
     def _feed_input(self, feed_dict, inpt, value):
         if issubclass(type(inpt), TfInput):
@@ -331,10 +330,7 @@ class _Function(object):
         # Update feed dict with givens.
         for inpt in self.givens:
             feed_dict[inpt] = feed_dict.get(inpt, self.givens[inpt])
-        sess = get_session()
-        if sess is None:
-            sess = self.session
-        results = sess.run(self.outputs_update, feed_dict=feed_dict)[:-1]
+        results = get_session().run(self.outputs_update, feed_dict=feed_dict)[:-1]
         if self.check_nan:
             if any(np.isnan(r).any() for r in results):
                 raise RuntimeError("Nan detected")

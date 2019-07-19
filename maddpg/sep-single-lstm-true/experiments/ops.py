@@ -51,7 +51,7 @@ def make_env(scenario_name, benchmark=False):
     return env
 
 
-def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, actors=None, actor_env_name=None, type=0, session=None):
+def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, actors=None, actor_env_name=None, type=0):
     trainers = []
     model = mlp_model
     lstm = lstm_model
@@ -60,33 +60,34 @@ def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, actors=No
         for i in range(num_adversaries):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
-                local_q_func=(arglist.adv_policy == 'ddpg'), session=session))
+                local_q_func=(arglist.adv_policy == 'ddpg')))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
-                local_q_func=(arglist.good_policy == 'ddpg'), session=session))
+                local_q_func=(arglist.good_policy == 'ddpg')))
     elif type == 1:
         trainer = CRITIC_TRAINER
         for i in range(num_adversaries):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actors, arglist,
-                local_q_func=(arglist.adv_policy == 'ddpg'), session=session))
+                local_q_func=(arglist.adv_policy == 'ddpg')))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actors, arglist,
-                local_q_func=(arglist.good_policy == 'ddpg'), session=session))
+                local_q_func=(arglist.good_policy == 'ddpg')))
     elif type == 2:
         trainer = ACTOR_TRAINER
         for i in range(num_adversaries):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i,
                 actor_env_name + "agent_%d" % i, arglist,
-                local_q_func=(arglist.adv_policy == 'ddpg'), session=session))
+                local_q_func=(arglist.adv_policy == 'ddpg')))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i,
                 actor_env_name + "agent_%d" % i, arglist,
-                local_q_func=(arglist.good_policy == 'ddpg'), session=session))
+                local_q_func=(arglist.good_policy == 'ddpg')))
+    
     return trainers
 
 

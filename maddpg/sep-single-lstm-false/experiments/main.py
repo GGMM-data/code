@@ -13,19 +13,21 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
 
-    parser.add_argument("--train", action="store_true", default=True)
-    # parser.add_argument("--train", action="store_true", default=False)
-    # parser.add_argument("--test", action="store_true", default=True)
-    parser.add_argument("--test", action="store_true", default=False)
-    parser.add_argument("--num-task", type=int, default=1, help="number of tasks")
-    parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
+    # not use lstm
     parser.add_argument('--use-lstm', action="store_true", default=False, help="use lstm?")
-    # parser.add_argument('--use-lstm', action="store_true", default=True, help="use lstm?")
-    parser.add_argument("--batch-size", type=int, default=512, help="number of episodes to optimize at the same time")
+    # not transfer
+    parser.add_argument("--num-task", type=int, default=1, help="number of tasks")
+    # train
+    parser.add_argument("--train", action="store_true", default=True)
+    # not test
+    parser.add_argument("--test", action="store_true", default=False)
+    # batch size 16
+    parser.add_argument("--batch-size", type=int, default=16, help="number of episodes to optimize at the same time")
     parser.add_argument("--train-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
     parser.add_argument("--test-data-name", type=str, default="test",
                         help="directory in which map data are saved")
+    parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
     parser.add_argument("--num-train-episodes", type=int, default=4000, help="number of episodes")
@@ -72,7 +74,7 @@ if __name__ == '__main__':
     if not argslist.use_lstm:
         argslist.history_length = 1
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    params = ["batch_size", "buffer_size", "num_task", "history_length", "train_data_name", "max_episode_len",
+    params = ["history_length", "batch_size", "num_task", "train_data_name", "mp", "buffer_size", "max_episode_len",
               "save_rate", "gamma", "num_units"]
     save_path = "policy"
     dict_arg = vars(argslist)
