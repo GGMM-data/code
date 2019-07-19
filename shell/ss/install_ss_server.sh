@@ -32,14 +32,14 @@ ipv6_password=`cat conf.json | jq '.ipv6_ss_password'`
 if [ ! -f /etc/shadowsocks_v4_server.json -a ! -f shadowsocks_v4_server.json ]
 then
     v4_json="{\n\"server\": \"0.0.0.0\",\n\"local_address\": \"127.0.0.1\",\n\"server_port\": $ipv4_server_port,\n\"local_port\": $ipv4_local_port,\n\"password\": $ipv4_password,\n\"timeout\": 600,\n\"method\": \"aes-256-cfb\"\n}"
-    echo $v4_json > shadowsocks_v4_server.json
+    echo -e $v4_json > shadowsocks_v4_server.json
     mv shadowsocks_v4_server.json /etc/shadowsocks_v4_server.json
 fi
 
 if [ ! -f /etc/shadowsocks_v6_server.json -a ! -f shadowsocks_v6_server.json ]
 then
     v6_json="{\n\"server\": \"::\",\n\"local_address\": \"127.0.0.1\",\n\"server_port\": $ipv4_server_port,\n\"local_port\": $ipv4_local_port,\n\"password\": $ipv4_password,\n\"timeout\": 600,\n\"method\": \"aes-256-cfb\"\n}"
-    echo $v6_json > shadowsocks_v6_server.json
+    echo -e $v6_json > shadowsocks_v6_server.json
     mv shadowsocks_v6_server.json /etc/shadowsocks_v6_server.json 
 fi
 
