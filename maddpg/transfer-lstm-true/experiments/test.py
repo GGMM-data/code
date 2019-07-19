@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import tensorflow as tf
 import math
 import pickle
 import sys
@@ -13,7 +12,8 @@ from experiments.ops import time_begin, time_end, mkdir, make_env, get_trainers,
 from experiments.uav_statistics import draw_util
 
 
-def test(arglist):
+def test(arglist, model_number):
+    import tensorflow as tf
     debug = False
     num_tasks = arglist.num_task  # 总共有多少个任务
     list_of_taskenv = []  # env list
@@ -46,7 +46,7 @@ def test(arglist):
         model_name = arglist.load_dir.split('/')[-2] + '/'
         mkdir(arglist.pictures_dir_test + model_name)
         model_index_step = 0
-        model_number_total = arglist.num_train_episodes / arglist.save_rate
+
         max_model_index = np.zeros(num_tasks)
         max_average_energy_efficiency = np.zeros(num_tasks)
 
@@ -243,3 +243,8 @@ def test(arglist):
                             print('...Finished total of {} episodes.'.format(episode_number))
                 if episode_number > arglist.num_test_episodes:
                     break
+
+
+def multi_process_test(arglist):
+    model_number_total = arglist.num_train_episodes / arglist.save_rate
+    pool = mp.Pool()

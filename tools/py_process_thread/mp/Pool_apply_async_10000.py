@@ -11,17 +11,16 @@ def func(i):
     #    f.write(str(i))
 
 print(mp.cpu_count())
-#pool = Pool(mp.cpu_count())
-pool = Pool(1)
+pool = Pool(mp.cpu_count())
+#pool = Pool(1)
 
 
 if __name__ == "__main__":
-    number = 1000000
+    number = 100
     t = time.time()
     for i in range(number):
         pool.apply_async(func, args=(i,))
     pool.close()
     pool.join()
     print("Done", time.time() - t)
-
 
