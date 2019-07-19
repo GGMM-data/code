@@ -19,7 +19,7 @@ def parse_args():
     # transfer
     parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
     # batch size 16
-    parser.add_argument("--batch-size", type=int, default=16, help="batch size")
+    parser.add_argument("--batch-size", type=int, default=2, help="batch size")
     # train data name
     parser.add_argument("--train-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
