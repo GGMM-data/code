@@ -29,7 +29,7 @@ def make_update_exp(vals, target_vals, session=None):
 
 # 优化critic用的是MSE,怎么用到actor,actor用来选择action
 def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, args, grad_norm_clipping=None,
-            local_q_func=False, scope="trainer", reuse=None, num_units=64, use_lstm=True, session=None):
+            local_q_func=False, scope="trainer", reuse=None, num_units=64, use_lstm=True, session=None, lstm_scope=None):
     with tf.variable_scope(scope, reuse=reuse):
         # ===================q network开始建图=================
         # set up placeholders
@@ -42,13 +42,14 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
         obs_ph_n = make_obs_ph_n  # 创建obs placeholder
         # target q placeholder
         target_ph = tf.placeholder(tf.float32, [None], name="target")  # 在运行时计算，然后传入，只跟loss有关
-        
-        # 在这里进行dimension reduction
-        if use_lstm:
+    if use_lstm:
+        with tf.variable_scope(lstm_scope):
             observation_n = lstm_model(obs_ph_n, scope="lstm", reuse=True)
-        else:
+    else:
+        with tf.variable_scope(scope, reuse=reuse):
             # observation_n = obs_ph_n
             observation_n = [tf.squeeze(o, 1) for o in obs_ph_n]
+    with tf.variable_scope(scope, reuse=reuse):
         # 所有智能体的obs和action
         if local_q_func:
             q_input = tf.concat([observation_n[q_index], act_ph_n[q_index]], 1)
@@ -148,14 +149,15 @@ def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_m
         # observation placeholder
         obs_ph_n = make_obs_ph_n    # 创建observation的placeholder, list of [batch_size, state_dim, time_step]
         
-        if use_lstm:
+    if use_lstm:
+        with tf.variable_scope(p_scope):
             observation_n = lstm_model(obs_ph_n, reuse=True, scope="lstm")
             lstm_vars = U.scope_vars(U.absolute_scope_name("lstm"))
-        else:
+    else:
+        with tf.variable_scope(scope, reuse=reuse):
             # observation_n = obs_ph_n
             observation_n = [tf.squeeze(o, 1) for o in obs_ph_n]    # 所有智能体的obs, list of [batch_size, state_dim]
-        p_input = observation_n[p_index]    # 当前智能体的局部obs, [batch_size, state_dim]
-        
+    p_input = observation_n[p_index]    # 当前智能体的局部obs, [batch_size, state_dim]
     # p是多个actor公用的，q是每一个critic有一个
     with tf.variable_scope(p_scope, reuse=reuse):
         # 计算局部p值，最后用来产生action, [batch_size, action_dim]
