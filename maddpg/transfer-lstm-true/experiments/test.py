@@ -4,6 +4,7 @@ import math
 import pickle
 import sys
 import time
+import multiprocessing as mp
 
 sys.path.append(os.getcwd() + "/../")
 
@@ -247,4 +248,5 @@ def test(arglist, model_number):
 
 def multi_process_test(arglist):
     model_number_total = arglist.num_train_episodes / arglist.save_rate
-    pool = mp.Pool()
+    pool = mp.Pool(mp.cpu_count())
+    pool.map(test, args=())
