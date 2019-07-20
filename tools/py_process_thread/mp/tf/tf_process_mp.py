@@ -1,10 +1,10 @@
 import multiprocessing as mp
+import tensorflow as tf
 import os
 import time
 import random
-import tensorflow as tf
 
-def add(args, index):
+def add(index):
     sess = tf.Session()
     y = tf.ones([1,2])
     print(sess.run(y))
@@ -24,24 +24,33 @@ def add(args, index):
 
 
 if __name__ == "__main__":
+    # 这个的话是jobs的数量要小于等于cpu数量
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    length = 50
-    
-    begin_time = time.time()
+    length = 500
 
-    # 1.pool.map multi threads
-    pool = mp.Pool(4)
-    pool.map(add, range(length))
+    begin_time = time.time()
+    # 1.mp.Process, mutlri thread
+    jobs = []
+    for i in range(length):
+        jobs.append(mp.Process(target=add, args=(i,)))
+    for j in jobs:
+        j.start()
+    for j in jobs:
+        j.join()
+
+    # ==========================================
 
     end_time = time.time()
-
     time1 = end_time - begin_time
     begin_time = time.time()
 
-    # 2.single thread
+    # 2.single process
     for i in range(length):
-        add(i)
+        pass
+        #add(i)
+    # ==========================================
 
-    print("total time: ", time1)
-    print("total time: ", time.time() - begin_time)
+    print("Multi processes total time: ", time1)
+    print("Single process total time: ", time.time() - begin_time)
     print("Done")
+

@@ -11,7 +11,8 @@ from maddpg_.common.ops import p_train, p_act
 
 
 class MADDPGAgentTrainer(AgentTrainer):
-    def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, args, local_q_func=False, session=None):
+    def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, args, local_q_func=False, 
+                 reuse=False, session=None):
         self.args = args
         self.name = name
         self.n = len(obs_shape_n)
@@ -32,7 +33,7 @@ class MADDPGAgentTrainer(AgentTrainer):
             lstm_model=lstm_model,
             num_units=self.args.num_units,
             use_lstm=self.args.use_lstm,
-            reuse=False,
+            reuse=reuse,
             session=session
         )
         # Create experience buffer

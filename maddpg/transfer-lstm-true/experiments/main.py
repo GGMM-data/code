@@ -5,7 +5,7 @@ sys.path.append(os.getcwd() + "/../")
 
 import argparse
 from experiments.train import train
-from experiments.test import test
+from experiments.test import test, multi_process_test
 from multiagent.uav.flag import FLAGS
 import os
 
@@ -25,18 +25,20 @@ def parse_args():
                         help="directory in which map data are saved")
     parser.add_argument("--test-data-name", type=str, default="test",
                         help="directory in which map data are saved")
-    # not multi thread
-    parser.add_argument("--mp", action="store_true", default=False, help="multiprocess")
-    # train
-    parser.add_argument("--train", action="store_true", default=True)
-    # not test
-    parser.add_argument("--test", action="store_true", default=False)
+    # multi thread
+    parser.add_argument("--mp", action="store_true", default=True, help="multiprocess")
+    # not train
+    # parser.add_argument("--train", action="store_true", default=True)
+    parser.add_argument("--train", action="store_true", default=False)
+    # test
+    parser.add_argument("--test", action="store_true", default=True)
+    # parser.add_argument("--test", action="store_true", default=False)
 
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
     parser.add_argument("--num-train-episodes", type=int, default=4000, help="number of episodes")
-    parser.add_argument("--num-test-episodes", type=int, default=100, help="number of episodes")
-    parser.add_argument("--save-rate", type=int, default=100,
+    parser.add_argument("--num-test-episodes", type=int, default=20, help="number of episodes")
+    parser.add_argument("--save-rate", type=int, default=10,
                         help="save model once every time this many episodes are completed")
     parser.add_argument("--train-data-dir", type=str, default="../../data/train/",
                         help="directory in which map data are saved")
@@ -78,8 +80,8 @@ if __name__ == '__main__':
     if not argslist.use_lstm:
         argslist.history_length = 1
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    params = ["history_length", "batch_size", "num_task", "train_data_name", "mp", "buffer_size", "max_episode_len",
-              "save_rate", "gamma", "num_units"]
+    params = ["history_length", "batch_size", "num_task", "train_data_name", "mp", "buffer_size",
+              "max_episode_len", "save_rate", "gamma", "num_units"]
     save_path = "policy"
     dict_arg = vars(argslist)
     for param in params:
@@ -96,4 +98,7 @@ if __name__ == '__main__':
     # test
     if argslist.test:
         argslist.draw_picture_test = True
-        test(argslist)
+        if argslist.mp:
+            multi_process_test(argslist)
+        else:
+            test(argslist)

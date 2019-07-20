@@ -4,7 +4,7 @@ import time
 import random
 import tensorflow as tf
 
-def add(index):
+def add(index, sess=None):
     sess = tf.Session()
     y = tf.ones([1,2])
     print(sess.run(y))
@@ -25,15 +25,31 @@ def add(index):
 
 if __name__ == "__main__":
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    length = 50
+    length = 500
+
     begin_time = time.time()
 
-    pool = mp.Pool(4)
-    for i in range(4):
-        pool.apply_async(mp.Process(target=add, args=(i,)))
+    # 1.pool.apply_async, multi processes
+    pool = mp.Pool(mp.cpu_count())
+    results = []
+    for i in range(length):
+        results.append(pool.apply_async(add, args=(i,)))
     pool.close()
     pool.join()
+    # ==========================================
 
+    end_time = time.time()
+    time1 = end_time - begin_time
+    begin_time = time.time()
+
+    # 2.single process
+    for i in range(length):
+        add(i)
+        #pass
+    # ==========================================
+
+    print("Multi processes total time: ", time1)
+    print("Single process total time: ", time.time() - begin_time)
     print("Done")
 
 
