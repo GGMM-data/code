@@ -4,10 +4,7 @@ from tensorflow.contrib import rnn
 import numpy as np
 
 
-
 def multi_layer_lstm(x, batch_size, reuse=True):
-    time_steps = 28
-
     # (batch_size, time_steps, lstm_size)
     # (time_steps, batch_size,, input_size)
     # x = tf.transpose(x, (1, 0, 2))
@@ -28,12 +25,13 @@ def multi_layer_lstm(x, batch_size, reuse=True):
     #         cell_outputs, state = cell(x[time_step], state)
     #         outputs.append(cell_outputs)
 
+    time_steps = 28
+    #lstm_size = [64, 5]
+    lstm_size = [5]
     output_size = 10
-    lstm_size = [28, 5]
-    # lstm_size = 5
     layers = 2
     x = tf.transpose(x, (1, 0, 2))
-    cells = [rnn.LSTMCell(num_units=n, forget_bias=1, state_is_tuple=True) for n in lstm_size]
+    cells = [rnn.BasicLSTMCell(num_units=n, forget_bias=1, state_is_tuple=True) for n in lstm_size]
     stacked_rnn_cell = rnn.MultiRNNCell(cells) 
     # lstm_cell = rnn.LSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
     # cell = rnn.MultiRNNCell([lstm_cell] * layers, state_is_tuple=True)
@@ -41,6 +39,7 @@ def multi_layer_lstm(x, batch_size, reuse=True):
     outputs, state = tf.nn.dynamic_rnn(stacked_rnn_cell, x, dtype=tf.float32)
     outputs = tf.convert_to_tensor(outputs[-1:, :, :])
     outputs = tf.squeeze(outputs, 0)
+    print(outputs.shape)
     return tf.layers.dense(outputs, output_size, activation=tf.nn.relu, use_bias=True)
 
 def train():

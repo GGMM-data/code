@@ -33,6 +33,8 @@ def train():
     y = tf.placeholder(tf.float32, [None, 10])
 
     predicted_y = myrnn(x)
+    for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+        print(var)
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=predicted_y, labels=y))
     optimizer = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.9).minimize(loss)
 
