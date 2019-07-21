@@ -23,10 +23,10 @@ def parse_args():
     # train data name
     parser.add_argument("--train-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
-    parser.add_argument("--test-data-name", type=str, default="test",
+    parser.add_argument("--test-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
     # multi thread
-    parser.add_argument("--mp", action="store_true", default=True, help="multiprocess")
+    parser.add_argument("--mp", action="store_true", default=False, help="multiprocess")
     # not train
     # parser.add_argument("--train", action="store_true", default=True)
     parser.add_argument("--train", action="store_true", default=False)
@@ -37,8 +37,8 @@ def parse_args():
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
     parser.add_argument("--num-train-episodes", type=int, default=4000, help="number of episodes")
-    parser.add_argument("--num-test-episodes", type=int, default=20, help="number of episodes")
-    parser.add_argument("--save-rate", type=int, default=10,
+    parser.add_argument("--num-test-episodes", type=int, default=2, help="number of episodes")
+    parser.add_argument("--save-rate", type=int, default=100,
                         help="save model once every time this many episodes are completed")
     parser.add_argument("--train-data-dir", type=str, default="../../data/train/",
                         help="directory in which map data are saved")
@@ -101,4 +101,4 @@ if __name__ == '__main__':
         if argslist.mp:
             multi_process_test(argslist)
         else:
-            test(argslist)
+            test(argslist, 2)

@@ -21,6 +21,7 @@ def sample_map(path):
     data_shape = data.shape
     index = np.random.randint(0, data_shape[0])
     map = np.sum(data[index], 2)
+    print(map.shape)
     return map
 
 

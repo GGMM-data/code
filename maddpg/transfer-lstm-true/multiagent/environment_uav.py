@@ -577,6 +577,9 @@ class MultiAgentEnv(gym.Env):
     def get_original_r(self):
         return self.o_r
 
+    def get_cover_matrix(self):
+        return self.M
+
     def get_aver_cover(self):
         total_cover = np.sum(self.M)
         return total_cover / (self.size ** 2)

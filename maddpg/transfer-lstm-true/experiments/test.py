@@ -20,8 +20,6 @@ from experiments.uav_statistics import draw_util
 def test(arglist, model_number):
   debug = False
   num_tasks = arglist.num_task  # 总共有多少个任务
-  for i in range(num_tasks):
-      mkdir(os.path.join(arglist.pictures_dir_test, "task_" + str(i)))
   list_of_taskenv = []  # env list
   graph = tf.Graph()
   with graph.as_default():
@@ -30,14 +28,14 @@ def test(arglist, model_number):
             begin = time_begin()
         # 1.1创建common actor
         env = make_env(arglist.scenario, arglist.benchmark)
-        env.set_map(sample_map(arglist.test_data_dir + arglist.test_data_name + "_1.h5"))
+        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
         actors = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
         for i in range(num_tasks):
             list_of_taskenv.append(make_env(arglist.scenario))
-            env.set_map(sample_map(arglist.test_data_dir + arglist.test_data_name + "_" + str(i) + ".h5"))
+            env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i) + ".h5"))
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
         
         # 1.2 Initialize
@@ -45,7 +43,8 @@ def test(arglist, model_number):
         
         model_name = arglist.load_dir.split('/')[-2] + '/'
         mkdir(arglist.pictures_dir_test + model_name)
-
+        for i in range(num_tasks):
+            mkdir(os.path.join(arglist.pictures_dir_test, model_name, "task_" + str(i)))
         # 2.1 加载checkpoints
         model_load_dir = os.path.join(arglist.load_dir, str(model_number * arglist.save_rate), 'model.ckpt')
         print('From ', model_load_dir, ' Loading previous state...')
@@ -160,7 +159,7 @@ def test(arglist, model_number):
                         str(current_env.get_energy_origin()),
                         str(energy_efficiency[task_index][-1]),
                         str(round(episode_time, 3))))
-            
+                    print(current_env.get_cover_matrix())
                     # 绘制reward曲线)
                     if arglist.draw_picture_test:
                         if episode_number == arglist.num_test_episodes:
