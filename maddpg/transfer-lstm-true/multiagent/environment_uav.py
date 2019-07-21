@@ -299,6 +299,7 @@ class MultiAgentEnv(gym.Env):
         # energy reset
         self.energy = np.zeros(self.uav)
         self.M = np.zeros((self.size, self.size))
+        self.coverage = np.zeros((self.size, self.size))
         self.MapState = np.zeros(self.size ** 2)
         self.final = np.zeros((self.size, self.size), dtype=np.int64)
         self.state = []
