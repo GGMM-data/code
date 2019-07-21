@@ -13,7 +13,7 @@ def lstm(x):
     output_size = 10
 
     # (batch_size, time_steps, lstm_size)
-    # (time_steps, batch_size,, input_size)
+    # (time_steps, batch_size, input_size)
     x = tf.transpose(x, (1, 0, 2))
     # (time_steps * batch_size, lstm_size)
     x = tf.reshape(x, (-1, input_size))
@@ -21,9 +21,8 @@ def lstm(x):
     x = tf.split(x, time_steps, 0)
     # 创建一个LSTMCell
     lstm = rnn.BasicLSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
-    #zero_state = lstm.zero_state(batch_size, dtype=tf.float32)
-    #outputs, states = rnn.static_rnn(lstm, x, initial_state=zero_state, dtype=tf.float32)
-    outputs, states = rnn.static_rnn(lstm, x, dtype=tf.float32)
+    zero_state = lstm.zero_state(batch_size, dtype=tf.float32)
+    outputs, states = rnn.static_rnn(lstm, x, initial_state=zero_state, dtype=tf.float32)
     outputs = tf.convert_to_tensor(outputs[-1])
     return tf.layers.dense(outputs, output_size, activation=tf.nn.relu, use_bias=True)
 

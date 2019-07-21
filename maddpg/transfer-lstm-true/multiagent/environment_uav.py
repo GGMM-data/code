@@ -50,6 +50,7 @@ class MultiAgentEnv(gym.Env):
         self.threshold = getattr(FLAGS, 'map_threshold')
 
         self.map = np.zeros((self.size, self.size))
+        self.coverage = np.zeros((self.size, self.size))
         self.PoI = []
         base = - (self.size-1)/2
         for i in range(self.size):
@@ -263,7 +264,9 @@ class MultiAgentEnv(gym.Env):
                 if cov > 0:
                     self.__add_matrix(x, y, self.final, 1)
                     self.delta += 1
-                    self.coverage_delta += self.map[x, y]
+                    current_cov = self.__get_matrix(x, y, self.map)
+                    self.__add_matrix(x, y, self.coverage, current_cov)
+                    self.coverage_delta += current_cov
                 self.__set_matrix(x, y, self.M,
                                   float(self.__get_matrix(x, y, self.final)) /
                                   FLAGS.max_epoch)
