@@ -9,6 +9,10 @@ import multiprocessing as mp
 from itertools import repeat
 import tensorflow as tf
 import threading
+import  seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+
 
 sys.path.append(os.getcwd() + "/../")
 
@@ -35,7 +39,7 @@ def test(arglist, model_number):
         actors = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
         for i in range(num_tasks):
             list_of_taskenv.append(make_env(arglist.scenario))
-            env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i) + ".h5"))
+            #env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i+1) + ".h5"))
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
         
         # 1.2 Initialize
@@ -97,6 +101,7 @@ def test(arglist, model_number):
         # 4 test
         episode_start_time = time.time()
         print('Starting iterations...')
+        episode_number = 0
         while True:
             for task_index in range(num_tasks):
                 # 3.1更新环境
@@ -159,7 +164,13 @@ def test(arglist, model_number):
                         str(current_env.get_energy_origin()),
                         str(energy_efficiency[task_index][-1]),
                         str(round(episode_time, 3))))
-                    print(current_env.get_cover_matrix())
+                    plt.figure()
+                    _, (ax1, ax2) = plt.subplots(figsize=(22, 10), ncols=2)
+                    sns.heatmap(current_env.map, annot=True, ax=ax1)
+                    ax1.set_xlabel("target coverage")
+                    sns.heatmap(current_env.get_cover_matrix(), annot=True, ax=ax2)
+                    ax2.set_xlabel("current coverage")
+                    plt.savefig("Episode_"+str(episode_number)+"_task_"+str(task_index)+"_coverage.png")
                     # 绘制reward曲线)
                     if arglist.draw_picture_test:
                         if episode_number == arglist.num_test_episodes:
@@ -211,7 +222,7 @@ def test(arglist, model_number):
                     # 重置局部变量
                     obs_n_list[task_index] = current_env.reset()  # 重置env
                     current_env.set_map(
-                        sample_map(arglist.test_data_dir + arglist.test_data_name + "_" + str(task_index + 1) + ".h5"))
+                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(task_index + 1) + ".h5"))
                     local_steps[task_index] = 0  # 重置局部计数器
             
                     # 更新全局变量
@@ -221,6 +232,7 @@ def test(arglist, model_number):
         
             if episode_number > arglist.num_test_episodes:
                 break
+
 
 def multi_process_time_calculate(arglist):
     total_model_number = int(100 / arglist.save_rate)

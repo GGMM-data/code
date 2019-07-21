@@ -12,6 +12,7 @@ import tensorflow.contrib.layers as layers
 import tensorflow.nn.rnn_cell as rnn
 import time
 import numpy as np
+from multiagent.uav.flag import FLAGS
 
 
 def sample_map(path):
@@ -19,9 +20,9 @@ def sample_map(path):
     data = f['data'][:]
     f.close()
     data_shape = data.shape
+    map_size = FLAGS.size_map
     index = np.random.randint(0, data_shape[0])
-    map = np.sum(data[index], 2)
-    print(map.shape)
+    map = np.sum(data[index, :map_size, :map_size], 2)
     return map
 
 
