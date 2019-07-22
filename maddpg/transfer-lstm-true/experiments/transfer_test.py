@@ -23,7 +23,7 @@ from experiments.uav_statistics import draw_util
 
 def test(arglist, model_number):
   debug = False
-  num_tasks = arglist.num_task  # 总共有多少个任务
+  num_tasks = arglist.num_task_transfer  # 总共有多少个任务
   list_of_taskenv = []  # env list
   graph = tf.Graph()
   with graph.as_default():
@@ -32,23 +32,23 @@ def test(arglist, model_number):
             begin = time_begin()
         # 1.1创建common actor
         env = make_env(arglist.scenario, arglist.benchmark)
-        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
+        env.set_map(sample_map(arglist.test_data_dir + arglist.test_data_name + "_1.h5"))
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
         actors = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
         for i in range(num_tasks):
             list_of_taskenv.append(make_env(arglist.scenario))
-            #env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i+1) + ".h5"))
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
         
         # 1.2 Initialize
         U.initialize()
         
         model_name = arglist.load_dir.split('/')[-2] + '/'
-        mkdir(arglist.pictures_dir_test + model_name)
+        path = arglist.pictures_dir_test + model_name
+        mkdir(path)
         for i in range(num_tasks):
-            mkdir(os.path.join(arglist.pictures_dir_test, model_name, "task_" + str(i)))
+            mkdir(os.path.join(path, "task_" + str(i)))
         # 2.1 加载checkpoints
         model_load_dir = os.path.join(arglist.load_dir, str(model_number * arglist.save_rate), 'model.ckpt')
         print('From ', model_load_dir, ' Loading previous state...')
@@ -89,7 +89,8 @@ def test(arglist, model_number):
         obs_n_list = []
         for i in range(num_tasks):
             obs_n = list_of_taskenv[i].reset()
-            list_of_taskenv[i].set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i+1) + ".h5"))
+            list_of_taskenv[i].set_map(
+                sample_map(arglist.test_data_dir + arglist.test_data_name + "_" + str(i+1) + ".h5", random=True))
             obs_n_list.append(obs_n)
 
         # 3.4
@@ -164,18 +165,20 @@ def test(arglist, model_number):
                         str(current_env.get_energy_origin()),
                         str(energy_efficiency[task_index][-1]),
                         str(round(episode_time, 3))))
+                    current_path = os.path.join(path, "task_" + str(task_index))
                     plt.figure()
                     _, (ax1, ax2) = plt.subplots(figsize=(22, 10), ncols=2)
                     sns.heatmap(current_env.map, annot=True, ax=ax1)
                     ax1.set_xlabel("target coverage")
                     sns.heatmap(current_env.get_cover_matrix(), annot=True, ax=ax2)
                     ax2.set_xlabel("current coverage")
-                    plt.savefig("Episode_"+str(episode_number)+"_task_"+str(task_index)+"_coverage.png")
+                    plt.savefig(current_path + "Episode_"+str(episode_number)+"_task_"+str(task_index)+"_coverage.png")
+                    plt.close()
                     # 绘制reward曲线)
                     if arglist.draw_picture_test:
                         if episode_number == arglist.num_test_episodes:
-                            file_path = os.path.join(arglist.pictures_dir_test, model_name, "task_" + str(task_index),
-                                                     "model_" + str(model_number) + 'test.log')
+                            file_path = os.path.join(current_path,
+                                                     "model_" + str(model_number) + '_test.log')
                             with open(file_path, 'a+') as file:
                                 report = '\nModel-' + str(model_number * arglist.save_rate) + \
                                          '-testing ' + str(arglist.num_test_episodes) + ' episodes\'s result:' \
@@ -222,7 +225,8 @@ def test(arglist, model_number):
                     # 重置局部变量
                     obs_n_list[task_index] = current_env.reset()  # 重置env
                     current_env.set_map(
-                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(task_index + 1) + ".h5"))
+                        sample_map(arglist.test_data_dir + arglist.test_data_name + "_" + str(task_index + 1) + ".h5",
+                                   random=True))
                     local_steps[task_index] = 0  # 重置局部计数器
             
                     # 更新全局变量
@@ -273,7 +277,7 @@ def multi_process_time_calculate(arglist):
 
 
 def multi_process_test(arglist):
-    total_model_number = int(100 / arglist.save_rate)
+    total_model_number = int(arglist.max_test_model_number / arglist.save_rate)
     # pool.apply_async, multithread
     begin_time = time.time()
     jobs = []

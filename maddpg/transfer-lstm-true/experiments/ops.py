@@ -15,14 +15,18 @@ import numpy as np
 from multiagent.uav.flag import FLAGS
 
 
-def sample_map(path):
+def sample_map(path, random=False):
     f = h5py.File(path, "r")
     data = f['data'][:]
     f.close()
     data_shape = data.shape
     map_size = FLAGS.size_map
     index = np.random.randint(0, data_shape[0])
-    map = np.sum(data[index, :map_size, :map_size], 2)
+    if random:
+        map_beigin = np.random.randint(0, data_shape[0] - map_size)
+        map = np.sum(data[index, map_beigin:map_beigin+map_size, map_beigin:map_beigin+map_size], 2)
+    else:
+        map = np.sum(data[index, :map_size, :map_size], 2)
     return map
 
 
