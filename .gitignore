@@ -26,3 +26,4 @@ maddpg/**/experiments/learning_curves/
 **/summary/**
 **/result_pictures/**
 data/
+**.png
