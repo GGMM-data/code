@@ -31,21 +31,21 @@ def test(arglist, model_number):
         if debug:
             begin = time_begin()
         # 1.1创建common actor
-        env = make_env(arglist.scenario, arglist.benchmark)
+        env = make_env(arglist.scenario, reward_type=arglist.reward_type)
         env.set_map(sample_map(arglist.test_data_dir + arglist.test_data_name + "_1.h5"))
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
         actors = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
         for i in range(num_tasks):
-            list_of_taskenv.append(make_env(arglist.scenario))
+            list_of_taskenv.append(make_env(arglist.scenario, reward_type=arglist.reward_type))
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
         
         # 1.2 Initialize
         U.initialize()
         
         model_name = arglist.load_dir.split('/')[-2] + '/'
-        path = arglist.pictures_dir_test + model_name
+        path = arglist.pictures_dir_transfer_test + model_name
         mkdir(path)
         for i in range(num_tasks):
             mkdir(os.path.join(path, "task_" + str(i)))
@@ -172,14 +172,16 @@ def test(arglist, model_number):
                     ax1.set_xlabel("target coverage")
                     sns.heatmap(current_env.get_cover_matrix(), annot=True, ax=ax2)
                     ax2.set_xlabel("current coverage")
-                    plt.savefig(current_path + "Episode_"+str(episode_number)+"_task_"+str(task_index)+"_coverage.png")
+                    plt.savefig(os.path.join(current_path,
+                                "/Model_" + str(model_number*arglist.save_rate) + "_Episode_" + str(episode_number) + "_coverage.png"))
                     plt.close()
                     # 绘制reward曲线)
                     if arglist.draw_picture_test:
                         if episode_number == arglist.num_test_episodes:
                             file_path = os.path.join(current_path,
-                                                     "model_" + str(model_number) + '_test.log')
+                                                     "model_" + str(model_number*arglist.save_rate) + '_test.log')
                             with open(file_path, 'a+') as file:
+                                file.write("==========================begin=============================")
                                 report = '\nModel-' + str(model_number * arglist.save_rate) + \
                                          '-testing ' + str(arglist.num_test_episodes) + ' episodes\'s result:' \
                                          + '\n!!!Max energy efficiency: ' \
@@ -194,8 +196,9 @@ def test(arglist, model_number):
                                          + str(np.mean(energy_consumptions_for_test[task_index])) \
                                          + "\n"
                                 file.write(report)
+                                file.write("==========================end=============================")
                             draw_util.drawTest(model_number * arglist.save_rate,
-                                               arglist.pictures_dir_test + model_name + "task_" + str(task_index) + "/",
+                                               arglist.pictures_dir_transfer_test + model_name + "task_" + str(task_index) + "/",
                                                energy_efficiency[task_index],
                                                energy_consumptions_for_test[task_index],
                                                aver_cover[task_index],

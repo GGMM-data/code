@@ -13,8 +13,11 @@ import os
 
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
+    # multi thread
+    parser.add_argument("--mp", action="store_true", default=False, help="multiprocess test")
+    parser.add_argument("--reward-type", type=int, default=0, help="different reward")
     parser.add_argument("--max-test-model-number", type=int, default=900, help="saved max episode number, used for test")
-    parser.add_argument("--num-test-episodes", type=int, default=50, help="number of episodes")
+    parser.add_argument("--num-test-episodes", type=int, default=5, help="number of episodes")
     parser.add_argument("--save-rate", type=int, default=100,
                         help="save model once every time this many episodes are completed")
     # use lstm
@@ -31,17 +34,15 @@ def parse_args():
                         help="directory in which map data are saved")
     parser.add_argument("--test-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
-    # multi thread
-    parser.add_argument("--mp", action="store_true", default=True, help="multiprocess")
     # not train
-    # parser.add_argument("--train", action="store_true", default=True)
+    #parser.add_argument("--train", action="store_true", default=True)
     parser.add_argument("--train", action="store_true", default=False)
     # train test
     parser.add_argument("--train-test", action="store_true", default=True)
-    # parser.add_argument("--test", action="store_true", default=False)
+    #parser.add_argument("--train-test", action="store_true", default=False)
     # transfer test
-    parser.add_argument("--transfer-test", action="store_true", default=True)
-    # parser.add_argument("--test", action="store_true", default=False)
+    #parser.add_argument("--transfer-test", action="store_true", default=True)
+    parser.add_argument("--transfer-test", action="store_true", default=False)
 
     parser.add_argument("--buffer-size", type=int, default=1000000, help="buffer capacity")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
@@ -92,7 +93,7 @@ if __name__ == '__main__':
     if not argslist.use_lstm:
         argslist.history_length = 1
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-    params = ["history_length", "batch_size", "num_task", "train_data_name", "buffer_size",
+    params = ["reward_type", "history_length", "batch_size", "num_task", "train_data_name", "buffer_size",
               "max_episode_len", "save_rate", "gamma", "num_units"]
     save_path = "policy"
     dict_arg = vars(argslist)
@@ -119,6 +120,6 @@ if __name__ == '__main__':
     if argslist.transfer_test:
         argslist.draw_picture_test = True
         if argslist.mp:
-            train_multi_process_test(argslist)
+            transfer_multi_process_test(argslist)
         else:
-            train_test(argslist, 2)
+            transfer_test(argslist, 2)

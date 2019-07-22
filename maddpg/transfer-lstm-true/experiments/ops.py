@@ -40,7 +40,7 @@ def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=Non
         return out
 
 
-def make_env(scenario_name, benchmark=False):
+def make_env(scenario_name, benchmark=False, reward_type=0):
     from multiagent.environment_uav import MultiAgentEnv
     import multiagent.scenarios as scenarios
     
@@ -51,9 +51,9 @@ def make_env(scenario_name, benchmark=False):
     # create multiagent environment
     if benchmark:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
-                            scenario.benchmark_data)
+                            scenario.benchmark_data, reward_type=reward_type)
     else:
-        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
+        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, reward_type=reward_type)
     return env
 
 

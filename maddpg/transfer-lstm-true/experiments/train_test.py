@@ -31,15 +31,14 @@ def test(arglist, model_number):
         if debug:
             begin = time_begin()
         # 1.1创建common actor
-        env = make_env(arglist.scenario, arglist.benchmark)
+        env = make_env(arglist.scenario, reward_type=arglist.reward_type)
         env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
         actors = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0)
         for i in range(num_tasks):
-            list_of_taskenv.append(make_env(arglist.scenario))
-            #env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i+1) + ".h5"))
+            list_of_taskenv.append(make_env(arglist.scenario, reward_type=arglist.reward_type))
         print('Using good policy {} and adv policy {}'.format(arglist.good_policy, arglist.adv_policy))
         
         # 1.2 Initialize
@@ -159,6 +158,8 @@ def test(arglist, model_number):
                     episode_end_time = time.time()
                     episode_time = episode_end_time - episode_start_time
                     episode_start_time = episode_end_time
+
+                    current_path = os.path.join(path, "task_" + str(task_index))
                     print('Task %d, Episode: %d - energy_consumptions: %s, efficiency: %s, time %s' % (
                         task_index,
                         episode_number,
@@ -168,33 +169,35 @@ def test(arglist, model_number):
                     plt.figure()
                     _, (ax1, ax2) = plt.subplots(figsize=(22, 10), ncols=2)
                     sns.heatmap(current_env.map, annot=True, ax=ax1)
-                    ax1.set_xlabel("target coverage")
-                    sns.heatmap(current_env.get_cover_matrix(), annot=True, ax=ax2)
-                    ax2.set_xlabel("current coverage")
-                    plt.savefig(path+"Episode_"+str(episode_number)+"_task_"+str(task_index)+"_coverage.png")
+                    ax1.set_xlabel("target fair")
+                    sns.heatmap(current_env.get_fair_matrix(), annot=True, ax=ax2)
+                    ax2.set_xlabel("current fair")
+                    plt.savefig(os.path.join(current_path,
+                                "Model_" + str(model_number*arglist.save_rate) + "_Episode_" + str(episode_number) + "_fair.png"))
                     plt.close()
                     # 绘制reward曲线)
                     if arglist.draw_picture_test:
+                        file_path = os.path.join(current_path,
+                                                 "model_" + str(model_number * arglist.save_rate) + '_test.log')
                         if episode_number == arglist.num_test_episodes:
-                            file_path = os.path.join(arglist.pictures_dir_test, model_name, "task_" + str(task_index),
-                                                     "model_" + str(model_number) + '_test.log')
-                            with open(file_path, 'a+') as file:
-                                report = '\nModel-' + str(model_number * arglist.save_rate) + \
-                                         '-testing ' + str(arglist.num_test_episodes) + ' episodes\'s result:' \
-                                         + '\n!!!Max energy efficiency: ' \
-                                         + str(np.max(energy_efficiency[task_index])) \
-                                         + '\n!!!Average energy efficiency:' \
-                                         + str(np.mean(energy_efficiency[task_index])) \
-                                         + '\nAverage average attained coverage: ' \
-                                         + str(np.mean(aver_cover[task_index])) + \
-                                         '\nAverage Jaint\'s fairness index: ' \
-                                         + str(np.mean(j_index[task_index])) + \
-                                         '\nAverage normalized average energy consumptions:' \
-                                         + str(np.mean(energy_consumptions_for_test[task_index])) \
-                                         + "\n"
-                                file.write(report)
+                            report = '\nModel-' + str(model_number * arglist.save_rate) + \
+                                     '-testing ' + str(arglist.num_test_episodes) + ' episodes\'s result:' \
+                                     + '\n!!!Max energy efficiency: ' \
+                                     + str(np.max(energy_efficiency[task_index])) \
+                                     + '\n!!!Average energy efficiency: ' \
+                                     + str(np.mean(energy_efficiency[task_index])) \
+                                     + '\nAverage average attained coverage: ' \
+                                     + str(np.mean(aver_cover[task_index])) + \
+                                     '\nAverage Jaint\'s fairness index: ' \
+                                     + str(np.mean(j_index[task_index])) + \
+                                     '\nJaint\'s fairness index: ' \
+                                     + str(j_index[task_index]) + \
+                                     '\nAverage normalized average energy consumptions: ' \
+                                     + str(np.mean(energy_consumptions_for_test[task_index])) \
+                                     + "\n" \
+                                     + "==========================end=============================\n"
                             draw_util.drawTest(model_number * arglist.save_rate,
-                                               arglist.pictures_dir_test + model_name + "task_" + str(task_index) + "/",
+                                               arglist.pictures_dir_train_test + model_name + "task_" + str(task_index) + "/",
                                                energy_efficiency[task_index],
                                                energy_consumptions_for_test[task_index],
                                                aver_cover[task_index],
@@ -207,6 +210,22 @@ def test(arglist, model_number):
                                                bl_jainindex,
                                                bl_loss,
                                                False)
+                    else:
+                        report = '\nModel-' + str(model_number * arglist.save_rate) + \
+                                 '-episode ' + str(episode_number) + ' episodes\'s result:' \
+                                 + '\n!!!Energy efficiency: ' \
+                                 + str(energy_efficiency[task_index][-1]) \
+                                 + '\nAverage attained coverage: ' \
+                                 + str(aver_cover[task_index][-1]) + \
+                                 '\nJaint\'s fairness index: ' \
+                                 + str(j_index[task_index][-1]) + \
+                                 '\nnormalized average energy consumptions: ' \
+                                 + str(energy_consumptions_for_test[task_index][-1]) \
+                                 + "\n"
+
+                    with open(file_path, 'a+') as file:
+                        file.write(report)
+
                     # reset custom statistics variabl between episode and epoch------------------------------------
             
                     if task_index == num_tasks - 1:
