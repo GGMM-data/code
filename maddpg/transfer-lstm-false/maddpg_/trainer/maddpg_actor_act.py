@@ -11,7 +11,8 @@ from maddpg_.common.ops import p_train, p_act
 
 
 class MADDPGAgentTrainer(AgentTrainer):
-    def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, args, local_q_func=False):
+    def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, args, local_q_func=False, 
+                 reuse=False, session=None):
         self.args = args
         self.name = name
         self.n = len(obs_shape_n)
@@ -20,8 +21,6 @@ class MADDPGAgentTrainer(AgentTrainer):
         obs_ph_n = []
         for i in range(self.n):
             obs_shape = [args.history_length] + list(obs_shape_n[i])
-            #obs_shape = list(obs_shape_n[i])
-            #obs_shape.append(args.history_length)
             obs_ph_n.append(U.BatchInput((obs_shape), name="observation"+str(i)).get())
         
         self.local_q_func = local_q_func
@@ -34,7 +33,8 @@ class MADDPGAgentTrainer(AgentTrainer):
             lstm_model=lstm_model,
             num_units=self.args.num_units,
             use_lstm=self.args.use_lstm,
-            reuse=False
+            reuse=reuse,
+            session=session
         )
         # Create experience buffer
         self.replay_buffer = ReplayBuffer(args.buffer_size, args.history_length)

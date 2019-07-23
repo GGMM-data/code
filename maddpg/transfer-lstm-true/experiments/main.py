@@ -5,8 +5,9 @@ sys.path.append(os.getcwd() + "/../")
 
 import argparse
 from experiments.train import train
+from experiments.transfer_train import train as transfer_train
 from experiments.train_test import test as train_test, multi_process_test as train_multi_process_test
-from experiments.transfer_test import test as transfer_test, multi_process_test as transfer_multi_process_test
+from experiments.transfer_test import test as transfer_test, multi_process_test as transfer_multi_process_test, random_maddpg_test as random_maddpg_test
 from multiagent.uav.flag import FLAGS
 import os
 
@@ -15,15 +16,17 @@ def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
     # multi thread
     parser.add_argument("--mp", action="store_true", default=False, help="multiprocess test")
-    parser.add_argument("--reward-type", type=int, default=0, help="different reward")
+    parser.add_argument("--reward-type", type=int, default=2, help="different reward")
     parser.add_argument("--max-test-model-number", type=int, default=900, help="saved max episode number, used for test")
-    parser.add_argument("--num-test-episodes", type=int, default=5, help="number of episodes")
-    parser.add_argument("--save-rate", type=int, default=100,
+    parser.add_argument("--num-test-episodes", type=int, default=200, help="number of episodes")
+    parser.add_argument("--save-rate", type=int, default=1,
                         help="save model once every time this many episodes are completed")
     # use lstm
     parser.add_argument('--use-lstm', action="store_true", default=True, help="use lstm?")
+    # shared lstm
+    parser.add_argument('--shared-lstm', action="store_true", default=False, help="shared lstm?")
     parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
-    # transfer
+    # num of taskes
     parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
     # transfer
     parser.add_argument("--num-task-transfer", type=int, default=1, help="number of tasks")
@@ -37,9 +40,12 @@ def parse_args():
     # not train
     #parser.add_argument("--train", action="store_true", default=True)
     parser.add_argument("--train", action="store_true", default=False)
+    # transfer train
+    parser.add_argument("--transfer-train", action="store_true", default=True)
+    #parser.add_argument("--transfer-train", action="store_true", default=False)
     # train test
-    parser.add_argument("--train-test", action="store_true", default=True)
-    #parser.add_argument("--train-test", action="store_true", default=False)
+    #parser.add_argument("--train-test", action="store_true", default=True)
+    parser.add_argument("--train-test", action="store_true", default=False)
     # transfer test
     #parser.add_argument("--transfer-test", action="store_true", default=True)
     parser.add_argument("--transfer-test", action="store_true", default=False)
@@ -66,6 +72,8 @@ def parse_args():
                         help="directory where plot data is saved")
     parser.add_argument("--pictures-dir-train", type=str, default="../result_pictures/train/",
                         help="directory where result pictures data is saved")
+    parser.add_argument("--pictures-dir-transfer-train", type=str, default="../result_pictures/transfer_train/",
+                        help="directory where result pictures data is saved")
     parser.add_argument("--pictures-dir-train-test", type=str, default="../result_pictures/train_test/",
                         help="directory where result pictures data is saved")
     parser.add_argument("--pictures-dir-transfer-test", type=str, default="../result_pictures/transfer_test/",
@@ -75,6 +83,7 @@ def parse_args():
 
     #
     # Evaluation
+    parser.add_argument("--transfer-restore", action="store_true", default=True)
     parser.add_argument("--restore", action="store_true", default=False)
     parser.add_argument("--display", action="store_true", default=False)
     parser.add_argument("--benchmark", action="store_true", default=False)
@@ -101,20 +110,22 @@ if __name__ == '__main__':
         save_path = save_path + "_" + param + "_" + str(dict_arg[param])
     save_path += "_UAVnumber_" + str(FLAGS.num_uav) + "_size_map_" + str(FLAGS.size_map) + "_radius_" + str(FLAGS.radius)
     argslist.save_dir = argslist.save_dir + save_path + "_debug/"
-    argslist.load_dir = argslist.save_dir
     print(argslist.save_dir)
     
     # train
     if argslist.train:
         train(argslist)
-        
+
+    if argslist.transfer_train:
+        transfer_train(argslist, 300)
+
     # train test
     if argslist.train_test:
         argslist.draw_picture_test = True
         if argslist.mp:
             train_multi_process_test(argslist)
         else:
-            train_test(argslist, 2)
+            train_test(argslist, 300)
 
     # transfer test
     if argslist.transfer_test:
@@ -122,4 +133,5 @@ if __name__ == '__main__':
         if argslist.mp:
             transfer_multi_process_test(argslist)
         else:
-            transfer_test(argslist, 2)
+            random_maddpg_test(argslist)
+            transfer_test(argslist, 300)

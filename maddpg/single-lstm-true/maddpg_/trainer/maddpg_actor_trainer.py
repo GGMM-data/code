@@ -8,7 +8,8 @@ from maddpg_.common.ops import q_train, p_act, p_train
 
 
 class MADDPGAgentTrainer(AgentTrainer):
-    def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, actor_env, args, local_q_func=False):
+    def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, actor_env, args,
+                 local_q_func=False, session=None):
         self.args = args
         self.name = name
         self.n = len(obs_shape_n)
@@ -36,7 +37,8 @@ class MADDPGAgentTrainer(AgentTrainer):
             local_q_func=local_q_func,
             num_units=self.args.num_units,
             reuse=True,
-            use_lstm=self.args.use_lstm
+            use_lstm=self.args.use_lstm,
+            session=session
         )
 
         # Create experience buffer
@@ -58,7 +60,7 @@ class MADDPGAgentTrainer(AgentTrainer):
             return
         if not t % 100 == 0:  # only update every 100 steps
             return
-        
+        # print("actor  update")
         self.replay_sample_index = critics[index].replay_sample_index
         # collect replay sample from all agents
         obs_n = []

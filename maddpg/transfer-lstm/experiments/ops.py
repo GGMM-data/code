@@ -71,11 +71,11 @@ def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, actors=No
         for i in range(num_adversaries):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actors, arglist,
-                local_q_func=(arglist.adv_policy == 'ddpg'), lstm_scope=lstm_scope+ "agent_%d" % i, session=session))
+                local_q_func=(arglist.adv_policy == 'ddpg'), lstm_scope=lstm_scope + "agent_%d" % i, session=session))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actors, arglist,
-                local_q_func=(arglist.good_policy == 'ddpg'), lstm_scope=lstm_scope+ "agent_%d" % i, session=session))
+                local_q_func=(arglist.good_policy == 'ddpg'), lstm_scope=lstm_scope + "agent_%d" % i, session=session))
     elif type == 2:
         trainer = ACTOR_TRAINER
         for i in range(num_adversaries):
