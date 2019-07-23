@@ -29,13 +29,9 @@ def make_update_exp(vals, target_vals, session=None):
 
 # 优化critic用的是MSE,怎么用到actor,actor用来选择action
 def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, args, grad_norm_clipping=None,
-            local_q_func=False, scope="trainer", reuse=None, num_units=64, use_lstm=True, session=None):
+            local_q_func=False, scope="trainer", reuse=None, num_units=64, use_lstm=True, session=None, lstm_scope=None):
     with tf.variable_scope(scope, reuse=reuse):
         # ===================q network开始建图=================
-        # set up placeholders
-        # batch size placeholder
-        # batch_size = tf.placeholder(tf.int32, shape=[], name="bs")
-        # action placeholder
         act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]    # 创建分布
         act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action" + str(i)) for i in range(len(act_space_n))]
         # observation placeholder
@@ -44,12 +40,19 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
         target_ph = tf.placeholder(tf.float32, [None], name="target")  # 在运行时计算，然后传入，只跟loss有关
         
         # 在这里进行dimension reduction
-        if use_lstm:
-            observation_n = lstm_model(obs_ph_n, scope="lstm", reuse=reuse)
+    if use_lstm:
+        if args.shared_lstm:
+            with tf.variable_scope(lstm_scope):
+                observation_n = lstm_model(obs_ph_n, scope="lstm", reuse=True)
         else:
-            # observation_n = obs_ph_n
-            observation_n = [tf.squeeze(o, 1) for o in obs_ph_n]
+            with tf.variable_scope(scope, reuse=reuse):
+                observation_n = lstm_model(obs_ph_n, scope="lstm", reuse=reuse)
+    else:
+        # observation_n = obs_ph_n
         # 所有智能体的obs和action
+        observation_n = [tf.squeeze(o, 1) for o in obs_ph_n]
+
+    with tf.variable_scope(scope, reuse=reuse):
         if local_q_func:
             q_input = tf.concat([observation_n[q_index], act_ph_n[q_index]], 1)
         else:
@@ -137,24 +140,30 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
 
 # 优化actor用的是policy gradient,怎么用到critic,把所有任务的performance measure加起来？？？把scope传进来就ok了。
 def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_model, optimizer,
-            grad_norm_clipping=None, local_q_func=False, num_units=64, scope="trainer", reuse=None, use_lstm=True, session=None):
+            args, grad_norm_clipping=None, local_q_func=False, num_units=64, scope="trainer", reuse=None, use_lstm=True, session=None):
     with tf.variable_scope(scope, reuse=reuse):
         # placeholder
-        # batch size placeholder
-        # batch_size = tf.placeholder(tf.int32, shape=[], name="bs")  # batch size的placeholder, []
         # action placeholder, list of [batch_size, action_dim]
         act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]  # 创建action的分布用来采样
         act_ph_n = [act_pdtype_n[i].sample_placeholder([None], name="action" + str(i)) for i in range(len(act_space_n))]
         # observation placeholder
         obs_ph_n = make_obs_ph_n    # 创建observation的placeholder, list of [batch_size, state_dim, time_step]
         
-        if use_lstm:
-            observation_n = lstm_model(obs_ph_n, reuse=reuse, scope="lstm")
-            lstm_vars = U.scope_vars(U.absolute_scope_name("lstm"))
+    if use_lstm:
+        if args.shared_lstm:
+            with tf.variable_scope(p_scope):
+                observation_n = lstm_model(obs_ph_n, reuse=True, scope="lstm")
+                lstm_vars = U.scope_vars(U.absolute_scope_name("lstm"))
         else:
+            with tf.variable_scope(scope):
+                observation_n = lstm_model(obs_ph_n, reuse=reuse, scope="lstm")
+                lstm_vars = U.scope_vars(U.absolute_scope_name("lstm"))
+    else:
+        with tf.variable_scope(scope, reuse=reuse):
             # observation_n = obs_ph_n
             observation_n = [tf.squeeze(o, 1) for o in obs_ph_n]    # 所有智能体的obs, list of [batch_size, state_dim]
-        p_input = observation_n[p_index]    # 当前智能体的局部obs, [batch_size, state_dim]
+
+    p_input = observation_n[p_index]    # 当前智能体的局部obs, [batch_size, state_dim]
         
     # p是多个actor公用的，q是每一个critic有一个
     with tf.variable_scope(p_scope, reuse=reuse):

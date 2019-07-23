@@ -30,7 +30,7 @@ def train(arglist):
         if debug:
             begin = time_begin()
         # 1.1创建每个任务的actor trainer和critic trainer
-        env = make_env(arglist.scenario, arglist.benchmark)
+        env = make_env(arglist.scenario, reward_type=arglist.reward_type)
         env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
         
         # Create agent trainers
@@ -42,9 +42,14 @@ def train(arglist):
         critic_list = []  # 所有任务critic的list
         actor_list = []
         for i in range(num_tasks):
-            list_of_taskenv.append(make_env(arglist.scenario))
-            critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
+            list_of_taskenv.append(make_env(arglist.scenario, reward_type=arglist.reward_type))
+            if arglist.shared_lstm:
+                critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
+                                        obs_shape_n, arglist, lstm_scope="actor_", actors=actor_0, type=1, session=sess)
+            else:
+                critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
+                                        obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
+
             actor_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
                                     obs_shape_n, arglist, actor_env_name="actor_", type=2, session=sess)
             actor_list.append(actor_trainers)

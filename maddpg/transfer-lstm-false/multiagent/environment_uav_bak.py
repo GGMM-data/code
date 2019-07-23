@@ -16,7 +16,7 @@ class MultiAgentEnv(gym.Env):
 
     def __init__(self, world, reset_callback=None, reward_callback=None,
                  observation_callback=None, info_callback=None,
-                 done_callback=None, shared_viewer=True, reward_type=0):
+                 done_callback=None, shared_viewer=True):
 
         self.world = world
         self.agents = self.world.policy_agents
@@ -28,7 +28,6 @@ class MultiAgentEnv(gym.Env):
         self.observation_callback = observation_callback
         self.info_callback = info_callback
         self.done_callback = done_callback
-        self.reward_type = reward_type
         # environment parameters
         self.discrete_action_space = True
         # if true, action is a number 0...N, otherwise action is a one-hot N-dimensional vector
@@ -52,8 +51,6 @@ class MultiAgentEnv(gym.Env):
 
         self.map = np.zeros((self.size, self.size))
         self.coverage = np.zeros((self.size, self.size))
-        self.normalized_fair = np.ones((self.size, self.size))
-        self.fair = np.zeros((self.size, self.size))
         self.PoI = []
         base = - (self.size-1)/2
         for i in range(self.size):
@@ -123,7 +120,6 @@ class MultiAgentEnv(gym.Env):
         self.map = target_map + 1   # change 0 to 1
         self.map[self.map < self.threshold] = self.threshold
         self.map = self.map / np.sum(self.map) * self.size * self.size
-        self.normalized_fair = 1 / self.map
         
     def is_covered(self, pos):
         for uav in self.state:
@@ -258,65 +254,33 @@ class MultiAgentEnv(gym.Env):
             if FLAGS.random_action:
                 move_distance = random_action_move_dis[agent_i]
             self.energy[agent_i] += self.cost * move_distance + self.honor
-        if self.reward_type == 0:
-            self.coverage_delta = 0
-            for x in range(self.size):
-                for y in range(self.size):
-                    cov = self.is_covered(self.PoI[x * self.size + y])
-                    if cov > 0:
-                        self.__add_matrix(x, y, self.final, 1)
-                        current_cov = self.__get_matrix(x, y, self.map)
-                        self.__add_matrix(x, y, self.coverage, current_cov)
-                        self.coverage_delta += current_cov
-                    self.__set_matrix(x, y, self.M,
-                                      float(self.__get_matrix(x, y, self.final)) /
-                                      FLAGS.max_epoch)
-            x_sum = np.sum(self.M)
-            x_square_sum = np.sum(self.M ** 2)
-            self.jain_index = x_sum ** 2 / x_square_sum / self.size ** 2
-            coverage_delta_percentage = self.coverage_delta * 1.0 / self.size ** 2
-        elif self.reward_type == 1:
-            self.coverage_delta = 0
-            for x in range(self.size):
-                for y in range(self.size):
-                    cov = self.is_covered(self.PoI[x * self.size + y])
-                    if cov > 0:
-                        self.__add_matrix(x, y, self.final, 1)
-                        self.__add_matrix(x, y, self.fair, 1)
-                        self.coverage_delta += 1
-                    self.__set_matrix(x, y, self.M,
-                                      float(self.__get_matrix(x, y, self.final)) /
-                                      FLAGS.max_epoch)
-            target_fairness = self.map
-            current_fairness = self.fair
-            self.jain_index = np.sum(target_fairness * current_fairness)/(
-                    np.sqrt(np.sum(np.square(target_fairness)))*np.sqrt(np.sum(np.square(current_fairness))))
-            coverage_delta_percentage = self.coverage_delta * 1.0 / self.size ** 2
-        elif self.reward_type == 2:
-            self.coverage_delta = 0
-            for x in range(self.size):
-                for y in range(self.size):
-                    cov = self.is_covered(self.PoI[x * self.size + y])
-                    if cov > 0:
-                        self.__add_matrix(x, y, self.final, 1)
-                        self.__add_matrix(x, y, self.fair, 1)
-                        self.coverage_delta += 1
-                    self.__set_matrix(x, y, self.M,
-                                      float(self.__get_matrix(x, y, self.final)) /
-                                      FLAGS.max_epoch)
-            target_fairness = self.map
-            current_fairness = self.fair
-            self.jain_index = np.sum(target_fairness * current_fairness)/(
-                    np.sqrt(np.sum(np.square(target_fairness)))*np.sqrt(np.sum(np.square(current_fairness))))
-            coverage_delta_percentage = 1.0
 
         delta_energy = np.sum(self.energy - self.old_energy) * 1.0 / (self.SUE_ENERGY * self.uav)
+        self.delta = 0
+        self.coverage_delta = 0
+        for x in range(self.size):
+            for y in range(self.size):
+                cov = self.is_covered(self.PoI[x * self.size + y])
+                if cov > 0:
+                    self.__add_matrix(x, y, self.final, 1)
+                    self.delta += 1
+                    current_cov = self.__get_matrix(x, y, self.map)
+                    self.__add_matrix(x, y, self.coverage, current_cov)
+                    self.coverage_delta += current_cov
+                self.__set_matrix(x, y, self.M,
+                                  float(self.__get_matrix(x, y, self.final)) /
+                                  FLAGS.max_epoch)
+        x_sum = np.sum(self.M)
+        x_square_sum = np.sum(self.M ** 2)
+        self.jain_index = x_sum ** 2 / x_square_sum / self.size ** 2
+        # coverage_delta_percentage = self.delta * 1.0 / self.size ** 2
+        coverage_delta_percentage = self.coverage_delta * 1.0 / self.size ** 2
         reward_positive = coverage_delta_percentage * self.jain_index / delta_energy
         reward_positive_n = np.ones(self.uav) * reward_positive
         self.o_r = reward_positive
         # add positive reward
         reward_n = reward_n + reward_positive_n
-        # print(reward_positive_n)
+
         return obs_n, reward_n, done_n, info_n
         # custom code for uav end---------------------------------------------------------------------------------------
 
@@ -336,7 +300,6 @@ class MultiAgentEnv(gym.Env):
         self.energy = np.zeros(self.uav)
         self.M = np.zeros((self.size, self.size))
         self.coverage = np.zeros((self.size, self.size))
-        self.fair = np.zeros((self.size, self.size))
         self.MapState = np.zeros(self.size ** 2)
         self.final = np.zeros((self.size, self.size), dtype=np.int64)
         self.state = []
@@ -607,7 +570,7 @@ class MultiAgentEnv(gym.Env):
         return self.jain_index
 
     def get_delta_c(self):
-        return self.coverage_delta
+        return self.delta
 
     def get_dis(self):
         return self.dis
@@ -617,9 +580,6 @@ class MultiAgentEnv(gym.Env):
 
     def get_original_r(self):
         return self.o_r
-
-    def get_fair_matrix(self):
-        return self.fair/500
 
     def get_cover_matrix(self):
         return self.coverage/500
