@@ -95,3 +95,147 @@ Task index: 0, Episode number 3, energy consumption: 590.4511016238611, efficien
 Task index: 0, Episode number 4, energy consumption: 594.7044115638754, efficiency: 0.41195800227241614, time: 2.417
 Task index: 0, Episode number 5, energy consumption: 589.0590381748402, efficiency: 0.3273362322401255, time: 2.204
 Task index: 0, Episode number 6, energy consumption: 593.2777627787946, efficiency: 0.39031317305361, time: 2.265
+Task index: 0, Episode number 7, energy consumption: 588.1541124159775, efficiency: 0.2430227538160338, time: 2.305
+Task index: 0, Episode number 8, energy consumption: 592.9589467991408, efficiency: 0.5499228159098443, time: 3.175
+Task index: 0, Episode number 9, energy consumption: 850.1130937816876, efficiency: 0.08685846014542432, time: 2.457
+Task index: 0, Episode number 10, energy consumption: 813.8586180189741, efficiency: 0.09311631000195368, time: 2.638
+steps: 5000.0, episodes: 10, mean episode reward: -1490.906257160374, time: 24.915
+Task index: 0, Episode number 11, energy consumption: 741.8217072389161, efficiency: 0.10867258523526413, time: 3.212
+Task index: 0, Episode number 12, energy consumption: 822.018865740181, efficiency: 0.14228832038481268, time: 2.445
+Task index: 0, Episode number 13, energy consumption: 794.2727708961125, efficiency: 0.057468934567557715, time: 2.43
+Task index: 0, Episode number 14, energy consumption: 745.0693669710128, efficiency: 0.12413899441529246, time: 2.535
+Task index: 0, Episode number 15, energy consumption: 744.0723529470806, efficiency: 0.2314489139757634, time: 2.434
+Task index: 0, Episode number 16, energy consumption: 658.0028864209233, efficiency: 0.2841172198091295, time: 2.31
+Task index: 0, Episode number 17, energy consumption: 585.9829073305262, efficiency: 0.5281751646767123, time: 2.401
+Task index: 0, Episode number 18, energy consumption: 582.7508830773651, efficiency: 0.22509468308044076, time: 2.462
+Task index: 0, Episode number 19, energy consumption: 660.0713849768345, efficiency: 0.18668414507017173, time: 2.389
+Task index: 0, Episode number 20, energy consumption: 670.9408395467915, efficiency: 0.34745361555501025, time: 2.961
+steps: 10000.0, episodes: 20, mean episode reward: -2030.449207456661, time: 25.464
+Task index: 0, Episode number 21, energy consumption: 682.2674043444764, efficiency: 0.17387247400039726, time: 3.118
+Task index: 0, Episode number 22, energy consumption: 668.1214160750146, efficiency: 0.2217402549388735, time: 2.465
+Task index: 0, Episode number 23, energy consumption: 689.1479866979479, efficiency: 0.4935956659985632, time: 2.421
+Task index: 0, Episode number 24, energy consumption: 670.3537640230217, efficiency: 0.23613475154485608, time: 2.639
+Task index: 0, Episode number 25, energy consumption: 690.1568453193685, efficiency: 0.33766579134311064, time: 2.555
+Task index: 0, Episode number 26, energy consumption: 685.6551072930941, efficiency: 0.2609412023405558, time: 2.723
+Task index: 0, Episode number 27, energy consumption: 684.7873687733054, efficiency: 0.1802031961361796, time: 2.382
+Task index: 0, Episode number 28, energy consumption: 670.733598091545, efficiency: 0.2668943337912375, time: 2.457
+Task index: 0, Episode number 29, energy consumption: 660.8474635403696, efficiency: 0.1938646597716873, time: 2.541
+Task index: 0, Episode number 30, energy consumption: 665.0918959176807, efficiency: 0.21963104011017826, time: 2.658
+steps: 15000.0, episodes: 30, mean episode reward: -1851.5810313957438, time: 25.966
+Task index: 0, Episode number 31, energy consumption: 662.8545638424328, efficiency: 0.4053086549656761, time: 3.215
+Task index: 0, Episode number 32, energy consumption: 672.2075836633845, efficiency: 0.20649452918836, time: 2.892
+Task index: 0, Episode number 33, energy consumption: 667.8232009049298, efficiency: 0.4463287075627821, time: 2.552
+Task index: 0, Episode number 34, energy consumption: 675.9265892275761, efficiency: 0.4990023395442603, time: 2.828
+Task index: 0, Episode number 35, energy consumption: 677.9169868091495, efficiency: 0.18425249445931371, time: 2.886
+Task index: 0, Episode number 36, energy consumption: 679.8791503917073, efficiency: 0.29569181088735935, time: 2.527
+Task index: 0, Episode number 37, energy consumption: 678.6632031872605, efficiency: 0.3684752143783311, time: 3.003
+Task index: 0, Episode number 38, energy consumption: 677.8582583339662, efficiency: 0.33053856917760616, time: 2.925
+Task index: 0, Episode number 39, energy consumption: 675.2945707836963, efficiency: 0.36293004164204556, time: 2.936
+Task index: 0, Episode number 40, energy consumption: 676.6602199528779, efficiency: 0.24533354641076213, time: 2.658
+steps: 20000.0, episodes: 40, mean episode reward: -1311.894756124285, time: 28.384
+Task index: 0, Episode number 41, energy consumption: 698.3344701975839, efficiency: 0.20031775559380768, time: 3.086
+Task index: 0, Episode number 42, energy consumption: 699.8119730507757, efficiency: 0.2654281551419086, time: 2.34
+Task index: 0, Episode number 43, energy consumption: 731.9452574670513, efficiency: 0.34775750625765794, time: 2.435
+Task index: 0, Episode number 44, energy consumption: 775.5608693997241, efficiency: 0.1971764740923392, time: 2.497
+Task index: 0, Episode number 45, energy consumption: 790.9125084391063, efficiency: 0.2091390214781893, time: 2.508
+Task index: 0, Episode number 46, energy consumption: 810.2995338226752, efficiency: 0.22559626027187474, time: 2.702
+Task index: 0, Episode number 47, energy consumption: 823.5728628313649, efficiency: 0.11575332771295088, time: 2.527
+Task index: 0, Episode number 48, energy consumption: 818.6535503289903, efficiency: 0.2245294577710121, time: 2.551
+Task index: 0, Episode number 49, energy consumption: 823.2248608470346, efficiency: 0.29029587138314594, time: 2.931
+Task index: 0, Episode number 50, energy consumption: 820.0107921159329, efficiency: 0.09230248591504735, time: 3.093
+steps: 25000.0, episodes: 50, mean episode reward: -1665.2876481382505, time: 26.684
+Task index: 0, Episode number 51, energy consumption: 819.6347867534837, efficiency: 0.11204525941798485, time: 3.899
+Task index: 0, Episode number 52, energy consumption: 811.837914208828, efficiency: 0.297578939150621, time: 2.429
+Task index: 0, Episode number 53, energy consumption: 812.6396296726052, efficiency: 0.21858341537286263, time: 2.426
+Task index: 0, Episode number 54, energy consumption: 820.5399488836861, efficiency: 0.1567369560842507, time: 2.442
+Task index: 0, Episode number 55, energy consumption: 819.394853156056, efficiency: 0.20871102573439032, time: 2.487
+Task index: 0, Episode number 56, energy consumption: 819.2832651114013, efficiency: 0.28353956847336953, time: 2.422
+Task index: 0, Episode number 57, energy consumption: 819.75546412811, efficiency: 0.40153928726226706, time: 2.504
+Task index: 0, Episode number 58, energy consumption: 812.9263890233154, efficiency: 0.23332772759078954, time: 2.365
+Task index: 0, Episode number 59, energy consumption: 815.7064752218112, efficiency: 0.23591940017582308, time: 2.417
+Task index: 0, Episode number 60, energy consumption: 806.9838561163425, efficiency: 0.14585249494093339, time: 2.58
+steps: 30000.0, episodes: 60, mean episode reward: -1289.861001496262, time: 25.968
+Task index: 0, Episode number 61, energy consumption: 803.7527035065865, efficiency: 0.23844552438820663, time: 3.282
+Task index: 0, Episode number 62, energy consumption: 781.1983562725401, efficiency: 0.12260607043295121, time: 2.482
+Task index: 0, Episode number 63, energy consumption: 754.0211919177515, efficiency: 0.24397653276700393, time: 2.439
+Task index: 0, Episode number 64, energy consumption: 702.524716241332, efficiency: 0.11108906332627588, time: 2.42
+Task index: 0, Episode number 65, energy consumption: 668.153757887834, efficiency: 0.18783081722352868, time: 2.385
+Task index: 0, Episode number 66, energy consumption: 669.0451547710662, efficiency: 0.30603296785641176, time: 2.575
+Task index: 0, Episode number 67, energy consumption: 666.7014819239472, efficiency: 0.5722404407385565, time: 2.678
+Task index: 0, Episode number 68, energy consumption: 658.893792394655, efficiency: 0.5163535036218903, time: 2.518
+Task index: 0, Episode number 69, energy consumption: 667.9220752476466, efficiency: 0.5516697690934216, time: 2.496
+Task index: 0, Episode number 70, energy consumption: 665.5229537274822, efficiency: 0.29572944727283634, time: 2.529
+steps: 35000.0, episodes: 70, mean episode reward: -1271.54061692987, time: 25.805
+Task index: 0, Episode number 71, energy consumption: 665.2131594105175, efficiency: 0.4565575675130716, time: 2.873
+Task index: 0, Episode number 72, energy consumption: 663.4219804070033, efficiency: 0.2830302789337141, time: 2.582
+Task index: 0, Episode number 73, energy consumption: 664.3888530206444, efficiency: 0.18344013152890057, time: 2.425
+Task index: 0, Episode number 74, energy consumption: 667.403040184647, efficiency: 0.23917945277950864, time: 2.352
+Task index: 0, Episode number 75, energy consumption: 666.6712711178665, efficiency: 0.37493133660956696, time: 2.489
+Task index: 0, Episode number 76, energy consumption: 662.811086638243, efficiency: 0.33610402804658085, time: 2.783
+Task index: 0, Episode number 77, energy consumption: 660.0938381315667, efficiency: 0.21483073117969312, time: 2.616
+Task index: 0, Episode number 78, energy consumption: 665.9986317069987, efficiency: 0.22969398440520578, time: 2.717
+Task index: 0, Episode number 79, energy consumption: 665.8815963435802, efficiency: 0.46524503667823575, time: 2.501
+Task index: 0, Episode number 80, energy consumption: 663.4328188483693, efficiency: 0.5199022406133822, time: 2.614
+steps: 40000.0, episodes: 80, mean episode reward: -780.851732988327, time: 25.966
+Task index: 0, Episode number 81, energy consumption: 664.4442821972493, efficiency: 0.2577263969099454, time: 3.246
+Task index: 0, Episode number 82, energy consumption: 664.4167415546204, efficiency: 0.45811273909657235, time: 2.563
+Task index: 0, Episode number 83, energy consumption: 659.3683530908837, efficiency: 0.20749349780262788, time: 2.667
+Task index: 0, Episode number 84, energy consumption: 662.7511159074953, efficiency: 0.2906737679390355, time: 2.505
+Task index: 0, Episode number 85, energy consumption: 661.0766233253827, efficiency: 0.6855586027279298, time: 2.432
+Task index: 0, Episode number 86, energy consumption: 665.5199649071664, efficiency: 0.43603020687091987, time: 2.45
+Task index: 0, Episode number 87, energy consumption: 658.4819290748397, efficiency: 0.2187586907926109, time: 2.385
+Task index: 0, Episode number 88, energy consumption: 663.6948399173615, efficiency: 0.06714140016005055, time: 2.519
+Task index: 0, Episode number 89, energy consumption: 665.1691448924952, efficiency: 0.4519384768480749, time: 2.726
+Task index: 0, Episode number 90, energy consumption: 661.120033285019, efficiency: 0.6861121600997161, time: 2.912
+steps: 45000.0, episodes: 90, mean episode reward: -572.3852133438124, time: 26.425
+Task index: 0, Episode number 91, energy consumption: 663.9792701813777, efficiency: 0.5805875727728078, time: 3.699
+Task index: 0, Episode number 92, energy consumption: 665.6058858775835, efficiency: 0.29058655907596365, time: 2.98
+Task index: 0, Episode number 93, energy consumption: 663.8362966788421, efficiency: 0.409662325961651, time: 2.755
+Task index: 0, Episode number 94, energy consumption: 665.3156293104881, efficiency: 0.48279613544660555, time: 3.019
+Task index: 0, Episode number 95, energy consumption: 662.643415826786, efficiency: 0.10152187826370941, time: 2.79
+Task index: 0, Episode number 96, energy consumption: 659.5737334395702, efficiency: 0.39422741532396205, time: 2.399
+Task index: 0, Episode number 97, energy consumption: 666.6701313393629, efficiency: 0.41135276367084006, time: 2.421
+Task index: 0, Episode number 98, energy consumption: 660.3247153858437, efficiency: 0.43077728362882084, time: 2.441
+Task index: 0, Episode number 99, energy consumption: 658.1700990463137, efficiency: 0.44625334835663993, time: 2.359
+Task index: 0, Episode number 100, energy consumption: 665.3188498809852, efficiency: 0.6079120170073861, time: 2.528
+steps: 50000.0, episodes: 100, mean episode reward: -594.1098914367965, time: 27.36
+Task index: 0, Episode number 101, energy consumption: 664.0246045508102, efficiency: 0.5486397381686954, time: 3.023
+Task index: 0, Episode number 102, energy consumption: 658.4354361623084, efficiency: 0.09921942594081881, time: 2.301
+Task index: 0, Episode number 103, energy consumption: 662.9568263888483, efficiency: 0.22950092243023038, time: 2.323
+Task index: 0, Episode number 104, energy consumption: 663.5368425970069, efficiency: 0.4692729269375437, time: 2.31
+Task index: 0, Episode number 105, energy consumption: 660.3322392385738, efficiency: 0.4118584491793714, time: 2.447
+Task index: 0, Episode number 106, energy consumption: 659.1639087809818, efficiency: 0.24008892731760517, time: 2.289
+Task index: 0, Episode number 107, energy consumption: 663.1522683027692, efficiency: 0.22300696356924868, time: 2.293
+Task index: 0, Episode number 108, energy consumption: 667.6646853259305, efficiency: 0.6919405413463365, time: 2.426
+Task index: 0, Episode number 109, energy consumption: 666.1906319451373, efficiency: 0.22972868084142192, time: 2.411
+Task index: 0, Episode number 110, energy consumption: 656.1953815613792, efficiency: 0.5207129347679896, time: 2.408
+steps: 55000.0, episodes: 110, mean episode reward: -304.41687779778647, time: 24.231
+Task index: 0, Episode number 111, energy consumption: 662.3878792739721, efficiency: 0.359942546269447, time: 3.07
+Task index: 0, Episode number 112, energy consumption: 666.0589441607275, efficiency: 0.652831291573322, time: 2.488
+Task index: 0, Episode number 113, energy consumption: 659.6782069254268, efficiency: 0.5176389696313352, time: 2.656
+Task index: 0, Episode number 114, energy consumption: 663.6846288201766, efficiency: 0.1590187366129037, time: 2.748
+Task index: 0, Episode number 115, energy consumption: 665.5212261720812, efficiency: 0.3276882211484176, time: 2.885
+Task index: 0, Episode number 116, energy consumption: 665.9641583683593, efficiency: 0.20933599102059233, time: 2.998
+Task index: 0, Episode number 117, energy consumption: 662.8456535055251, efficiency: 0.49862955508185214, time: 2.769
+Task index: 0, Episode number 118, energy consumption: 664.1839652110024, efficiency: 0.09468296288996562, time: 2.358
+Task index: 0, Episode number 119, energy consumption: 663.5668476317022, efficiency: 0.4937247111851433, time: 2.419
+Task index: 0, Episode number 120, energy consumption: 662.7916690754332, efficiency: 0.5395209723543394, time: 2.734
+steps: 60000.0, episodes: 120, mean episode reward: -229.8054761729981, time: 27.153
+Task index: 0, Episode number 121, energy consumption: 666.1705259960543, efficiency: 0.4677487293025983, time: 3.358
+Task index: 0, Episode number 122, energy consumption: 665.4875462759748, efficiency: 0.2990812978856474, time: 2.367
+Task index: 0, Episode number 123, energy consumption: 662.3296450353255, efficiency: 0.35255977444532505, time: 2.4
+Task index: 0, Episode number 124, energy consumption: 666.8658978291442, efficiency: 0.28416238436883984, time: 2.456
+Task index: 0, Episode number 125, energy consumption: 664.4956566559957, efficiency: 0.44494056175572017, time: 2.658
+Task index: 0, Episode number 126, energy consumption: 665.7132424737721, efficiency: 0.3968731786065287, time: 2.848
+Task index: 0, Episode number 127, energy consumption: 667.1113175704485, efficiency: 0.1789523741700417, time: 2.82
+Task index: 0, Episode number 128, energy consumption: 666.1114720518112, efficiency: 0.2484175738943272, time: 2.705
+Task index: 0, Episode number 129, energy consumption: 661.6034687600738, efficiency: 0.34016231508651174, time: 2.363
+Task index: 0, Episode number 130, energy consumption: 658.6353119046403, efficiency: 0.19565619426580147, time: 2.896
+steps: 65000.0, episodes: 130, mean episode reward: -923.3975543248059, time: 26.864
+Task index: 0, Episode number 131, energy consumption: 666.3138715983406, efficiency: 0.32934768547845095, time: 3.505
+Task index: 0, Episode number 132, energy consumption: 664.3916178016833, efficiency: 0.23145948466152277, time: 2.852
+Task index: 0, Episode number 133, energy consumption: 664.1813935761166, efficiency: 0.3765369268514997, time: 2.855
+Task index: 0, Episode number 134, energy consumption: 665.8250173271095, efficiency: 0.29227138486034177, time: 2.948
+Task index: 0, Episode number 135, energy consumption: 664.6116472456551, efficiency: 0.3833995155121626, time: 2.747
+Task index: 0, Episode number 136, energy consumption: 667.2900644874267, efficiency: 0.4960680475745666, time: 2.609
+Task index: 0, Episode number 137, energy consumption: 664.0187262399326, efficiency: 0.40953102875774433, time: 2.844
