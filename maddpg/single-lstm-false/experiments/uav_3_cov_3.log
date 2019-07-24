@@ -1,0 +1,97 @@
+2019-07-24 14:10:28.290753: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2019-07-24 14:10:28.301543: E tensorflow/stream_executor/cuda/cuda_driver.cc:300] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2019-07-24 14:10:28.301599: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:161] retrieving CUDA diagnostic information for host: lirhea-B450-AORUS-M
+2019-07-24 14:10:28.301606: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:168] hostname: lirhea-B450-AORUS-M
+2019-07-24 14:10:28.301646: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:192] libcuda reported version is: 418.56.0
+2019-07-24 14:10:28.301670: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:196] kernel reported version is: 418.56.0
+2019-07-24 14:10:28.301676: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:303] kernel version seems to match DSO: 418.56.0
+2019-07-24 14:10:28.324858: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 3693030000 Hz
+2019-07-24 14:10:28.325657: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x5f89150 executing computations on platform Host. Devices:
+2019-07-24 14:10:28.325686: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): <undefined>, <undefined>
+WARNING:tensorflow:From /usr/local/lib/python3.5/dist-packages/tensorflow/python/framework/op_def_library.py:263: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Colocations handled automatically by placer.
+WARNING:tensorflow:From /home/lirhea/mxxhcm/code/maddpg/single-lstm-false/experiments/../maddpg_/common/tf_util.py:24: calling softmax (from tensorflow.python.ops.nn_ops) with dim is deprecated and will be removed in a future version.
+Instructions for updating:
+dim is deprecated, use axis instead
+../checkpoints/policy_reward_type_2_history_length_1_shared_lstm_True_batch_size_8_num_task_1_train_data_name_chengdu_buffer_size_100000_max_episode_len_500_save_rate_10_gamma_0.83_num_units_160_UAVnumber_3_size_map_10_radius_3.0_debug2/
+Using good policy maddpg and adv policy maddpg
+<tf.Variable 'actor_agent_0/p_func/fully_connected/weights:0' shape=(314, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected/weights:0' shape=(314, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected/weights:0' shape=(314, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected/weights:0' shape=(314, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected/weights:0' shape=(314, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected/weights:0' shape=(314, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected/weights:0' shape=(957, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected/weights:0' shape=(957, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected/weights:0' shape=(957, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected/weights:0' shape=(957, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected/weights:0' shape=(957, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected/weights:0' shape=(957, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+Starting iterations...
+Task index: 0, Episode number 1, energy consumption: 589.7355612575785, efficiency: 0.3738764912143326, time: 2.49
+Task index: 0, Episode number 2, energy consumption: 585.0977610343627, efficiency: 0.42560073247124325, time: 2.345
+Task index: 0, Episode number 3, energy consumption: 590.4511016238611, efficiency: 0.6035158955151476, time: 2.294
+Task index: 0, Episode number 4, energy consumption: 594.7044115638754, efficiency: 0.41195800227241614, time: 2.417
+Task index: 0, Episode number 5, energy consumption: 589.0590381748402, efficiency: 0.3273362322401255, time: 2.204
+Task index: 0, Episode number 6, energy consumption: 593.2777627787946, efficiency: 0.39031317305361, time: 2.265

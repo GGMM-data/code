@@ -53,7 +53,7 @@ def parse_args():
 
     parser.add_argument("--buffer-size", type=int, default=100000, help="buffer capacity")
     parser.add_argument("--max-episode-len", type=int, default=500, help="maximum episode length")
-    parser.add_argument("--num-train-episodes", type=int, default=800, help="number of episodes")
+    parser.add_argument("--num-train-episodes", type=int, default=600, help="number of episodes")
     parser.add_argument("--train-data-dir", type=str, default="../../data/train/",
                         help="directory in which map data are saved")
     parser.add_argument("--test-data-dir", type=str, default="../../data/test/",
