@@ -298,7 +298,8 @@ def multi_process_test(arglist):
     # pool.apply_async, multithread
     begin_time = time.time()
     jobs = []
-    pool = mp.Pool(mp.cpu_count())
+    # pool = mp.Pool(mp.cpu_count())
+    pool = mp.Pool(4)
     for model_number in range(1, total_model_number+1):
         jobs.append(pool.apply_async(test, args=(arglist, model_number)))
     pool.close()

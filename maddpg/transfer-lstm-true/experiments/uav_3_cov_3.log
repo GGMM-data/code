@@ -1,0 +1,475 @@
+2019-07-24 14:43:50.238454: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 FMA
+2019-07-24 14:43:50.246317: E tensorflow/stream_executor/cuda/cuda_driver.cc:300] failed call to cuInit: CUDA_ERROR_NO_DEVICE: no CUDA-capable device is detected
+2019-07-24 14:43:50.246354: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:161] retrieving CUDA diagnostic information for host: lirhea-B450-AORUS-M
+2019-07-24 14:43:50.246361: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:168] hostname: lirhea-B450-AORUS-M
+2019-07-24 14:43:50.246392: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:192] libcuda reported version is: 418.56.0
+2019-07-24 14:43:50.246412: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:196] kernel reported version is: 418.56.0
+2019-07-24 14:43:50.246417: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:303] kernel version seems to match DSO: 418.56.0
+2019-07-24 14:43:50.268880: I tensorflow/core/platform/profile_utils/cpu_utils.cc:94] CPU Frequency: 3693030000 Hz
+2019-07-24 14:43:50.269734: I tensorflow/compiler/xla/service/service.cc:150] XLA service 0x5b488d0 executing computations on platform Host. Devices:
+2019-07-24 14:43:50.269765: I tensorflow/compiler/xla/service/service.cc:158]   StreamExecutor device (0): <undefined>, <undefined>
+WARNING:tensorflow:From /home/lirhea/mxxhcm/code/maddpg/transfer-lstm-true/experiments/../experiments/ops.py:116: LSTMCell.__init__ (from tensorflow.python.ops.rnn_cell_impl) is deprecated and will be removed in a future version.
+Instructions for updating:
+This class is equivalent as tf.keras.layers.LSTMCell, and will be replaced by that in Tensorflow 2.0.
+WARNING:tensorflow:From /home/lirhea/mxxhcm/code/maddpg/transfer-lstm-true/experiments/../experiments/ops.py:117: MultiRNNCell.__init__ (from tensorflow.python.ops.rnn_cell_impl) is deprecated and will be removed in a future version.
+Instructions for updating:
+This class is equivalent as tf.keras.layers.StackedRNNCells, and will be replaced by that in Tensorflow 2.0.
+WARNING:tensorflow:From /home/lirhea/mxxhcm/code/maddpg/transfer-lstm-true/experiments/../experiments/ops.py:119: dynamic_rnn (from tensorflow.python.ops.rnn) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `keras.layers.RNN(cell)`, which is equivalent to this API
+WARNING:tensorflow:From /usr/local/lib/python3.5/dist-packages/tensorflow/python/ops/tensor_array_ops.py:162: colocate_with (from tensorflow.python.framework.ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Colocations handled automatically by placer.
+WARNING:tensorflow:From /home/lirhea/mxxhcm/code/maddpg/transfer-lstm-true/experiments/../maddpg_/common/tf_util.py:24: calling softmax (from tensorflow.python.ops.nn_ops) with dim is deprecated and will be removed in a future version.
+Instructions for updating:
+dim is deprecated, use axis instead
+../checkpoints/policy_reward_type_2_history_length_4_shared_lstm_True_batch_size_16_num_task_3_train_data_name_chengdu_buffer_size_100000_max_episode_len_500_save_rate_10_gamma_0.83_num_units_160_UAVnumber_3_size_map_10_radius_3.0_debug/
+Using good policy maddpg and adv policy maddpg
+<tf.Variable 'lstm/lstm/Multi_Layer_RNN/rnn/multi_rnn_cell/cell_0/lstm_cell/kernel:0' shape=(68, 256) dtype=float32_ref>
+<tf.Variable 'lstm/lstm/Multi_Layer_RNN/rnn/multi_rnn_cell/cell_0/lstm_cell/bias:0' shape=(256,) dtype=float32_ref>
+<tf.Variable 'lstm/lstm/Multi_Layer_RNN/rnn/multi_rnn_cell/cell_1/lstm_cell/kernel:0' shape=(96, 128) dtype=float32_ref>
+<tf.Variable 'lstm/lstm/Multi_Layer_RNN/rnn/multi_rnn_cell/cell_1/lstm_cell/bias:0' shape=(128,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected/weights:0' shape=(32, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected/weights:0' shape=(32, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_0/target_p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected/weights:0' shape=(32, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected/weights:0' shape=(32, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_1/target_p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected/weights:0' shape=(32, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected/weights:0' shape=(32, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected_2/weights:0' shape=(160, 5) dtype=float32_ref>
+<tf.Variable 'actor_agent_2/target_p_func/fully_connected_2/biases:0' shape=(5,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_0/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_1/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_1_agent_2/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_2_agent_0/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_2_agent_1/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_2_agent_2/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_3_agent_0/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_3_agent_1/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/target_q_func/fully_connected/weights:0' shape=(111, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/target_q_func/fully_connected/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/target_q_func/fully_connected_1/weights:0' shape=(160, 160) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/target_q_func/fully_connected_1/biases:0' shape=(160,) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/target_q_func/fully_connected_2/weights:0' shape=(160, 1) dtype=float32_ref>
+<tf.Variable 'task_3_agent_2/target_q_func/fully_connected_2/biases:0' shape=(1,) dtype=float32_ref>
+Starting iterations...
+Task index: 0, Episode number 1, energy consumption: 581.9131903167038, efficiency: 0.851243234670796, time: 12.472
+Task index: 1, Episode number 1, energy consumption: 578.9522904319409, efficiency: 0.7632939789530778, time: 1.252
+Task index: 2, Episode number 1, energy consumption: 578.9353528373805, efficiency: 0.5044378267312322, time: 1.308
+Task index: 0, Episode number 2, energy consumption: 581.0523875682132, efficiency: 0.6301659965333707, time: 12.157
+Task index: 1, Episode number 2, energy consumption: 578.2837197561836, efficiency: 0.7028387825208342, time: 0.989
+Task index: 2, Episode number 2, energy consumption: 581.9252879445347, efficiency: 0.7046702959735276, time: 1.022
+Task index: 0, Episode number 3, energy consumption: 579.9999802302887, efficiency: 0.5267756836097608, time: 11.646
+Task index: 1, Episode number 3, energy consumption: 577.8991908501436, efficiency: 0.5904187304132681, time: 1.252
+Task index: 2, Episode number 3, energy consumption: 575.5969598251644, efficiency: 0.510754787276663, time: 1.115
+Task index: 0, Episode number 4, energy consumption: 577.4353045571755, efficiency: 0.4194576826554915, time: 12.282
+Task index: 1, Episode number 4, energy consumption: 579.9654291802464, efficiency: 0.5975313997082937, time: 0.974
+Task index: 2, Episode number 4, energy consumption: 580.7618364155056, efficiency: 0.5730562245889388, time: 1.029
+Task index: 0, Episode number 5, energy consumption: 580.8878206315652, efficiency: 0.6372419398093567, time: 12.602
+Task index: 1, Episode number 5, energy consumption: 579.226164424709, efficiency: 0.5141884472457697, time: 1.001
+Task index: 2, Episode number 5, energy consumption: 581.184919588236, efficiency: 0.43936575977621833, time: 1.019
+Task index: 0, Episode number 6, energy consumption: 575.5135097874108, efficiency: 0.8101485459426283, time: 12.352
+Task index: 1, Episode number 6, energy consumption: 575.4620151691671, efficiency: 0.4072851623387943, time: 1.007
+Task index: 2, Episode number 6, energy consumption: 576.0064166871266, efficiency: 0.4674775890256942, time: 1.075
+Task index: 0, Episode number 7, energy consumption: 578.2488899739586, efficiency: 0.5117755633024702, time: 13.023
+Task index: 1, Episode number 7, energy consumption: 581.8329729191693, efficiency: 0.6831359785129183, time: 1.157
+Task index: 2, Episode number 7, energy consumption: 579.2002526848972, efficiency: 0.4925620192440036, time: 1.035
+Task index: 0, Episode number 8, energy consumption: 580.8848392701929, efficiency: 0.4822311442345096, time: 12.485
+Task index: 1, Episode number 8, energy consumption: 576.6639496818312, efficiency: 0.49521911787332096, time: 1.148
+Task index: 2, Episode number 8, energy consumption: 582.1557726567618, efficiency: 0.4765794412466444, time: 1.178
+Task index: 0, Episode number 9, energy consumption: 579.1626896859607, efficiency: 0.5689247817206273, time: 12.917
+Task index: 1, Episode number 9, energy consumption: 580.9577519453954, efficiency: 0.7764375173924587, time: 0.997
+Task index: 2, Episode number 9, energy consumption: 577.6701549947492, efficiency: 0.670200371851686, time: 1.015
+Task index: 0, Episode number 10, energy consumption: 579.344363901807, efficiency: 0.6424214229062271, time: 13.16
+steps: 5000.0, episodes: 10, mean episode reward: -19.769048601870885, time: 147.629
+Task index: 1, Episode number 10, energy consumption: 579.4962633553064, efficiency: 0.6637683756166153, time: 4.433
+steps: 5000.0, episodes: 10, mean episode reward: 188.7954417877631, time: 3.365
+Task index: 2, Episode number 10, energy consumption: 581.4821230569679, efficiency: 0.700532235589627, time: 3.403
+steps: 5000.0, episodes: 10, mean episode reward: 337.2363111750726, time: 3.348
+Task index: 0, Episode number 11, energy consumption: 580.5452273639897, efficiency: 0.5353213740301616, time: 14.998
+Task index: 1, Episode number 11, energy consumption: 577.3161408218665, efficiency: 0.4499103637231202, time: 0.972
+Task index: 2, Episode number 11, energy consumption: 580.7022529686346, efficiency: 0.8320944613055633, time: 1.012
+Task index: 0, Episode number 12, energy consumption: 579.6580908283786, efficiency: 0.8364654681216476, time: 12.136
+Task index: 1, Episode number 12, energy consumption: 579.065969630174, efficiency: 0.7131796459641122, time: 1.033
+Task index: 2, Episode number 12, energy consumption: 578.489460562698, efficiency: 0.40913367227480185, time: 1.003
+Task index: 0, Episode number 13, energy consumption: 577.842101607989, efficiency: 0.37054605336010504, time: 12.393
+Task index: 1, Episode number 13, energy consumption: 578.9399746250612, efficiency: 0.5184270954901066, time: 0.999
+Task index: 2, Episode number 13, energy consumption: 579.7958249223303, efficiency: 0.5160429236324457, time: 0.979
+Task index: 0, Episode number 14, energy consumption: 580.1859021411623, efficiency: 0.433679757758795, time: 12.45
+Task index: 1, Episode number 14, energy consumption: 579.0497855229058, efficiency: 0.42964558002588304, time: 1.013
+Task index: 2, Episode number 14, energy consumption: 576.7929653584197, efficiency: 0.6269708095705137, time: 1.018
+Task index: 0, Episode number 15, energy consumption: 580.490669905649, efficiency: 0.6886045323238622, time: 11.793
+Task index: 1, Episode number 15, energy consumption: 579.7951405482896, efficiency: 0.74246026842757, time: 1.057
+Task index: 2, Episode number 15, energy consumption: 577.5344924236346, efficiency: 0.7587460052101699, time: 0.997
+Task index: 0, Episode number 16, energy consumption: 579.845615499736, efficiency: 0.5015713431774754, time: 20.219
+Task index: 1, Episode number 16, energy consumption: 578.3358184276641, efficiency: 0.47386415941582527, time: 7.543
+Task index: 2, Episode number 16, energy consumption: 577.7022055073402, efficiency: 0.7433161671409222, time: 7.431
+Task index: 0, Episode number 17, energy consumption: 654.4361124380507, efficiency: 0.3636487128038286, time: 22.386
+Task index: 1, Episode number 17, energy consumption: 654.3235623201093, efficiency: 0.13964149506139323, time: 1.699
+Task index: 2, Episode number 17, energy consumption: 650.3902959712424, efficiency: 0.3238153644162417, time: 1.724
+Task index: 0, Episode number 18, energy consumption: 748.177250734365, efficiency: 0.149569257396095, time: 21.885
+Task index: 1, Episode number 18, energy consumption: 752.3935036549971, efficiency: 0.06440127257586577, time: 1.701
+Task index: 2, Episode number 18, energy consumption: 737.6784262387306, efficiency: 0.1921820515137815, time: 1.702
+Task index: 0, Episode number 19, energy consumption: 644.572790400084, efficiency: 0.19978564850999206, time: 21.618
+Task index: 1, Episode number 19, energy consumption: 645.2148526510873, efficiency: 0.18862539149759985, time: 1.78
+Task index: 2, Episode number 19, energy consumption: 640.3016678920903, efficiency: 0.26203980582869063, time: 2.082
+Task index: 0, Episode number 20, energy consumption: 681.4116386833899, efficiency: 0.17448873412062804, time: 23.933
+steps: 10000.0, episodes: 20, mean episode reward: -585.501160437471, time: 209.427
+Task index: 1, Episode number 20, energy consumption: 677.3868847985427, efficiency: 0.19486106999804387, time: 4.378
+steps: 10000.0, episodes: 20, mean episode reward: -722.0277728752543, time: 4.33
+Task index: 2, Episode number 20, energy consumption: 676.2895400166053, efficiency: 0.20056669823618445, time: 3.907
+steps: 10000.0, episodes: 20, mean episode reward: -592.6306166365804, time: 3.886
+Task index: 0, Episode number 21, energy consumption: 712.6091451693551, efficiency: 0.22756755537118128, time: 24.648
+Task index: 1, Episode number 21, energy consumption: 714.9969626125849, efficiency: 0.14753790635649564, time: 1.721
+Task index: 2, Episode number 21, energy consumption: 707.999284179602, efficiency: 0.2942037760262723, time: 1.815
+Task index: 0, Episode number 22, energy consumption: 717.1301493145803, efficiency: 0.15247689901461137, time: 22.139
+Task index: 1, Episode number 22, energy consumption: 721.4152547706813, efficiency: 0.03897288112258909, time: 1.834
+Task index: 2, Episode number 22, energy consumption: 721.5317496873273, efficiency: 0.1260569991127772, time: 1.82
+Task index: 0, Episode number 23, energy consumption: 729.3890686203263, efficiency: 0.18473829691749977, time: 22.755
+Task index: 1, Episode number 23, energy consumption: 723.4837018317647, efficiency: 0.07781045855749236, time: 1.729
+Task index: 2, Episode number 23, energy consumption: 728.7375148538507, efficiency: 0.15936744585296878, time: 1.702
+Task index: 0, Episode number 24, energy consumption: 722.0331068591214, efficiency: 0.27731587763658494, time: 21.424
+Task index: 1, Episode number 24, energy consumption: 721.6999212561956, efficiency: 0.23126829136788798, time: 1.738
+Task index: 2, Episode number 24, energy consumption: 720.0893315140871, efficiency: 0.12906022539705744, time: 1.728
+Task index: 0, Episode number 25, energy consumption: 709.8246243093063, efficiency: 0.16061226251527738, time: 21.03
+Task index: 1, Episode number 25, energy consumption: 700.6608846354751, efficiency: 0.1015595998765876, time: 1.713
+Task index: 2, Episode number 25, energy consumption: 709.4009532111871, efficiency: 0.23170090791318432, time: 2.229
+Task index: 0, Episode number 26, energy consumption: 776.3948034797486, efficiency: 0.29095175118105, time: 22.718
+Task index: 1, Episode number 26, energy consumption: 776.6540043421707, efficiency: 0.08836402109414479, time: 1.86
+Task index: 2, Episode number 26, energy consumption: 777.1000468298106, efficiency: 0.27649577457145763, time: 1.847
+Task index: 0, Episode number 27, energy consumption: 897.8750067987552, efficiency: 0.0933827175391321, time: 22.4
+Task index: 1, Episode number 27, energy consumption: 891.1828214535359, efficiency: 0.0324650135848874, time: 1.856
+Task index: 2, Episode number 27, energy consumption: 893.9274870436235, efficiency: 0.10281235211440722, time: 1.701
+Task index: 0, Episode number 28, energy consumption: 947.5859700704522, efficiency: 0.1548858034186686, time: 22.359
+Task index: 1, Episode number 28, energy consumption: 948.8143099406052, efficiency: 0.10878638386344226, time: 1.749
+Task index: 2, Episode number 28, energy consumption: 951.0082596971356, efficiency: 0.13574182745948718, time: 1.772
+Task index: 0, Episode number 29, energy consumption: 881.5528823676972, efficiency: 0.07861922608690083, time: 22.242
+Task index: 1, Episode number 29, energy consumption: 880.970106520594, efficiency: 0.013695145339500817, time: 1.762
+Task index: 2, Episode number 29, energy consumption: 883.4809339849312, efficiency: 0.09511246449878134, time: 1.751
+Task index: 0, Episode number 30, energy consumption: 762.8144623472584, efficiency: 0.1529357721495378, time: 21.415
+steps: 15000.0, episodes: 30, mean episode reward: -2445.0487619847654, time: 255.366
+Task index: 1, Episode number 30, energy consumption: 766.9891114537218, efficiency: 0.11076178182592991, time: 3.651
+steps: 15000.0, episodes: 30, mean episode reward: -2740.1370609113783, time: 3.782
+Task index: 2, Episode number 30, energy consumption: 762.4206260742516, efficiency: 0.13778032430228915, time: 3.751
+steps: 15000.0, episodes: 30, mean episode reward: -2439.308873446197, time: 3.625
+Task index: 0, Episode number 31, energy consumption: 627.4621665166306, efficiency: 0.24414345642158816, time: 24.377
+Task index: 1, Episode number 31, energy consumption: 626.8274916241247, efficiency: 0.29784813701525564, time: 1.807
+Task index: 2, Episode number 31, energy consumption: 627.33770662567, efficiency: 0.29208007435609346, time: 1.805
+Task index: 0, Episode number 32, energy consumption: 597.3331815522029, efficiency: 0.2033731306730882, time: 21.836
+Task index: 1, Episode number 32, energy consumption: 599.9767670181469, efficiency: 0.19648746279511148, time: 1.776
+Task index: 2, Episode number 32, energy consumption: 595.8324595299391, efficiency: 0.29962942493562045, time: 1.711
+Task index: 0, Episode number 33, energy consumption: 612.6614906064365, efficiency: 0.4060080557264319, time: 21.493
+Task index: 1, Episode number 33, energy consumption: 618.3114504006372, efficiency: 0.41887818319245973, time: 1.714
+Task index: 2, Episode number 33, energy consumption: 616.2833369599998, efficiency: 0.24504091189703825, time: 1.737
+Task index: 0, Episode number 34, energy consumption: 662.8815279414384, efficiency: 0.2529153701288583, time: 20.855
+Task index: 1, Episode number 34, energy consumption: 657.7061955883869, efficiency: 0.07125991260618315, time: 1.713
+Task index: 2, Episode number 34, energy consumption: 661.7998579151987, efficiency: 0.33834000854390345, time: 1.69
+Task index: 0, Episode number 35, energy consumption: 656.5827550608304, efficiency: 0.31889172830647655, time: 21.65
+Task index: 1, Episode number 35, energy consumption: 666.5810975302234, efficiency: 0.3507621788453133, time: 1.881
+Task index: 2, Episode number 35, energy consumption: 664.3885574418026, efficiency: 0.33064998424265674, time: 1.709
+Task index: 0, Episode number 36, energy consumption: 634.2249849141831, efficiency: 0.14766075773344609, time: 21.499
+Task index: 1, Episode number 36, energy consumption: 640.8230385859556, efficiency: 0.07427488363854189, time: 1.792
+Task index: 2, Episode number 36, energy consumption: 641.4190310672735, efficiency: 0.17510316514731905, time: 1.749
+Task index: 0, Episode number 37, energy consumption: 635.5017889121455, efficiency: 0.3056189818504778, time: 21.799
+Task index: 1, Episode number 37, energy consumption: 642.6872696230811, efficiency: 0.16504389190756985, time: 1.703
+Task index: 2, Episode number 37, energy consumption: 642.5415211045678, efficiency: 0.36925593563485565, time: 1.732
+Task index: 0, Episode number 38, energy consumption: 694.6395061903363, efficiency: 0.2608797079986993, time: 20.619
+Task index: 1, Episode number 38, energy consumption: 692.7927453263537, efficiency: 0.11397991939708094, time: 1.792
+Task index: 2, Episode number 38, energy consumption: 690.3231298008386, efficiency: 0.15687264833881934, time: 2.26
+Task index: 0, Episode number 39, energy consumption: 712.2562689107186, efficiency: 0.22523299801124586, time: 20.179
+Task index: 1, Episode number 39, energy consumption: 710.6410262186087, efficiency: 0.27351996210650703, time: 1.894
+Task index: 2, Episode number 39, energy consumption: 710.1291192972668, efficiency: 0.21488095933072546, time: 1.797
+Task index: 0, Episode number 40, energy consumption: 701.6513861699988, efficiency: 0.10772487428413763, time: 20.475
+steps: 20000.0, episodes: 40, mean episode reward: -1960.8099518808715, time: 247.008
+Task index: 1, Episode number 40, energy consumption: 700.1169448396709, efficiency: 0.14769153763589024, time: 3.593
+steps: 20000.0, episodes: 40, mean episode reward: -2140.559151082225, time: 3.581
+Task index: 2, Episode number 40, energy consumption: 694.2373694300204, efficiency: 0.28751359515575436, time: 3.57
+steps: 20000.0, episodes: 40, mean episode reward: -1898.2885524344879, time: 3.562
+Task index: 0, Episode number 41, energy consumption: 689.6806614555157, efficiency: 0.3158068254846983, time: 23.233
+Task index: 1, Episode number 41, energy consumption: 689.1368493417364, efficiency: 0.1527376205599162, time: 1.688
+Task index: 2, Episode number 41, energy consumption: 688.4635912600351, efficiency: 0.3266271515223855, time: 1.742
+Task index: 0, Episode number 42, energy consumption: 648.515222961998, efficiency: 0.28754233609706875, time: 21.014
+Task index: 1, Episode number 42, energy consumption: 644.7365035656481, efficiency: 0.32013484590967556, time: 1.775
+Task index: 2, Episode number 42, energy consumption: 640.885114069887, efficiency: 0.49894716644278436, time: 1.714
+Task index: 0, Episode number 43, energy consumption: 655.296360782932, efficiency: 0.22247012524837248, time: 21.642
+Task index: 1, Episode number 43, energy consumption: 649.784850293976, efficiency: 0.05238298048609081, time: 1.739
+Task index: 2, Episode number 43, energy consumption: 647.3609007834214, efficiency: 0.21239991138732833, time: 2.17
+Task index: 0, Episode number 44, energy consumption: 702.1552083912384, efficiency: 0.05408338366500588, time: 21.751
+Task index: 1, Episode number 44, energy consumption: 699.0938589575331, efficiency: 0.05536168207497429, time: 1.699
+Task index: 2, Episode number 44, energy consumption: 692.2248957799748, efficiency: 0.0947299787807401, time: 1.727
+Task index: 0, Episode number 45, energy consumption: 674.114931431173, efficiency: 0.07368742350712558, time: 22.411
+Task index: 1, Episode number 45, energy consumption: 675.6729341855308, efficiency: 0.031298208395248425, time: 2.025
+Task index: 2, Episode number 45, energy consumption: 680.3685850452148, efficiency: 0.10539682987635306, time: 1.95
+Task index: 0, Episode number 46, energy consumption: 693.5273454803499, efficiency: 0.12650163726942007, time: 22.639
+Task index: 1, Episode number 46, energy consumption: 685.510154530975, efficiency: 0.04523892056858055, time: 1.787
+Task index: 2, Episode number 46, energy consumption: 690.7088326543575, efficiency: 0.12645798902193026, time: 1.711
+Task index: 0, Episode number 47, energy consumption: 687.8959920401262, efficiency: 0.10909897147748601, time: 21.789
+Task index: 1, Episode number 47, energy consumption: 683.7259703818289, efficiency: 0.08838163145011187, time: 1.696
+Task index: 2, Episode number 47, energy consumption: 684.6505026844349, efficiency: 0.13709587808092524, time: 1.791
+Task index: 0, Episode number 48, energy consumption: 662.81775935689, efficiency: 0.07936013148404933, time: 22.753
+Task index: 1, Episode number 48, energy consumption: 667.9392436916308, efficiency: 0.013671468841573603, time: 1.834
+Task index: 2, Episode number 48, energy consumption: 667.9613517436608, efficiency: 0.14390809457485046, time: 1.722
+Task index: 0, Episode number 49, energy consumption: 667.0095544172954, efficiency: 0.1664429666908818, time: 21.407
+Task index: 1, Episode number 49, energy consumption: 665.4252159192565, efficiency: 0.03871508020077479, time: 1.852
+Task index: 2, Episode number 49, energy consumption: 667.2578609400844, efficiency: 0.15436079681607612, time: 1.794
+Task index: 0, Episode number 50, energy consumption: 657.6430785110812, efficiency: 0.22714196705460488, time: 21.954
+steps: 25000.0, episodes: 50, mean episode reward: -1993.6854595134846, time: 253.124
+Task index: 1, Episode number 50, energy consumption: 656.0616635249672, efficiency: 0.4320024243230493, time: 4.198
+steps: 25000.0, episodes: 50, mean episode reward: -2369.2005480163716, time: 4.149
+Task index: 2, Episode number 50, energy consumption: 659.5306299770124, efficiency: 0.22266473210489274, time: 3.713
+steps: 25000.0, episodes: 50, mean episode reward: -1854.42034545791, time: 3.757
+Task index: 0, Episode number 51, energy consumption: 625.5636402393134, efficiency: 0.36617411999319965, time: 23.399
+Task index: 1, Episode number 51, energy consumption: 626.483413437964, efficiency: 0.0817546485506057, time: 1.727
+Task index: 2, Episode number 51, energy consumption: 625.9212592290551, efficiency: 0.24652622851092543, time: 1.913
+Task index: 0, Episode number 52, energy consumption: 578.3170945375208, efficiency: 0.2534204823007357, time: 21.666
+Task index: 1, Episode number 52, energy consumption: 581.3859350040761, efficiency: 0.1871126443752847, time: 1.742
+Task index: 2, Episode number 52, energy consumption: 582.8829279942956, efficiency: 0.4259854329444007, time: 1.721
+Task index: 0, Episode number 53, energy consumption: 561.4700668888614, efficiency: 0.5216724527601578, time: 22.02
+Task index: 1, Episode number 53, energy consumption: 561.0519058746801, efficiency: 0.3333097268817725, time: 1.79
+Task index: 2, Episode number 53, energy consumption: 562.192866037265, efficiency: 0.4600379622505282, time: 1.731
+Task index: 0, Episode number 54, energy consumption: 579.3443248671532, efficiency: 0.3154435853599765, time: 21.484
+Task index: 1, Episode number 54, energy consumption: 584.5161036358676, efficiency: 0.3844359047411593, time: 1.79
+Task index: 2, Episode number 54, energy consumption: 579.2041517240937, efficiency: 0.30863303874433173, time: 1.785
+Task index: 0, Episode number 55, energy consumption: 594.4592714985041, efficiency: 0.33484871938475985, time: 21.853
+Task index: 1, Episode number 55, energy consumption: 599.5853160982681, efficiency: 0.26365335259222333, time: 1.773
+Task index: 2, Episode number 55, energy consumption: 593.2080724721701, efficiency: 0.2921330026348562, time: 1.716
+Task index: 0, Episode number 56, energy consumption: 585.481789427112, efficiency: 0.32494015250032, time: 21.503
+Task index: 1, Episode number 56, energy consumption: 585.477656563647, efficiency: 0.4211908611251848, time: 2.231
+Task index: 2, Episode number 56, energy consumption: 585.2030103437706, efficiency: 0.3781629314115361, time: 2.077
+Task index: 0, Episode number 57, energy consumption: 587.8396741827388, efficiency: 0.3031893430576216, time: 25.073
+Task index: 1, Episode number 57, energy consumption: 583.4770014500579, efficiency: 0.26476111523519624, time: 1.984
+Task index: 2, Episode number 57, energy consumption: 583.7031134703374, efficiency: 0.30427112826589553, time: 1.981
+Task index: 0, Episode number 58, energy consumption: 604.9144423205197, efficiency: 0.1835847479012778, time: 24.11
+Task index: 1, Episode number 58, energy consumption: 608.4029023302193, efficiency: 0.31432098711963746, time: 1.813
+Task index: 2, Episode number 58, energy consumption: 613.916391551931, efficiency: 0.27361080053317755, time: 1.71
+Task index: 0, Episode number 59, energy consumption: 607.6491591465762, efficiency: 0.20106104724910306, time: 21.746
+Task index: 1, Episode number 59, energy consumption: 608.6612280392761, efficiency: 0.18657633551059447, time: 1.851
+Task index: 2, Episode number 59, energy consumption: 607.2362940529564, efficiency: 0.28897655602542677, time: 1.712
+Task index: 0, Episode number 60, energy consumption: 638.619428930557, efficiency: 0.212866051464496, time: 22.303
+steps: 30000.0, episodes: 60, mean episode reward: -1606.075944869583, time: 258.117
+Task index: 1, Episode number 60, energy consumption: 633.3318850707743, efficiency: 0.10262095308949602, time: 3.764
+steps: 30000.0, episodes: 60, mean episode reward: -1714.9527361167407, time: 3.838
+Task index: 2, Episode number 60, energy consumption: 626.389549520109, efficiency: 0.16846082083141814, time: 3.657
+steps: 30000.0, episodes: 60, mean episode reward: -1540.1184063019066, time: 3.58
+Task index: 0, Episode number 61, energy consumption: 656.0106439677182, efficiency: 0.2110983062397472, time: 23.982
+Task index: 1, Episode number 61, energy consumption: 646.9333639802178, efficiency: 0.11029790635634713, time: 1.76
+Task index: 2, Episode number 61, energy consumption: 647.2567776756046, efficiency: 0.24869605542799905, time: 2.277
+Task index: 0, Episode number 62, energy consumption: 641.3667016912291, efficiency: 0.16734875015870956, time: 23.505
+Task index: 1, Episode number 62, energy consumption: 638.3212057757192, efficiency: 0.23413673060538234, time: 1.729
+Task index: 2, Episode number 62, energy consumption: 637.5812011484259, efficiency: 0.30773439320438806, time: 1.692
+Task index: 0, Episode number 63, energy consumption: 633.0322546387447, efficiency: 0.2124427948782062, time: 21.926
+Task index: 1, Episode number 63, energy consumption: 641.1713014384902, efficiency: 0.2051600976019128, time: 1.739
+Task index: 2, Episode number 63, energy consumption: 635.1004486057171, efficiency: 0.21176975275734697, time: 1.71
+Task index: 0, Episode number 64, energy consumption: 613.4311508392667, efficiency: 0.23336254033478712, time: 22.011
+Task index: 1, Episode number 64, energy consumption: 608.2560959637073, efficiency: 0.19341872282251626, time: 1.776
+Task index: 2, Episode number 64, energy consumption: 615.0013721539099, efficiency: 0.23662533329760907, time: 1.741
+Task index: 0, Episode number 65, energy consumption: 600.6093334454353, efficiency: 0.3856991632129277, time: 21.947
+Task index: 1, Episode number 65, energy consumption: 608.0528630559446, efficiency: 0.19754255612459626, time: 1.705
+Task index: 2, Episode number 65, energy consumption: 603.1021590202389, efficiency: 0.25913976882495343, time: 1.753
+Task index: 0, Episode number 66, energy consumption: 603.8377974315798, efficiency: 0.3039496483042648, time: 22.374
+Task index: 1, Episode number 66, energy consumption: 607.117453856781, efficiency: 0.18007189094145729, time: 1.787
+Task index: 2, Episode number 66, energy consumption: 610.3189470041268, efficiency: 0.253676047680078, time: 1.819
+Task index: 0, Episode number 67, energy consumption: 611.9930480129332, efficiency: 0.18214522956236331, time: 21.695
+Task index: 1, Episode number 67, energy consumption: 609.1409769450473, efficiency: 0.28307948828586665, time: 1.738
+Task index: 2, Episode number 67, energy consumption: 606.992762388634, efficiency: 0.302615429652634, time: 1.728
+Task index: 0, Episode number 68, energy consumption: 606.6231622589388, efficiency: 0.19300165550152518, time: 22.317
+Task index: 1, Episode number 68, energy consumption: 611.7557756668549, efficiency: 0.2054473514187866, time: 1.737
+Task index: 2, Episode number 68, energy consumption: 613.7695044518638, efficiency: 0.2915284081827072, time: 1.784
+Task index: 0, Episode number 69, energy consumption: 610.6014706098382, efficiency: 0.2568816698743458, time: 21.755
+Task index: 1, Episode number 69, energy consumption: 615.0764056974054, efficiency: 0.10755090867871636, time: 2.249
+Task index: 2, Episode number 69, energy consumption: 614.7884564591209, efficiency: 0.09712240792632057, time: 1.79
+Task index: 0, Episode number 70, energy consumption: 619.9736895751463, efficiency: 0.11233891337856863, time: 22.037
+steps: 35000.0, episodes: 70, mean episode reward: -1619.9513668632842, time: 256.221
+Task index: 1, Episode number 70, energy consumption: 626.0038225828104, efficiency: 0.07254401002497665, time: 3.865
+steps: 35000.0, episodes: 70, mean episode reward: -1795.4081543946752, time: 3.748
+Task index: 2, Episode number 70, energy consumption: 621.7854195581423, efficiency: 0.30976341570525784, time: 3.802
+steps: 35000.0, episodes: 70, mean episode reward: -1714.3681107947984, time: 3.863
+Task index: 0, Episode number 71, energy consumption: 619.0500657870369, efficiency: 0.37316391771406393, time: 24.603
+Task index: 1, Episode number 71, energy consumption: 617.2176631311681, efficiency: 0.4981611901820426, time: 1.783
+Task index: 2, Episode number 71, energy consumption: 623.9501720790998, efficiency: 0.18399015913514158, time: 1.75
+Task index: 0, Episode number 72, energy consumption: 635.3713042543658, efficiency: 0.2101436723840443, time: 22.709
+Task index: 1, Episode number 72, energy consumption: 636.878575791509, efficiency: 0.33613263926304743, time: 1.754
+Task index: 2, Episode number 72, energy consumption: 634.6837020888224, efficiency: 0.11103133002245344, time: 1.792
+Task index: 0, Episode number 73, energy consumption: 644.6655943102701, efficiency: 0.17263988066877056, time: 21.617
+Task index: 1, Episode number 73, energy consumption: 631.011368137123, efficiency: 0.22770860239704158, time: 1.825
+Task index: 2, Episode number 73, energy consumption: 646.5144009354382, efficiency: 0.26686455370981416, time: 1.799
+Task index: 0, Episode number 74, energy consumption: 668.5774708062899, efficiency: 0.14459049652258296, time: 21.815
+Task index: 1, Episode number 74, energy consumption: 668.7024378199873, efficiency: 0.18304490236666437, time: 2.318
+Task index: 2, Episode number 74, energy consumption: 674.251691283285, efficiency: 0.2511294705225514, time: 1.781
+Task index: 0, Episode number 75, energy consumption: 647.6014875735776, efficiency: 0.1821179710015499, time: 22.199
+Task index: 1, Episode number 75, energy consumption: 648.7573878667478, efficiency: 0.15841801795700436, time: 1.785
+Task index: 2, Episode number 75, energy consumption: 642.3944774664116, efficiency: 0.2851848005201537, time: 1.714
+Task index: 0, Episode number 76, energy consumption: 635.2741252710231, efficiency: 0.41704611151404974, time: 22.044
+Task index: 1, Episode number 76, energy consumption: 636.9798701657361, efficiency: 0.3139915970997472, time: 1.787
+Task index: 2, Episode number 76, energy consumption: 633.7461070899354, efficiency: 0.3657377287281871, time: 1.745
+Task index: 0, Episode number 77, energy consumption: 649.0545974597821, efficiency: 0.22280441348780197, time: 21.796
+Task index: 1, Episode number 77, energy consumption: 654.1795160556136, efficiency: 0.09044478412689184, time: 1.767
+Task index: 2, Episode number 77, energy consumption: 647.7959658883069, efficiency: 0.2773051331796423, time: 1.716
+Task index: 0, Episode number 78, energy consumption: 668.2072701963992, efficiency: 0.16927574177887464, time: 21.97
+Task index: 1, Episode number 78, energy consumption: 670.6509293882135, efficiency: 0.2096048174787255, time: 1.771
+Task index: 2, Episode number 78, energy consumption: 673.1576904764121, efficiency: 0.213968646834674, time: 1.763
+Task index: 0, Episode number 79, energy consumption: 712.7979916915056, efficiency: 0.19800525900154436, time: 22.706
+Task index: 1, Episode number 79, energy consumption: 709.3407217726495, efficiency: 0.09985104485112092, time: 1.832
+Task index: 2, Episode number 79, energy consumption: 711.586288359022, efficiency: 0.16373832671256178, time: 1.803
+Task index: 0, Episode number 80, energy consumption: 692.5803798246143, efficiency: 0.10669033250537048, time: 22.557
+steps: 40000.0, episodes: 80, mean episode reward: -1942.69996571318, time: 256.496
+Task index: 1, Episode number 80, energy consumption: 684.0627261803594, efficiency: 0.08772819432515098, time: 3.764
+steps: 40000.0, episodes: 80, mean episode reward: -1969.3071178950747, time: 3.845
+Task index: 2, Episode number 80, energy consumption: 689.8256571080168, efficiency: 0.1318992066229355, time: 4.383
+steps: 40000.0, episodes: 80, mean episode reward: -1763.426856135836, time: 4.359
+Task index: 0, Episode number 81, energy consumption: 673.4031867440505, efficiency: 0.1422461919958429, time: 24.037
+Task index: 1, Episode number 81, energy consumption: 665.7253529014064, efficiency: 0.06585168232429364, time: 1.704
+Task index: 2, Episode number 81, energy consumption: 675.3493320473757, efficiency: 0.14100327769287213, time: 1.693
+Task index: 0, Episode number 82, energy consumption: 659.6731957349535, efficiency: 0.17865961475923764, time: 21.429
+Task index: 1, Episode number 82, energy consumption: 658.9373083855047, efficiency: 0.11004840067842098, time: 1.756
+Task index: 2, Episode number 82, energy consumption: 662.126716402632, efficiency: 0.13819991582577787, time: 1.755
+Task index: 0, Episode number 83, energy consumption: 629.3018770931467, efficiency: 0.23004955697077817, time: 21.993
+Task index: 1, Episode number 83, energy consumption: 629.6395993970866, efficiency: 0.16641253955717156, time: 1.647
+Task index: 2, Episode number 83, energy consumption: 629.2852465959867, efficiency: 0.2759044797730723, time: 1.68
+Task index: 0, Episode number 84, energy consumption: 636.6581003163851, efficiency: 0.09763150316115768, time: 22.592
+Task index: 1, Episode number 84, energy consumption: 632.5975926255513, efficiency: 0.09475134752477699, time: 1.732
+Task index: 2, Episode number 84, energy consumption: 636.9959782905912, efficiency: 0.19988712526386804, time: 1.744
+Task index: 0, Episode number 85, energy consumption: 612.7875068233155, efficiency: 0.2563121972336458, time: 22.006
+Task index: 1, Episode number 85, energy consumption: 608.5825780329827, efficiency: 0.19120274102987392, time: 1.809
+Task index: 2, Episode number 85, energy consumption: 611.4617489399503, efficiency: 0.3008601988657142, time: 1.76
+Task index: 0, Episode number 86, energy consumption: 618.5818321763509, efficiency: 0.1434140857897827, time: 22.065
+Task index: 1, Episode number 86, energy consumption: 621.1455653674572, efficiency: 0.24112354483500195, time: 1.745
+Task index: 2, Episode number 86, energy consumption: 622.0962518772409, efficiency: 0.24657769949492, time: 1.731
+Task index: 0, Episode number 87, energy consumption: 636.8367138013527, efficiency: 0.2100661061022139, time: 21.62
+Task index: 1, Episode number 87, energy consumption: 637.7115303586846, efficiency: 0.17747551809927656, time: 2.327
+Task index: 2, Episode number 87, energy consumption: 637.9663133342493, efficiency: 0.1412177678260365, time: 1.806
+Task index: 0, Episode number 88, energy consumption: 641.1821136332612, efficiency: 0.2388663410226793, time: 22.536
+Task index: 1, Episode number 88, energy consumption: 642.1467529834637, efficiency: 0.2465113381704317, time: 1.791
+Task index: 2, Episode number 88, energy consumption: 640.5463157326149, efficiency: 0.13584061878592898, time: 1.79
+Task index: 0, Episode number 89, energy consumption: 659.6799587518345, efficiency: 0.14868768894980633, time: 22.133
+Task index: 1, Episode number 89, energy consumption: 655.8236928768182, efficiency: 0.09062369578367681, time: 1.793
+Task index: 2, Episode number 89, energy consumption: 657.3998076766769, efficiency: 0.20366811903007445, time: 1.834
+Task index: 0, Episode number 90, energy consumption: 658.2903268934521, efficiency: 0.16340728040213595, time: 22.104
+steps: 45000.0, episodes: 90, mean episode reward: -2093.3095736268037, time: 254.608
+Task index: 1, Episode number 90, energy consumption: 659.2478737095671, efficiency: 0.12663590156650115, time: 3.746
+steps: 45000.0, episodes: 90, mean episode reward: -2164.5658398815312, time: 3.625
+Task index: 2, Episode number 90, energy consumption: 654.2610403117224, efficiency: 0.21071901902408707, time: 3.702
+steps: 45000.0, episodes: 90, mean episode reward: -1991.8795110134138, time: 3.79
+Task index: 0, Episode number 91, energy consumption: 649.2900185997122, efficiency: 0.09774399380102933, time: 24.967
+Task index: 1, Episode number 91, energy consumption: 646.8106441426006, efficiency: 0.11025007579054659, time: 1.722

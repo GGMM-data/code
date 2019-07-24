@@ -26,7 +26,7 @@ def parse_args():
     # shared lstm
     #parser.add_argument('--shared-lstm', action="store_true", default=False, help="shared lstm?")
     parser.add_argument('--shared-lstm', action="store_true", default=True, help="shared lstm?")
-    parser.add_argument('--history-length', type=int, default=5, help="how many history states were used")
+    parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
     # num of taskes
     parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
     # transfer

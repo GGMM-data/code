@@ -15,7 +15,7 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
     # multi thread
-    parser.add_argument("--mp", action="store_true", default=False, help="multiprocess test")
+    parser.add_argument("--mp", action="store_true", default=True, help="multiprocess test")
     parser.add_argument("--reward-type", type=int, default=2, help="different reward")
     parser.add_argument("--max-test-model-number", type=int, default=900, help="saved max episode number, used for test")
     parser.add_argument("--num-test-episodes", type=int, default=200, help="number of episodes")
@@ -39,14 +39,14 @@ def parse_args():
     parser.add_argument("--test-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
     # not train
-    parser.add_argument("--train", action="store_true", default=True)
-    #parser.add_argument("--train", action="store_true", default=False)
+    #parser.add_argument("--train", action="store_true", default=True)
+    parser.add_argument("--train", action="store_true", default=False)
     # transfer train
     #parser.add_argument("--transfer-train", action="store_true", default=True)
     parser.add_argument("--transfer-train", action="store_true", default=False)
     # train test
-    #parser.add_argument("--train-test", action="store_true", default=True)
-    parser.add_argument("--train-test", action="store_true", default=False)
+    parser.add_argument("--train-test", action="store_true", default=True)
+    #parser.add_argument("--train-test", action="store_true", default=False)
     # transfer test
     #parser.add_argument("--transfer-test", action="store_true", default=True)
     parser.add_argument("--transfer-test", action="store_true", default=False)
@@ -126,7 +126,7 @@ if __name__ == '__main__':
         if argslist.mp:
             train_multi_process_test(argslist)
         else:
-            train_test(argslist, 300)
+            train_test(argslist, int(300))
 
     # transfer test
     if argslist.transfer_test:

@@ -164,6 +164,7 @@ def make_session(num_cpu):
         device_count={"CPU": 4},
         inter_op_parallelism_threads=num_cpu,
         intra_op_parallelism_threads=num_cpu)
+    tf_config.gpu_options.allow_growth = True
     return tf.Session(config=tf_config)
 
 
