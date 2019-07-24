@@ -15,6 +15,7 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
     # multi thread
+    #parser.add_argument("--mp", action="store_true", default=False, help="multiprocess test")
     parser.add_argument("--mp", action="store_true", default=True, help="multiprocess test")
     parser.add_argument("--reward-type", type=int, default=2, help="different reward")
     parser.add_argument("--max-test-model-number", type=int, default=900, help="saved max episode number, used for test")
@@ -124,9 +125,11 @@ if __name__ == '__main__':
     if argslist.train_test:
         argslist.draw_picture_test = True
         if argslist.mp:
-            train_multi_process_test(argslist)
+            train_multi_process_test(argslist,
+                                     begin=argslist.num_train_episodes-10*argslist.save_rate,
+                                     end=argslist.num_train_episodes)
         else:
-            train_test(argslist, int(300))
+            train_test(argslist, int(300/argslist.save_rate))
 
     # transfer test
     if argslist.transfer_test:

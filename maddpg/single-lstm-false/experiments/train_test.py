@@ -43,7 +43,8 @@ def test(arglist, model_number):
         
         # 1.2 Initialize
         U.initialize()
-        
+
+        arglist.load_dir = arglist.save_dir
         model_name = arglist.load_dir.split('/')[-2] + '/'
         path = arglist.pictures_dir_train_test + model_name
         mkdir(path)
@@ -293,14 +294,20 @@ def multi_process_time_calculate(arglist):
     print("Done")
 
 
-def multi_process_test(arglist):
-    total_model_number = int(arglist.max_test_model_number / arglist.save_rate)
+def multi_process_test(arglist, begin=None, end=None):
+    if end is None:
+        end = arglist.max_test_model_number
+    if begin is None:
+        begin = arglist.save_rate
+
+    begin_model_number = int(begin / arglist.save_rate)
+    end_model_number = int(end / arglist.save_rate)
     # pool.apply_async, multithread
     begin_time = time.time()
     jobs = []
     # pool = mp.Pool(mp.cpu_count())
     pool = mp.Pool(4)
-    for model_number in range(1, total_model_number+1):
+    for model_number in range(begin_model_number, end_model_number+1):
         jobs.append(pool.apply_async(test, args=(arglist, model_number)))
     pool.close()
     pool.join()
