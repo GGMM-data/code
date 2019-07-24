@@ -36,7 +36,8 @@ def train(arglist):
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
-        actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, type=0, session=sess)
+        lstm_scope = "lstm"
+        actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, lstm_scope=lstm_scope, type=0, session=sess)
         
         # 1.2创建每个任务的actor trainer和critic trainer
         critic_list = []  # 所有任务critic的list
@@ -45,13 +46,13 @@ def train(arglist):
             list_of_taskenv.append(make_env(arglist.scenario, reward_type=arglist.reward_type))
             if arglist.shared_lstm:
                 critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                        obs_shape_n, arglist, lstm_scope="actor_", actors=actor_0, type=1, session=sess)
+                                        obs_shape_n, arglist, lstm_scope=lstm_scope, actors=actor_0, type=1, session=sess)
             else:
                 critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
                                         obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
 
             actor_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, actor_env_name="actor_", type=2, session=sess)
+                                    obs_shape_n, arglist, lstm_scope=lstm_scope, actor_env_name="actor_", type=2, session=sess)
             actor_list.append(actor_trainers)
             critic_list.append(critic_trainers)
 
@@ -175,29 +176,11 @@ def train(arglist):
                 for critic in current_critics:
                     critic.preupdate()
 
-                if multi_process:
-                    jobs = []
-                    # coord = tf.train.Coordinator()
-                    for critic in current_critics:
-                        #jobs.append(threading.Thread(target=critic.update, args=(current_critics, global_steps[task_index])))
-                        critic.update(current_critics, global_steps[task_index])
-                    # for j in jobs:
-                    #     j.start()
-                    # coord.join(jobs)
+                for critic in current_critics:
+                    critic.update(current_critics, global_steps[task_index])
 
-                    coord2 = tf.train.Coordinator()
-                    jobs2 = []
-                    for index, actor in enumerate(current_actors):
-                        jobs2.append(threading.Thread(target=actor.update, args=(current_actors, current_critics, global_steps[task_index], index,)))
-                    for j in jobs2:
-                        j.start()
-                    coord2.join(jobs2)
-                else:
-                    for critic in current_critics:
-                        critic.update(current_critics, global_steps[task_index])
-
-                    for index, actor in enumerate(current_actors):
-                        actor.update(current_actors, current_critics, global_steps[task_index], index)
+                for index, actor in enumerate(current_actors):
+                    actor.update(current_actors, current_critics, global_steps[task_index], index)
 
                 if debug:
                     print(time_end(begin, "update actor"))

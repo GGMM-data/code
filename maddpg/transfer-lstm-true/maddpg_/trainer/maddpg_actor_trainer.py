@@ -9,7 +9,7 @@ from maddpg_.common.ops import q_train, p_act, p_train
 
 class MADDPGAgentTrainer(AgentTrainer):
     def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, actor_env, args,
-                 local_q_func=False, session=None):
+                 local_q_func=False, session=None, lstm_scope=None):
         self.args = args
         self.name = name
         self.n = len(obs_shape_n)
@@ -32,6 +32,7 @@ class MADDPGAgentTrainer(AgentTrainer):
             p_func=model,
             q_func=model,
             lstm_model=lstm_model,
+            lstm_scope=lstm_scope,
             optimizer=optimizer,
             grad_norm_clipping=0.5,
             local_q_func=local_q_func,

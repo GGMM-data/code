@@ -43,8 +43,13 @@ def train(arglist):
         actor_list = []
         for i in range(num_tasks):
             list_of_taskenv.append(make_env(arglist.scenario, reward_type=arglist.reward_type))
-            critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
+            if arglist.shared_lstm:
+                critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
+                                        obs_shape_n, arglist, lstm_scope="actor_", actors=actor_0, type=1, session=sess)
+            else:
+                critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
+                                        obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
+
             actor_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
                                     obs_shape_n, arglist, actor_env_name="actor_", type=2, session=sess)
             actor_list.append(actor_trainers)

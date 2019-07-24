@@ -38,7 +38,8 @@ class MADDPGAgentTrainer(AgentTrainer):
             num_units=self.args.num_units,
             reuse=True,
             use_lstm=self.args.use_lstm,
-            session=session
+            session=session,
+            args=args
         )
 
         # Create experience buffer
