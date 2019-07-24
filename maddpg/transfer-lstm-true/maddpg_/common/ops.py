@@ -92,25 +92,28 @@ def q_train(make_obs_ph_n, act_space_n, q_index, q_func, lstm_model, optimizer, 
 
 # 创建p_func和lstm_func,target_p_func
 def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
-            num_units=64, scope="trainer", reuse=None, use_lstm=True, session=None):
+            num_units=64, scope="trainer", lstm_scope=None, reuse=None, use_lstm=True, session=None):
+    if lstm_scope is None:
+        lstm_scope = scope
     with tf.variable_scope(scope, reuse=reuse):
         # ============p network建图=================
-        # batch size的placeholder, []
-        # batch_size = tf.placeholder(tf.int32, shape=[], name="bs")
         # observation placeholder, list of [batch_size, dim, time_step]
         obs_ph_n = make_obs_ph_n
 
         # action distribution
         act_pdtype_n = [make_pdtype(act_space) for act_space in act_space_n]  # 创建action的分布用来采样
 
-        if use_lstm:
+    if use_lstm:
+        with tf.variable_scope(lstm_scope, reuse=tf.AUTO_REUSE):
             observation_n = lstm_model(obs_ph_n, reuse=reuse, scope="lstm")
-        else:
+    else:
+        with tf.variable_scope(scope, reuse=reuse):
             # observation_n = obs_ph_n
             observation_n = [tf.squeeze(o, 1) for o in obs_ph_n]
         # 当前智能体的局部obs, [batch_size, state_dim]
-        p_input = observation_n[p_index]
-        
+
+    p_input = observation_n[p_index]
+    with tf.variable_scope(scope, reuse=reuse):
         # 计算局部p值，最后用来产生action, [batch_size, action_dim]
         p = p_func(p_input, int(act_pdtype_n[p_index].param_shape()[0]), scope="p_func", num_units=num_units, reuse=reuse)
         # p_func_vars = U.scope_vars(U.absolute_scope_name("p_func"))
@@ -140,7 +143,7 @@ def p_act(make_obs_ph_n, act_space_n, p_index, p_func, lstm_model,
 
 # 优化actor用的是policy gradient,怎么用到critic,把所有任务的performance measure加起来？？？把scope传进来就ok了。
 def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_model, optimizer,
-            args, grad_norm_clipping=None, local_q_func=False, num_units=64, scope="trainer", reuse=None, use_lstm=True, session=None):
+            args, grad_norm_clipping=None, local_q_func=False, num_units=64, scope="trainer", reuse=None, use_lstm=True, session=None, lstm_scope=None):
     with tf.variable_scope(scope, reuse=reuse):
         # placeholder
         # action placeholder, list of [batch_size, action_dim]
@@ -151,7 +154,7 @@ def p_train(make_obs_ph_n, act_space_n, p_scope, p_index, p_func, q_func, lstm_m
         
     if use_lstm:
         if args.shared_lstm:
-            with tf.variable_scope(p_scope):
+            with tf.variable_scope(lstm_scope):
                 observation_n = lstm_model(obs_ph_n, reuse=True, scope="lstm")
                 lstm_vars = U.scope_vars(U.absolute_scope_name("lstm"))
         else:

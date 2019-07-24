@@ -67,11 +67,11 @@ def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, actors=No
         for i in range(num_adversaries):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
-                local_q_func=(arglist.adv_policy == 'ddpg'), reuse=reuse, session=session))
+                local_q_func=(arglist.adv_policy == 'ddpg'), lstm_scope=lstm_scope, reuse=reuse, session=session))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
-                local_q_func=(arglist.good_policy == 'ddpg'), reuse=reuse, session=session))
+                local_q_func=(arglist.good_policy == 'ddpg'), lstm_scope=lstm_scope, reuse=reuse, session=session))
     elif type == 1:
         trainer = CRITIC_TRAINER
         for i in range(num_adversaries):
@@ -88,12 +88,12 @@ def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, actors=No
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i,
                 actor_env_name + "agent_%d" % i, arglist,
-                local_q_func=(arglist.adv_policy == 'ddpg'), session=session))
+                local_q_func=(arglist.adv_policy == 'ddpg'), lstm_scope=lstm_scope, session=session))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
                 env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i,
                 actor_env_name + "agent_%d" % i, arglist,
-                local_q_func=(arglist.good_policy == 'ddpg'), session=session))
+                local_q_func=(arglist.good_policy == 'ddpg'), lstm_scope=lstm_scope, session=session))
     return trainers
 
 

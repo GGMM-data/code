@@ -31,7 +31,7 @@ def train(arglist):
             begin = time_begin()
         # 1.1创建每个任务的actor trainer和critic trainer
         env = make_env(arglist.scenario, reward_type=arglist.reward_type)
-        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
+        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_4.h5"))
         
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
@@ -43,8 +43,13 @@ def train(arglist):
         actor_list = []
         for i in range(num_tasks):
             list_of_taskenv.append(make_env(arglist.scenario, reward_type=arglist.reward_type))
-            critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
+            if arglist.shared_lstm:
+                critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
+                                        obs_shape_n, arglist, lstm_scope="actor_", actors=actor_0, type=1, session=sess)
+            else:
+                critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
+                                        obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
+
             actor_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
                                     obs_shape_n, arglist, actor_env_name="actor_", type=2, session=sess)
             actor_list.append(actor_trainers)
@@ -114,8 +119,7 @@ def train(arglist):
         obs_n_list = []
         for i in range(num_tasks):
             obs_n = list_of_taskenv[i].reset()
-            list_of_taskenv[i].set_map(
-                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i + 1) + ".h5"))
+            list_of_taskenv[i].set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_4.h5"))
             obs_n_list.append(obs_n)
                
         if debug:
@@ -287,8 +291,7 @@ def train(arglist):
             
                     # 重置局部变量
                     obs_n_list[task_index] = current_env.reset()  # 重置env
-                    current_env.set_map(
-                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(task_index + 1) + ".h5"))
+                    current_env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_4.h5"))
                     local_steps[task_index] = 0  # 重置局部计数器
             
                     # 更新全局变量
