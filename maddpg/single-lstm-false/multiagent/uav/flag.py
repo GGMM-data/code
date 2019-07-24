@@ -5,9 +5,9 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_integer('map_threshold', 100, 'max size of map')
-flags.DEFINE_integer('num_uav', 6, 'the number of UAVS')
+flags.DEFINE_integer('num_uav', 2, 'the number of UAVS')
 flags.DEFINE_integer('size_map', 10, 'the size of map')
-flags.DEFINE_float('radius', 3, 'sensing range')
+flags.DEFINE_float('radius', 1, 'sensing range')
 flags.DEFINE_float('constrain', 5., 'connectivity constraint between 2 uavs')
 flags.DEFINE_integer('max_epoch', 500, 'the max epoch')
 flags.DEFINE_float('max_speed', 1., 'max value of speed')

@@ -39,14 +39,14 @@ def parse_args():
     parser.add_argument("--test-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
     # not train
-    #parser.add_argument("--train", action="store_true", default=True)
-    parser.add_argument("--train", action="store_true", default=False)
+    parser.add_argument("--train", action="store_true", default=True)
+    #parser.add_argument("--train", action="store_true", default=False)
     # transfer train
     #parser.add_argument("--transfer-train", action="store_true", default=True)
     parser.add_argument("--transfer-train", action="store_true", default=False)
     # train test
-    parser.add_argument("--train-test", action="store_true", default=True)
-    #parser.add_argument("--train-test", action="store_true", default=False)
+    #parser.add_argument("--train-test", action="store_true", default=True)
+    parser.add_argument("--train-test", action="store_true", default=False)
     # transfer test
     #parser.add_argument("--transfer-test", action="store_true", default=True)
     parser.add_argument("--transfer-test", action="store_true", default=False)
