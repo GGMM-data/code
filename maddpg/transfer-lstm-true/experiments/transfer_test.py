@@ -43,7 +43,7 @@ def test(arglist, model_number):
         
         # 1.2 Initialize
         U.initialize()
-        
+        arglist.load_dir = arglist.transfer_save_dir
         model_name = arglist.load_dir.split('/')[-2] + '/'
         path = arglist.pictures_dir_transfer_test + model_name
         mkdir(path)
@@ -166,19 +166,10 @@ def test(arglist, model_number):
                         str(energy_efficiency[task_index][-1]),
                         str(round(episode_time, 3))))
                     current_path = os.path.join(path, "task_" + str(task_index))
-                    # plt.figure()
-                    # _, (ax1, ax2) = plt.subplots(figsize=(22, 10), ncols=2)
-                    # sns.heatmap(current_env.map, annot=True, ax=ax1)
-                    # ax1.set_xlabel("target coverage")
-                    # sns.heatmap(current_env.get_cover_matrix(), annot=True, ax=ax2)
-                    # ax2.set_xlabel("current coverage")
-                    # plt.savefig(os.path.join(current_path,
-                    #             "Model_" + str(model_number*arglist.save_rate) + "_Episode_" + str(episode_number) + "_coverage.png"))
-                    # plt.close()
                     # 绘制reward曲线)
                     if arglist.draw_picture_test:
                         file_path = os.path.join(current_path,
-                                                 "model_" + str(model_number * arglist.save_rate) + '_test.log')
+                                                 'test.log')
                         if episode_number == arglist.num_test_episodes:
                             report = '\nModel-' + str(model_number * arglist.save_rate) + \
                                      '-testing ' + str(arglist.num_test_episodes) + ' episodes\'s result:' \
@@ -208,22 +199,9 @@ def test(arglist, model_number):
                                                bl_jainindex,
                                                bl_loss,
                                                False)
-                        else:
-                            report = '\nOK===============report=====================\nModel-' \
-                                 + str(model_number * arglist.save_rate) + \
-                                 '-episode ' + str(episode_number) + ' result:' \
-                                 + '\n!!!Energy efficiency: ' \
-                                 + str(energy_efficiency[task_index][-1]) \
-                                 + '\nAverage attained coverage: ' \
-                                 + str(aver_cover[task_index][-1]) + \
-                                 '\nJaint\'s fairness index: ' \
-                                 + str(j_index[task_index][-1]) + \
-                                 '\nnormalized average energy consumptions: ' \
-                                 + str(energy_consumptions_for_test[task_index][-1]) \
-                                 + "\n"
 
-                        with open(file_path, 'a+') as file:
-                            file.write(report)
+                            with open(file_path, 'a+') as file:
+                                file.write(report)
 
                     # reset custom statistics variabl between episode and epoch------------------------------------
             
@@ -432,21 +410,8 @@ def random_maddpg_test(arglist):
                                                    bl_jainindex,
                                                    bl_loss,
                                                    False)
-                            else:
-                                report = '\nRandom maddpg Model-' \
-                                         + '-episode ' + str(episode_number) + ' result:' \
-                                         + '\n!!!Energy efficiency: ' \
-                                         + str(energy_efficiency[task_index][-1]) \
-                                         + '\nAverage attained coverage: ' \
-                                         + str(aver_cover[task_index][-1]) + \
-                                         '\nJaint\'s fairness index: ' \
-                                         + str(j_index[task_index][-1]) + \
-                                         '\nnormalized average energy consumptions: ' \
-                                         + str(energy_consumptions_for_test[task_index][-1]) \
-                                         + "\n"
-
-                            with open(file_path, 'a+') as file:
-                                file.write(report)
+                                with open(file_path, 'a+') as file:
+                                    file.write(report)
 
                         # reset custom statistics variabl between episode and epoch------------------------------------
 

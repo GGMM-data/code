@@ -22,8 +22,11 @@ def train(arglist, restore_model_number):
     num_tasks = arglist.num_task_transfer  # 总共有多少个任务
     list_of_taskenv = []  # env list
     save_path = arglist.save_dir
+    transfer_save_path = arglist.transfer_save_dir
     if not os.path.exists(save_path):
         os.makedirs(save_path)
+    if not os.path.exists(transfer_save_path):
+        os.makedirs(transfer_save_path)
 
     with U.single_threaded_session():
         sess = tf.get_default_session()
@@ -195,7 +198,7 @@ def train(arglist, restore_model_number):
         
                 episode_number = math.ceil(global_steps[task_index] / arglist.max_episode_len)
                 if done or terminal:
-                    model_name = save_path.split('/')[-2] + '/'
+                    model_name = transfer_save_path.split('/')[-2] + '/'
                     temp_efficiency = np.array(aver_cover_one_episode[task_index]) * np.array(
                         j_index_one_episode[task_index]) / np.array(energy_one_episode[task_index])
                     draw_util.draw_single_episode(
@@ -260,8 +263,8 @@ def train(arglist, restore_model_number):
                 # save model, display training output
                 if terminal and (episode_number % arglist.save_rate == 0):
                     # tf.get_default_session().run(global_steps_assign_op, feed_dict={global_steps_ph: global_steps})
-                    # save_dir_custom = os.path.join(save_path, str(episode_number), 'model.ckpt')
-                    # U.save_state(save_dir_custom, saver=saver)
+                    save_dir_custom = os.path.join(transfer_save_path, str(episode_number), 'model.ckpt')
+                    U.save_state(save_dir_custom, saver=saver)
                     # print statement depends on whether or not there are adversaries
                     # 最新save_rate个episode的平均reward
                     save_rate_mean_reward = np.mean(episodes_rewards[task_index][-arglist.save_rate:])

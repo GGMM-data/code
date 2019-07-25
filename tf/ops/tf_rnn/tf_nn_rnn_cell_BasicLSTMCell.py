@@ -12,17 +12,20 @@ def lstm(x):
     lstm_size = 64
     output_size = 10
 
-    # (batch_size, time_steps, lstm_size)
-    # (time_steps, batch_size, input_size)
+    # x的shape为(batch_size, time_steps, lstm_size)
+    # 对x进行transpose，x的shape变为(time_steps, batch_size, input_size)
     x = tf.transpose(x, (1, 0, 2))
-    # (time_steps * batch_size, lstm_size)
+    # lstm的输入需要是一个事件维度上的sequence，sequence中每一个element的shape都应该是(batch_size, input_size)
+    # (time_steps * batch_size, input_size)
     x = tf.reshape(x, (-1, input_size))
-    # [[batch_size, lstm_size],..., [batch_size, lstm_size]]
+    # 将x转换成一个sequence[[batch_size, input_size],..., [batch_size, input_size]]
     x = tf.split(x, time_steps, 0)
     # 创建一个LSTMCell
     lstm = rnn.BasicLSTMCell(lstm_size, forget_bias=1, state_is_tuple=True)
     zero_state = lstm.zero_state(batch_size, dtype=tf.float32)
+    # 使用static_rnn进行运算
     outputs, states = rnn.static_rnn(lstm, x, initial_state=zero_state, dtype=tf.float32)
+    # 输出结果
     outputs = tf.convert_to_tensor(outputs[-1])
     return tf.layers.dense(outputs, output_size, activation=tf.nn.relu, use_bias=True)
 

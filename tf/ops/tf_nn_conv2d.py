@@ -3,10 +3,24 @@ import matplotlib.pyplot as plt
 from skimage import data
 import numpy as np
 
+
+# API
+# tf.nn.conv2d(
+#   input,
+#   filter=None,
+#   strides=None,
+#   padding=None,
+#   use_cudnn_on_gpu=True,
+#   data_format='NHWC',
+#   dilations=[1, 1, 1, 1],
+#   name=None,
+#   filters=None
+#)
+
+# 0.定义计算图
 inputs = tf.placeholder(tf.float32, shape=[None, 512, 512, 3], name="inputs")
 filters = tf.get_variable("weigths", [3, 3, 3, 1])
 outputs = tf.nn.conv2d(inputs, filters, strides=[1, 1, 1, 1], padding='SAME')
-
 init_op = tf.global_variables_initializer()
 
 if __name__ == "__main__":
