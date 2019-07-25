@@ -15,8 +15,8 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
     # multi thread
-    parser.add_argument("--mp", action="store_true", default=False, help="multiprocess test")
-    parser.add_argument("--reward-type", type=int, default=2, help="different reward")
+    parser.add_argument("--mp", action="store_true", default=True, help="multiprocess test")
+    parser.add_argument("--reward-type", type=int, default=3, help="different reward")
     parser.add_argument("--max-test-model-number", type=int, default=900, help="saved max episode number, used for test")
     parser.add_argument("--num-test-episodes", type=int, default=200, help="number of episodes")
     parser.add_argument("--save-rate", type=int, default=10,
@@ -32,15 +32,15 @@ def parse_args():
     # transfer
     parser.add_argument("--num-task-transfer", type=int, default=1, help="number of tasks")
     # batch size 16
-    parser.add_argument("--batch-size", type=int, default=8, help="batch size")
+    parser.add_argument("--batch-size", type=int, default=16, help="batch size")
     # train data name
     parser.add_argument("--train-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
     parser.add_argument("--test-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
     # not train
-    parser.add_argument("--train", action="store_true", default=True)
-    #parser.add_argument("--train", action="store_true", default=False)
+    #parser.add_argument("--train", action="store_true", default=True)
+    parser.add_argument("--train", action="store_true", default=False)
     # transfer train
     #parser.add_argument("--transfer-train", action="store_true", default=True)
     parser.add_argument("--transfer-train", action="store_true", default=False)
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     for param in params:
         save_path = save_path + "_" + param + "_" + str(dict_arg[param])
     save_path += "_UAVnumber_" + str(FLAGS.num_uav) + "_size_map_" + str(FLAGS.size_map) + "_radius_" + str(FLAGS.radius)
-    argslist.save_dir = argslist.save_dir + save_path + "_debug2/"
+    argslist.save_dir = argslist.save_dir + save_path + "_debug/"
     print(argslist.save_dir)
     
     # train
@@ -124,9 +124,11 @@ if __name__ == '__main__':
     if argslist.train_test:
         argslist.draw_picture_test = True
         if argslist.mp:
-            train_multi_process_test(argslist)
+            train_multi_process_test(argslist,
+                                     begin=argslist.num_train_episodes-10*argslist.save_rate,
+                                     end=argslist.num_train_episodes)
         else:
-            train_test(argslist, 300)
+            train_test(argslist, int(300/argslist.save_rate))
 
     # transfer test
     if argslist.transfer_test:

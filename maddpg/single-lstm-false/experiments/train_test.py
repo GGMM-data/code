@@ -24,6 +24,7 @@ from experiments.uav_statistics import draw_util
 def test(arglist, model_number):
   debug = False
   num_tasks = arglist.num_task  # 总共有多少个任务
+  arglist.reward_type = 2
   list_of_taskenv = []  # env list
   graph = tf.Graph()
   with graph.as_default():
@@ -32,7 +33,7 @@ def test(arglist, model_number):
             begin = time_begin()
         # 1.1创建common actor
         env = make_env(arglist.scenario, reward_type=arglist.reward_type)
-        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
+        env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_4.h5"))
         # Create agent trainers
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
@@ -43,7 +44,8 @@ def test(arglist, model_number):
         
         # 1.2 Initialize
         U.initialize()
-        
+        if arglist.load_dir == "":
+            arglist.load_dir = arglist.save_dir
         model_name = arglist.load_dir.split('/')[-2] + '/'
         path = arglist.pictures_dir_train_test + model_name
         mkdir(path)
@@ -89,7 +91,7 @@ def test(arglist, model_number):
         obs_n_list = []
         for i in range(num_tasks):
             obs_n = list_of_taskenv[i].reset()
-            list_of_taskenv[i].set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i+1) + ".h5"))
+            list_of_taskenv[i].set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_4.h5"))
             obs_n_list.append(obs_n)
 
         # 3.4
@@ -168,19 +170,19 @@ def test(arglist, model_number):
                         str(current_env.get_energy_origin()),
                         str(energy_efficiency[task_index][-1]),
                         str(round(episode_time, 3))))
-                    plt.figure()
-                    _, (ax1, ax2) = plt.subplots(figsize=(22, 10), ncols=2)
-                    sns.heatmap(current_env.map, annot=True, ax=ax1)
-                    ax1.set_xlabel("target fair")
-                    sns.heatmap(current_env.get_fair_matrix(), annot=True, ax=ax2)
-                    ax2.set_xlabel("current fair")
-                    plt.savefig(os.path.join(current_path,
-                                "Model_" + str(model_number*arglist.save_rate) + "_Episode_" + str(episode_number) + "_fair.png"))
-                    plt.close()
+                    # plt.figure()
+                    # _, (ax1, ax2) = plt.subplots(figsize=(22, 10), ncols=2)
+                    # sns.heatmap(current_env.map, annot=True, ax=ax1)
+                    # ax1.set_xlabel("target fair")
+                    # sns.heatmap(current_env.get_fair_matrix(), annot=True, ax=ax2)
+                    # ax2.set_xlabel("current fair")
+                    # plt.savefig(os.path.join(current_path,
+                    #             "Model_" + str(model_number*arglist.save_rate) + "_Episode_" + str(episode_number) + "_fair.png"))
+                    # plt.close()
                     # 绘制reward曲线)
                     if arglist.draw_picture_test:
                         file_path = os.path.join(current_path,
-                                                 "model_" + str(model_number * arglist.save_rate) + '_test.log')
+                                                 'test.log')
                         if episode_number == arglist.num_test_episodes:
                             report = '\nModel-' + str(model_number * arglist.save_rate) + \
                                      '-testing ' + str(arglist.num_test_episodes) + ' episodes\'s result:' \
@@ -211,20 +213,8 @@ def test(arglist, model_number):
                                                bl_jainindex,
                                                bl_loss,
                                                False)
-                        else:
-                            report = '\nModel-' + str(model_number * arglist.save_rate) + \
-                                 '-episode ' + str(episode_number) + ' result:' \
-                                 + '\n!!!Energy efficiency: ' \
-                                 + str(energy_efficiency[task_index][-1]) \
-                                 + '\nAverage attained coverage: ' \
-                                 + str(aver_cover[task_index][-1]) + \
-                                 '\nJaint\'s fairness index: ' \
-                                 + str(j_index[task_index][-1]) + \
-                                 '\nnormalized average energy consumptions: ' \
-                                 + str(energy_consumptions_for_test[task_index][-1]) \
-                                 + "\n"
-                        with open(file_path, 'a+') as file:
-                            file.write(report)
+                            with open(file_path, 'a+') as file:
+                                file.write(report)
 
                     # reset custom statistics variabl between episode and epoch------------------------------------
             
@@ -243,7 +233,7 @@ def test(arglist, model_number):
                     # 重置局部变量
                     obs_n_list[task_index] = current_env.reset()  # 重置env
                     current_env.set_map(
-                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(task_index + 1) + ".h5"))
+                        sample_map(arglist.train_data_dir + arglist.train_data_name + "_4.h5"))
                     local_steps[task_index] = 0  # 重置局部计数器
             
                     # 更新全局变量
@@ -293,13 +283,19 @@ def multi_process_time_calculate(arglist):
     print("Done")
 
 
-def multi_process_test(arglist):
-    total_model_number = int(arglist.max_test_model_number / arglist.save_rate)
+def multi_process_test(arglist, begin=None, end=None):
+    if begin is None:
+        begin = arglist.save_rate
+    if end is None:
+        end = arglist.max_test_model_number
+    begin_model_number = int(begin/arglist.save_rate)
+    end_model_number = int(end/arglist.save_rate)
     # pool.apply_async, multithread
     begin_time = time.time()
     jobs = []
-    pool = mp.Pool(mp.cpu_count())
-    for model_number in range(1, total_model_number+1):
+    # pool = mp.Pool(mp.cpu_count())
+    pool = mp.Pool(5)
+    for model_number in range(begin_model_number, end_model_number+1):
         jobs.append(pool.apply_async(test, args=(arglist, model_number)))
     pool.close()
     pool.join()

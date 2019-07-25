@@ -50,7 +50,7 @@ def p_train(make_obs_ph_n, act_space_n, p_index, p_func, q_func, optimizer, grad
         q_input = tf.concat(obs_ph_n + act_input_n, 1)
         if local_q_func:
             q_input = tf.concat([obs_ph_n[p_index], act_input_n[p_index]], 1)
-        q = q_func(q_input, 1, scope="q_func", reuse=True, num_units=num_units)[:,0]
+        q = q_func(q_input, 1, scope="q_func", reuse=True, num_units=num_units)[:, 0]
         pg_loss = -tf.reduce_mean(q)
 
         loss = pg_loss + p_reg * 1e-3

@@ -17,7 +17,7 @@ def parse_args():
     # multi thread
     parser.add_argument("--mp", action="store_true", default=True, help="multiprocess test")
     parser.add_argument("--reward-type", type=int, default=2, help="different reward")
-    parser.add_argument("--max-test-model-number", type=int, default=420, help="saved max episode number, used for test")
+    parser.add_argument("--max-test-model-number", type=int, default=200, help="saved max episode number, used for test")
     parser.add_argument("--num-test-episodes", type=int, default=50, help="number of episodes")
     parser.add_argument("--save-rate", type=int, default=10,
                         help="save model once every time this many episodes are completed")
@@ -26,7 +26,7 @@ def parse_args():
     # shared lstm
     #parser.add_argument('--shared-lstm', action="store_true", default=False, help="shared lstm?")
     parser.add_argument('--shared-lstm', action="store_true", default=True, help="shared lstm?")
-    parser.add_argument('--history-length', type=int, default=5, help="how many history states were used")
+    parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
     # num of taskes
     parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
     # transfer
@@ -63,6 +63,8 @@ def parse_args():
     parser.add_argument("--gamma", type=float, default=0.83, help="discount factor")
     parser.add_argument("--num-units", type=int, default=160, help="number of units in the mlp")
     parser.add_argument("--save-dir", type=str, default="../checkpoints/",
+                        help="directory in which models are saved")
+    parser.add_argument("--transfer-save-dir", type=str, default="../transfer_checkpoints/",
                         help="directory in which models are saved")
     parser.add_argument("--load-dir", type=str, default="", help="directory in which training state and model are loaded")
     
@@ -134,5 +136,5 @@ if __name__ == '__main__':
         if argslist.mp:
             transfer_multi_process_test(argslist)
         else:
-            random_maddpg_test(argslist)
+            # random_maddpg_test(argslist)
             transfer_test(argslist, 300)
