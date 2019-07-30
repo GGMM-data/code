@@ -1,44 +1,54 @@
 set expandtab
 set tabstop=4
 set shiftwidth=4
-set softtabstop=4	
-			
+set softtabstop=4           
+"set paste
+"set autoindent
+    
 " 打开文件类型检测
 filetype on
 " 根据不同的文件类型加载插件
 filetype plugin on
 set ignorecase
-
-" 定义前缀键
-" let mappleader=";"
-
-" 设置复制和粘贴到系统粘贴板的快捷键
+    
+" 设置ctrl+a全选，ctrl+c复制，;y粘贴
 vnoremap ; "+
 nnoremap ; "+
 nmap ;p "+p
 nnoremap <C-C> "+y
 vnoremap <C-C> "+y
+nnoremap <C-A> ggVG
+vnoremap <C-A> ggVG
 
 " 删除#号开头
-nnoremap ;d3 :g/^#.*$/d<CR>
-nnoremap ;d# :g/^#.*$/d<CR>
+nnoremap ;r3 :g/^#.*$/d<CR>
+nnoremap ;r# :g/^#.*$/d<CR>
 " 删除空行
-nnoremap ;ds :g/^\s*$/d<CR>
+nnoremap ;rs :g/^\s*$/d<CR>
 " 删除以tab开头的tab
 nnoremap ;rt :0,$s/^\t//g<CR>
 " 用\^代替^
 nnoremap ;r6 :0,$s/\^/\\^/g<CR>
 nnoremap ;r^ :0,$s/\^/\\^/g<CR>
-"
 nnoremap ;r/ :0,$s/\\\\/\\\\\\\\/g<CR>
 nnoremap ;r? :0,$s/\\\\/\\\\\\\\/g<CR>
 
-" 给选中行加注释
+" 给选中行加注释和取消注释
 " cnoremap <C-#> s/^/# /g<CR>
 nmap ;ic :s/^/# /g<CR>
 vmap ;ic :s/^/# /g<CR>
 nmap ;rc :s/^# //g<CR>
 vmap ;rc :s/^# //g<CR>
+
+" 给选中行加注释
+" cnoremap <C-#> s/^/# /g<CR>
+nmap ;il :s/^/- /g<CR>
+vmap ;il :s/^/- /g<CR>
+nmap ;rl :s/^- //g<CR>
+vmap ;rl :s/^- //g<CR>
+
+
+
 "vmap <C-#> :s/^/#/g<CR>
 "nmap <C-#> :s/^/#/g<CR>
 
@@ -51,6 +61,7 @@ set statusline=%f%m%r%h%w\ %=#%n\ [%{&fileformat}:%{(&fenc==\"\"?&enc:&fenc).((e
 """光标设置
 " 设置显示光标当前位置
 set ruler
+
 
 " 开启行号显示
 set number
@@ -65,10 +76,7 @@ set hlsearch
 syntax enable
 " 允许用指定语法高亮配色方案替换默认方案
 syntax on
-" 将制表符扩展为空格
-" 设置编辑时制表符占用空格数
-" 设置格式化时制表符占用空格数
-" 让 vim 把连续数量的空格视为一个制表符
-set autoindent
-set paste	
 
+if has("autocmd")
+  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
+endif
