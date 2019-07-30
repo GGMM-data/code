@@ -18,3 +18,7 @@ sudo ubuntu-drivers autoinstall
 sudo apt update
 sudo apt -y upgrade
 
+ssh-keygen -t rsa -C "mxxhcm@gmail.com"
+git config  --gloabl user.name  mxxhcm
+git config  --gloabl user.email mxxhcm@gmailc.om
+
