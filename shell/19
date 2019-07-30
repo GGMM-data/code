@@ -1,7 +1,7 @@
 sudo apt update
 sudo apt -y upgrade
 sudo apt install -y make vim-gtk3 gcc g++ gcc-6 g++-6 vsftpd ssh net-tools
-sudo apt install -y git fcitx ssh sshpass net-tools shadowsocks 
+sudo apt install -y git fcitx ssh sshpass net-tools shadowsocks privoxy
 sudo apt install -y gnome-tweak-tool gnome-shell-extensions chrome-gnome-shell
 sudo apt install -y python-pip python3-pip python3-tk shadowsocks
 sudo apt install -y curl aptitude gparted nodejs npm
