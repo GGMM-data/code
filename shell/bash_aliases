@@ -9,10 +9,11 @@ alias rl-dir='~/mxxhcm/code/rl'
 alias tf-dir='~/mxxhcm/code/tf'
 alias ops-dir='~/mxxhcm/code/tf/ops'
 alias tools-dir='~/mxxhcm/code/tools'
-alias json-dir='~/mxxhcm/code/tools/json/'
-alias regex-dir='~/mxxhcm/code/tools/regex/'
-alias matplotlib-dir='~/mxxhcm/code/tools/matplotlib/'
-alias numpy-dir='~/mxxhcm/code/tools/numpy/'
+alias json-dir='~/mxxhcm/code/tools/py_json/'
+alias regex-dir='~/mxxhcm/code/tools/py_regex/'
+alias matplotlib-dir='~/mxxhcm/code/tools/py_matplotlib/'
+alias numpy-dir='~/mxxhcm/code/tools/py_numpy/'
+alias gym-dir='~/mxxhcm/code/tools/py_gym/'
 
 # cd dir
 alias github='cd ~/github/'
@@ -31,10 +32,15 @@ alias regex='cd ~/mxxhcm/code/tools/py_regex'
 alias json='cd ~/mxxhcm/code/tools/py_json'
 alias matplotlib='cd ~/mxxhcm/code/tools/py_matplotlib/'
 alias numpy='cd ~/mxxhcm/code/tools/py_numpy/'
-alias maddpg-infocom='cd ~/mxxhcm/code/maddpg/LSTM_MADDPG_TF/experiments'
+alias gym='cd ~/mxxhcm/code/tools/py_gym/'
+
+alias maddpg-='cd ~/mxxhcm/code/maddpg/'
+alias maddpg-infocom='cd ~/mxxhcm/code/maddpg/maddpg-lstm-transfer/experiments'
 alias maddpg-optimize-tmc='cd ~/mxxhcm/code/maddpg/maddpg-tmc-optimize/experiments'
+alias maddpg-tmc-transfer='cd ~/mxxhcm/code/maddpg/maddpg-tmc-transfer/experiments'
 alias maddpg-tmc='cd ~/mxxhcm/code/maddpg/maddpg-tmc/experiments'
-alias maddpg-lstm='cd ~/mxxhcm/code/maddpg/maddpg-lstm/experiments'
+alias maddpg-lstm='cd ~/mxxhcm/code/maddpg/sep-transfer-cov-lstm/experiments'
+alias maddpg-transfer='cd ~/mxxhcm/code/maddpg/sep-transfer-cov/experiments'
 
 # others
 alias update='hexo g -d'
@@ -64,8 +70,3 @@ alias ssr6='nohup sslocal -c /etc/shadowsocks_v6_client.json </dev/null &>>~/.lo
 alias tensorboard='tensorboard --logdir '
 alias tunnel='autossh -N -f -R "*:1319:127.0.0.1:22" root@$vultr_ip'
 
-function ssh_alias() {
-    ssh $@;
-    setterm -default -clear rest;
-}
-alias ssh=ssh_alias

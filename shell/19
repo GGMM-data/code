@@ -3,9 +3,9 @@ sudo apt -y upgrade
 sudo apt install -y make vim-gtk3 gcc g++ gcc-6 g++-6 vsftpd ssh net-tools
 sudo apt install -y git fcitx ssh net-tools shadowsocks 
 sudo apt install -y gnome-tweak-tool gnome-shell-extensions chrome-gnome-shell
+sudo apt install -y python-pip python3-pip python3-tk shadowsocks
 sudo apt install -y curl aptitude gparted nodejs npm
 sudo npm install -g hexo-cli
-sudo apt install -y python-pip python3-pip python3-tk shadowsocks
 
 sudo add-apt-repository ppa:graphicsw-drivers/ppa
 sudo apt update
@@ -19,5 +19,5 @@ pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 sudo pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple matplotlib gym gym[atari] tensorflow==1.8.0 tqdm
 
 ssh-keygen -t rsa -C "mxxhcm@gmail.com"
-git config  --gloabl user.name  mxxhcm
-git config  --gloabl user.email mxxhcm@gmailc.om
+git config  --global user.name  mxxhcm
+git config  --global user.email mxxhcm@gmailc.om
