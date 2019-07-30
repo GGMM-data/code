@@ -25,3 +25,4 @@ while flag:
         break
 
 # plt.show() 
+plt.close()

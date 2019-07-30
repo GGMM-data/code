@@ -12,7 +12,7 @@ values[0] = 0.0
 values[len(states)-1] = 1.0
 
 
-def mc(v, alpha=0.1):
+def mc(v, alpha=0.1, batch=False):
     terminal = False
     state = 3
     trajectory = [state]
@@ -27,13 +27,14 @@ def mc(v, alpha=0.1):
             if next_state == states[-1]:
                 returns = 1.0
             break
-    for state in trajectory:
-        v[state] = v[state] + alpha * (returns - v[state]) #在这个问题中，所有state的retrun都是一样的
+    if not batch:
+        for state in trajectory:
+            v[state] = v[state] + alpha * (returns - v[state]) #在这个问题中，所有state的retrun都是一样的
     return trajectory, [returns]*(len(trajectory) - 1)
     
 
 # 这里的经验，把reward全部设为0，然后state value，右边设置为1
-def td(v, alpha=0.1):
+def td(v, alpha=0.1, batch=False):
     state = 3
     trajectory = [state]
     rewards = [0.0]
@@ -64,7 +65,7 @@ def compute_state_value():
     plt.xlabel('state')
     plt.ylabel("estimated value")
     plt.legend()
-    plt.savefig("example_6_2_td")
+    plt.savefig("./images/example_6_2_td")
 
 
 def rmse():
@@ -97,9 +98,60 @@ def rmse():
     plt.xlabel("episodes")
     plt.ylabel("RMSE")
     plt.legend()
-    plt.savefig("example_6_2_RMSE")
+    plt.savefig("./images/example_6_2_RMSE")
 
 
-if __name__ == "__main__":
+def batch_updating(method, episodes, alpha=0.001):
+    runs = 100
+    total_errors = np.zeros(episodes)
+    for r in tqdm(range(runs)):
+        current_values = np.copy(values)
+        trajectories = []
+        rewards = []
+        errors = []
+        for _ in range(episodes):
+            if method == "TD":
+                trajectory, reward = td(current_values, alpha, True)
+            elif method == "MC":
+                trajectory, reward = mc(current_values, alpha, True)
+
+            trajectories.append(trajectory)
+            rewards.append(reward)
+            
+            while True:
+                updates = np.zeros(7)
+                for tra, r in zip(trajectories, rewards):
+                    for i in range(0, len(tra) - 1):
+                        if method == "TD":
+                            updates[tra[i]] += r[i] + current_values[tra[i+1]] - current_values[tra[i]]
+                        elif method == "MC":
+                            updates[tra[i]] += r[i] - current_values[tra[i]]
+                updates*= alpha
+                if np.sum(np.abs(updates)) < 1e-3:
+                    break
+                current_values += updates
+            errors.append(np.sqrt(np.sum(np.square(current_values - true_values))/5.0))
+        total_errors += np.asarray(errors)
+    total_errors /= runs
+    return total_errors
+        
+
+def example_6_2():
     compute_state_value()
     rmse()
+
+
+def figure_6_2():
+    episodes = 100
+    td_errors = batch_updating("TD", episodes+1)
+    mc_errors = batch_updating("MC", episodes+1)
+    plt.figure()
+    plt.plot(range(episodes+1), td_errors, label="td")
+    plt.plot(range(episodes+1), mc_errors, label="mc")
+    plt.savefig("./images/fig_6_2.png")
+    plt.close()
+    
+
+if __name__ == "__main__":
+    #example_6_2()
+    figure_6_2()

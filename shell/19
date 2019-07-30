@@ -1,4 +1,4 @@
-sudo apt install -y make vim-gtk3 gcc g++ gcc-6 g++-6
+sudo apt install -y make vim-gtk3 gcc g++ gcc-6 g++-6 vsftpd
 sudo apt install -y python-pip python3-pip python3-tk shadowsocks
 sudo apt install -y git fcitx ssh net-tools gparted shadowsocks curl aptitude
 sudo apt install -y nodejs npm
