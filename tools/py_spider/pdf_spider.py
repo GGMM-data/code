@@ -189,7 +189,7 @@ def begin():
                 print("Error: ", e)
                 log_times -= 1
                 print("Login failed, try again.")
-                if log_times == 0 :
+                if log_times == 0:
                     print("Login error, wait some minutes and then try again.")
                     return None
 
