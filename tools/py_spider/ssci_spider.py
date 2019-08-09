@@ -18,7 +18,7 @@ def get_driver():
 	options.add_argument("disable-infobars")  # 关闭'chrome正受到自动测试软件的控制'提示
 	driver = webdriver.Chrome(options=options)
 	driver.maximize_window()
-	driver.implicitly_wait(10)
+	driver.implicitly_wait(20)
 	return driver
 
 
@@ -74,8 +74,9 @@ def download(theme):
 	
 	# 6.记录每一页搜索结果
 	print(theme)
-	f = open(theme, "w+")
+	f = open(theme, "a+")
 	for page in tqdm(range(1, int(pagecount))):
+		print(page)
 		page_button = driver.find_element_by_xpath("//input[@type='text'][@name='page']")
 		page_button.clear()
 		page_button.send_keys(str(page)+"\n")
@@ -90,8 +91,8 @@ def download(theme):
 
 if __name__ == "__main__":
 	#themes = ["agro*", "fertilizer", "pesticide", "crop", "poverty, Hunger",
-	#	"urbanization", "urban-rural", "peasant",]
-	themes = ["farmer", "township enterprises", "peasant", "Agri*", "rural", "land", "food"]
+	#	"urbanization", "urban-rural", "township enterprises", "Agri*"]
+	themes = ["peasant", "rural", "land", "food", "farmer"]
 
 	for t in themes:
 		download(t)
