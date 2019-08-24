@@ -23,6 +23,7 @@ def parse_args():
                         help="save model once every time this many episodes are completed")
     # use lstm
     parser.add_argument('--use-lstm', action="store_true", default=True, help="use lstm?")
+
     # shared lstm
     #parser.add_argument('--shared-lstm', action="store_true", default=False, help="shared lstm?")
     parser.add_argument('--shared-lstm', action="store_true", default=True, help="shared lstm?")
@@ -81,17 +82,12 @@ def parse_args():
                         help="directory where result pictures data is saved")
     parser.add_argument("--pictures-dir-transfer-test", type=str, default="../result_pictures/transfer_test/",
                         help="directory where result pictures data is saved")
-
     parser.add_argument("--scenario", type=str, default="simple_uav", help="name of the scenario script")
 
-    #
     # Evaluation
     parser.add_argument("--transfer-restore", action="store_true", default=True)
     parser.add_argument("--restore", action="store_true", default=False)
     parser.add_argument("--display", action="store_true", default=False)
-    parser.add_argument("--benchmark", action="store_true", default=False)
-    parser.add_argument("--benchmark-iters", type=int, default=100000, help="number of iterations run for benchmarking")
-    parser.add_argument("--benchmark-dir", type=str, default="../benchmark_files/", help="directory where benchmark data is saved")
     parser.add_argument("--exp-name", type=str, default="simple_uav", help="name of the experiment")
     parser.add_argument("--num-adversaries", type=int, default=0, help="number of adversaries")
     parser.add_argument("--good-policy", type=str, default="maddpg", help="policy for good agents")

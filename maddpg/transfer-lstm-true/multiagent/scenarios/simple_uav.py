@@ -30,7 +30,7 @@ class Scenario(BaseScenario):
             agent.color = np.array([0.35, 0.35, 0.85])
         # set random initial states
         for agent in world.agents:
-            agent.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
+            agent.state.p_pos = np.random.uniform(0, 2, world.dim_p)
             agent.state.p_vel = np.zeros(world.dim_p)
             agent.state.c = np.zeros(world.dim_c)
 
@@ -94,22 +94,28 @@ class Scenario(BaseScenario):
         _j = x
         return matrix[_i][_j]
 
-    def observation(self, agents, world, poi, m):
-        loc = poi / FLAGS.map_scale_rate
-        env_information = np.concatenate((loc, np.reshape(m, (FLAGS.size_map*FLAGS.size_map, 1))), 1)
-        env_list = env_information.tolist()
-        comm = []
-        pos = []
-        obs_n = []
-        for agent in agents:
-            comm.append(agent.state.c)
-            pos.append(agent.state.p_pos)
-        pos_array = np.asarray(pos)
-        info = np.concatenate(env_list)
-        info_list = info.tolist()
-        for i, agent in enumerate(agents):
-            pos = pos_array - pos_array[i]
-            pos[i] = agent.state.p_pos
-            obs_n.append(np.concatenate([agent.state.p_vel]+pos.tolist()+[info_list]+comm))
-        
-        return obs_n
+    def observation(self, m, map, agents_positions, map_size):
+        # channel 1: m
+        # channel 2: map
+        # channel 3: uav pos
+        # map
+        positions = np.zeros((map_size, map_size, 1))
+        for pos_x, pos_y in agents_positions:
+            positions[int(np.floor(pos_x))][int(np.floor(pos_y))][0] += 1
+        obs = np.concatenate((np.expand_dims(map, 2), np.expand_dims(m, 2), positions), 2)
+        # env_information = np.concatenate((loc, np.reshape(m, (FLAGS.size_map*FLAGS.size_map, 1))), 1)
+        # env_list = env_information.tolist()
+        # comm = []
+        # pos = []
+        # obs_n = []
+        # for agent in agents:
+        #     comm.append(agent.state.c)
+        #     pos.append(agent.state.p_pos)
+        # pos_array = np.asarray(pos)
+        # info = np.concatenate(env_list)
+        # info_list = info.tolist()
+        # for i, agent in enumerate(agents):
+        #     pos = pos_array - pos_array[i]
+        #     pos[i] = agent.state.p_pos
+        #     obs_n.append(np.concatenate([agent.state.p_vel]+pos.tolist()+[info_list]+comm))
+        return obs

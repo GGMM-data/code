@@ -11,17 +11,16 @@ from maddpg_.common.ops import p_train, p_act
 
 
 class MADDPGAgentTrainer(AgentTrainer):
-    def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, args, local_q_func=False, 
-                 reuse=False, session=None, lstm_scope=None):
+    def __init__(self, name, model, lstm_model, cnn_model, obs_shape_n, act_space_n, agent_index, args,
+                 local_q_func=False, reuse=False, session=None, lstm_scope=None):
         self.args = args
         self.name = name
         self.n = len(obs_shape_n)
         self.agent_index = agent_index
         
         obs_ph_n = []
-        for i in range(self.n):
-            obs_shape = [args.history_length] + list(obs_shape_n[i])
-            obs_ph_n.append(U.BatchInput((obs_shape), name="observation"+str(i)).get())
+        obs_shape = [args.history_length] + list(obs_shape_n)
+        obs_ph_n.append(U.BatchInput((obs_shape), name="observation"+str(i)).get())
         
         self.local_q_func = local_q_func
         self.act, self.p_debug = p_act(
@@ -30,6 +29,7 @@ class MADDPGAgentTrainer(AgentTrainer):
             act_space_n=act_space_n,
             p_index=self.agent_index,
             p_func=model,
+            cnn_model=cnn_model,
             lstm_model=lstm_model,
             lstm_scope=lstm_scope,
             num_units=self.args.num_units,
