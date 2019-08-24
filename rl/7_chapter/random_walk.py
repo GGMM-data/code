@@ -6,6 +6,7 @@ class N_step_TD(object):
     def __init__(self):
         self.states = np.arange(21)
         self.ACTIONS = [-1, 1]
+<<<<<<< HEAD
         self.start_state = 10
         self.terminal_states = [0, 20]
         self.true_values = np.arange(-20, 22, 2) / 20.0
@@ -44,6 +45,28 @@ class N_step_TD(object):
                 reward_list.append(reward)
                 if next_state in self.terminal_states:
                     T = time
+=======
+<<<<<<< HEAD
+        self.start_state = len(self.states)/2
+        self.terminal_state = [0, 20]
+
+    def policy(self, state):
+        action = np.random.binomial(1, )
+        return action
+        
+        
+    def learn(self, n, alpha, q)
+        state = self.start_state
+        while True:
+            action = self.policy(state)
+            next_state, reward = self.step(action)
+            
+=======
+        
+    def learn(self, n, alpha, q):
+>>>>>>> 1873e712087954d0cb26c7fcb03cfbd040f5f93e
+        
+>>>>>>> 133ca25413140ff353276beeaa2e6cf0000e496b
 
             update_time = time - n
             # update
@@ -64,6 +87,7 @@ class N_step_TD(object):
     def mean_q(self, n, alpha):
         runs = 100
         episodes = 10
+<<<<<<< HEAD
 
         q_values = np.zeros((runs, episodes))
         for r in tqdm(range(runs)):
@@ -89,6 +113,21 @@ class N_step_TD(object):
         plt.savefig("figure_7_2.png")
         plt.show()
 
+=======
+        q_values = np.zeros((len(self.states), len(self.ACTIONS)))
+        for r in range(runs):
+<<<<<<< HEAD
+            self.q_values = np.ones((len(self.states), len(self.ACTIONS)))
+            for e in range(episodes):
+                self.learn(n, alpha, q)
+=======
+            current_q = np.copy(q_values)
+            for e in range(episodes):
+                self.learn(r, n, alpha, current_q)
+            
+            
+>>>>>>> 1873e712087954d0cb26c7fcb03cfbd040f5f93e
+>>>>>>> 133ca25413140ff353276beeaa2e6cf0000e496b
 
 if __name__ == "__main__":
     n_step_td = N_step_TD()
