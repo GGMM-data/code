@@ -37,7 +37,8 @@ def train(arglist):
         obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
         lstm_scope = "lstm"
-        actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, lstm_scope=lstm_scope, type=0, session=sess)
+        cnn_scope = "cnn"
+        actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, lstm_scope=lstm_scope, agent_type=0, session=sess)
         
         # 1.2创建每个任务的actor trainer和critic trainer
         critic_list = []  # 所有任务critic的list
@@ -46,13 +47,13 @@ def train(arglist):
             list_of_taskenv.append(make_env(arglist.scenario, reward_type=arglist.reward_type))
             if arglist.shared_lstm:
                 critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                        obs_shape_n, arglist, lstm_scope=lstm_scope, actors=actor_0, type=1, session=sess)
+                                        obs_shape_n, arglist, lstm_scope=lstm_scope, actors=actor_0, agent_type=1, session=sess)
             else:
                 critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                        obs_shape_n, arglist, actors=actor_0, type=1, session=sess)
+                                        obs_shape_n, arglist, actors=actor_0, agent_type=1, session=sess)
 
             actor_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, lstm_scope=lstm_scope, actor_env_name="actor_", type=2, session=sess)
+                                    obs_shape_n, arglist, lstm_scope=lstm_scope, actor_env_name="actor_", agent_type=2, session=sess)
             actor_list.append(actor_trainers)
             critic_list.append(critic_trainers)
 
@@ -247,13 +248,7 @@ def train(arglist):
                                str(energy_efficiency[task_index][-1]), str(round(episode_time, 3)))
                         f.write(info+"\n")
                     print(info)
-                    # print('Task %d, Episode: %d - energy_consumptions: %s, efficiency: %s, time %s' % (
-                    #     task_index,
-                    #     episode_number,
-                    #     str(current_env.get_energy_origin()),
-                    #     str(energy_efficiency[task_index][-1]),
-                    #     str(round(episode_time, 3))))
-                    
+
                     # 绘制reward曲线
                     efficiency_s = tf.get_default_session().run(efficiency_summary_list[task_index],
                                                                 feed_dict={efficiency_list[task_index]:

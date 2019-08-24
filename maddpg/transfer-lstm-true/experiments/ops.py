@@ -29,17 +29,6 @@ def sample_map(path, random=False):
         map = np.sum(data[index, :map_size, :map_size], 2)
     return map
 
-
-def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=None):
-    # This model takes as input an observation and returns values of all actions
-    with tf.variable_scope(scope, reuse=reuse):
-        out = input
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
-        out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
-        return out
-
-
 def make_env(scenario_name, benchmark=False, reward_type=0):
     from multiagent.environment_uav import MultiAgentEnv
     import multiagent.scenarios as scenarios
@@ -57,60 +46,73 @@ def make_env(scenario_name, benchmark=False, reward_type=0):
     return env
 
 
-def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist, actors=None, actor_env_name=None,
-                 lstm_scope=None, type=0, reuse=False, session=None):
+def get_trainers(env, env_name, num_adversaries, obs_shape_n, arglist,
+                 actors=None, actor_env_name=None, lstm_scope=None, agent_type=0, reuse=False, session=None):
     trainers = []
     model = mlp_model
     lstm = lstm_model
-    if type == 0:
+    cnn = cnn_model
+    if agent_type == 0:
         trainer = ACT
         for i in range(num_adversaries):
             trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
+                env_name + "agent_%d" % i, model, lstm, cnn, obs_shape_n, env.action_space, i, arglist,
                 local_q_func=(arglist.adv_policy == 'ddpg'), lstm_scope=lstm_scope, reuse=reuse, session=session))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, arglist,
+                env_name + "agent_%d" % i, model, lstm, cnn, obs_shape_n, env.action_space, i, arglist,
                 local_q_func=(arglist.good_policy == 'ddpg'), lstm_scope=lstm_scope, reuse=reuse, session=session))
-    elif type == 1:
+    elif agent_type == 1:
         trainer = CRITIC_TRAINER
         for i in range(num_adversaries):
             trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actors, arglist,
+                env_name + "agent_%d" % i, model, lstm, cnn, obs_shape_n, env.action_space, i, actors, arglist,
                 local_q_func=(arglist.adv_policy == 'ddpg'), lstm_scope=lstm_scope, session=session))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i, actors, arglist,
+                env_name + "agent_%d" % i, model, lstm, cnn, obs_shape_n, env.action_space, i, actors, arglist,
                 local_q_func=(arglist.good_policy == 'ddpg'), lstm_scope=lstm_scope, session=session))
-    elif type == 2:
+    elif agent_type == 2:
         trainer = ACTOR_TRAINER
         for i in range(num_adversaries):
             trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i,
+                env_name + "agent_%d" % i, model, lstm, cnn, obs_shape_n, env.action_space, i,
                 actor_env_name + "agent_%d" % i, arglist,
                 local_q_func=(arglist.adv_policy == 'ddpg'), lstm_scope=lstm_scope, session=session))
         for i in range(num_adversaries, env.n):
             trainers.append(trainer(
-                env_name + "agent_%d" % i, model, lstm, obs_shape_n, env.action_space, i,
+                env_name + "agent_%d" % i, model, lstm, cnn, obs_shape_n, env.action_space, i,
                 actor_env_name + "agent_%d" % i, arglist,
                 local_q_func=(arglist.good_policy == 'ddpg'), lstm_scope=lstm_scope, session=session))
     return trainers
 
+def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=None):
+    # This model takes as input an observation and returns values of all actions
+    with tf.variable_scope(scope, reuse=reuse):
+        out = input
+        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
+        out = layers.fully_connected(out, num_outputs=num_units, activation_fn=tf.nn.relu)
+        out = layers.fully_connected(out, num_outputs=num_outputs, activation_fn=None)
+        return out
+
+
+def cnn_model(inputs, reuse=tf.AUTO_REUSE, scope='cnn'):
+    with tf.variable_scope(scope, reuse=reuse):
+        state = tf.layers.conv2d(inputs, 16, 3, activation='relu', strides=2, padding='VALID')
+        state = tf.layers.conv2d(state, 32, 3, activation='relu', strides=2, padding='VALID')
+        state = tf.layers.conv2d(state, 64, 3, activation='relu', strides=2, padding='VALID')
+        temp = 64 * 9 * 9
+
+        state = tf.layers.batch_normalization(state)
+        input_1 = tf.reshape(state, [-1])
+        input_s = tf.reshape(input_1, [-1, temp])
+    return input_s
 
 #  lstm模型
-def lstm_model(inputs, reuse=False, num_units=(64, 32), scope="l"):
-    debug = False
-    if debug:
-        import time
-        t = time.time()
+def lstm_model(inputs, reuse=tf.AUTO_REUSE, num_units=(64, 32), scope="l"):
     observation_n = []
     for i in range(len(inputs)):
         x = inputs[i]
-        if not reuse and i == 0:
-            reuse = False
-        else:
-            reuse = True
-
         with tf.variable_scope(scope, reuse=reuse):
             x = tf.transpose(x, (2, 0, 1))  # (time_steps, batch_size, state_size)
             cells = [rnn.LSTMCell(lstm_size, forget_bias=1, state_is_tuple=True) for lstm_size in num_units]
@@ -120,8 +122,6 @@ def lstm_model(inputs, reuse=False, num_units=(64, 32), scope="l"):
             outputs = cell_outputs[-1:, :, :]
             outputs = tf.squeeze(outputs, 0)
             observation_n.append(outputs)
-    if debug:
-        print("lstm time: ", time.time()-t)
     return observation_n
 
 

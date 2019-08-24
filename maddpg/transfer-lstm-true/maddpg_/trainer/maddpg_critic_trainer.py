@@ -13,7 +13,7 @@ from maddpg_.common.ops import q_train
 
 
 class MADDPGAgentTrainer(AgentTrainer):
-    def __init__(self, name, model, lstm_model, obs_shape_n, act_space_n, agent_index, actors, args, local_q_func=False,
+    def __init__(self, name, model, lstm_model, cnn_model, obs_shape_n, act_space_n, agent_index, actors, args, local_q_func=False,
                  session=None, lstm_scope=None):
         self.actors = actors
         self.name = name
@@ -33,6 +33,7 @@ class MADDPGAgentTrainer(AgentTrainer):
             make_obs_ph_n=obs_ph_n,
             act_space_n=act_space_n,
             q_index=agent_index,
+            cnn_model=cnn_model,
             q_func=model,
             lstm_model=lstm_model,
             lstm_scope=lstm_scope,
