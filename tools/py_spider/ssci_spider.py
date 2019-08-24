@@ -3,6 +3,7 @@
 from selenium import webdriver
 import time
 from tqdm import tqdm
+import os
 from multiprocessing import Pool
 
 
@@ -25,7 +26,7 @@ def get_driver():
 def download(theme):
 	driver = get_driver()
 	# 1. 获取检索主界面
-	path = "http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=8BvIDyff6PjH9UimPl6&search_mode=GeneralSearch"
+	path = "http://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=6BuciEMChIGII4wEfOo&search_mode=GeneralSearch"
 	# 获取检索页面
 	driver.get(path)
 	
@@ -74,28 +75,53 @@ def download(theme):
 	
 	# 6.记录每一页搜索结果
 	print(theme)
+	line = sum(1 for _ in open(theme))
+	extra = line % 10
+	if extra:
+		rf = open(theme, "r")
+		lines = rf.readlines()
+		lines = lines[:-extra]
+		rf.close()
+		wf = open(theme, "w")
+		for l in lines:
+			wf.write(l)
+		wf.close()
+	
+	begin_page = int(line / 10) + 1
+	print(line, begin_page)
+	
 	f = open(theme, "a+")
-	for page in tqdm(range(1, int(pagecount))):
+	for page in tqdm(range(begin_page, int(pagecount))):
 		print(page)
 		page_button = driver.find_element_by_xpath("//input[@type='text'][@name='page']")
 		page_button.clear()
-		page_button.send_keys(str(page)+"\n")
-
+		page_button.send_keys(str(page) + "\n")
+		
 		results = driver.find_elements_by_xpath("//value[@lang_id]")
 		for r in results:
 			info = r.text
-			f.write(info+"\n")
+			f.write(info + "\n")
+	
 	f.close()
 	driver.close()
 
 
 if __name__ == "__main__":
-	#themes = ["agro*", "fertilizer", "pesticide", "crop", "poverty, Hunger",
-	#	"urbanization", "urban-rural", "township enterprises", "Agri*"]
-	themes = ["peasant", "rural", "land", "food", "farmer"]
-
+	#themes = ["agro*", "fertilizer", "pesticide", "crop", "poverty", "Hunger",
+	#	"urbanization", "urban-rural", "township enterprises", "Agri*", "peasant", "rural", "land", "food", "farmer"]
+	themes = ["poverty", "Hunger"]
+	
 	for t in themes:
-		download(t)
+		if not os.path.exists(t):
+			f = open(t, "w")
+			f.close()
+		finish = False
+		while not finish:
+			try:
+				download(t)
+				finish = True
+			except Exception as e:
+				print("try again")
 	# cpu_numbers = 10
 	# pool = Pool(processes=cpu_numbers)
 	# pool.map(download, themes)

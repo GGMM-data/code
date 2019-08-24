@@ -24,21 +24,20 @@ def get_driver():
         return driver
 
 
-def download(theme):
+def download(theme, begin_year):
         driver = get_driver()
         # 1. 获取检索主界面
-        path = "http://apps.webofknowledge.com/UA_GeneralSearch_input.do?pro0duct=UA&search_mode=GeneralSearch&SID=7BA5weQbRS6SyT2IdEy&preferencesSaved="
+        path = "https://apps.webofknowledge.com/WOS_GeneralSearch_input.do?product=WOS&SID=6CmtmYIway9IvuBcHTP&search_mode=GeneralSearch"
         # 获取检索页面
         driver.get(path)
-        s2 = Select(driver.find_element_by_id("databases"))
-        arrow = driver.find_element_by_id("select2-databases-container")
-        #arrow = driver.find_element_by_xpath(".//span[class='select2-selection select2-selection--single']")
-        #arrow = driver.find_element_by_xpath(".//span[@title='Show/Hide more settings']")
-        ActionChains(driver).click(arrow).perform()
-        # arrow.click()
-        s2.select_by_index(2)
-        s2.select_by_visible_text("Web of Science Core Collection")
-        s2.select_by_value("/WOS_GeneralSearch_input.do?product=WOS&SID=7BA5weQbRS6SyT2IdEy&search_mode=GeneralSearch")
+
+        # 时间
+        if begin_year is not None:
+                timespan = Select(driver.find_element_by_xpath(".//select[@class='j-custom-select-yeardropdown select2-hidden-accessible']"))
+                timespan.select_by_value("CUSTOM")
+
+                begin_time = Select(driver.find_element_by_xpath(".//select[@class='j-custom-select-yeardropdown startyear select2-hidden-accessible']"))
+                begin_time.select_by_value(str(begin_year))
 
         # 2. 选择检索范围
         selected_checkboxes = [
@@ -83,30 +82,42 @@ def download(theme):
         pagecount = pagecount.replace(",", "")
         # print(theme, pagecount)
         
-        # # 6.记录每一页搜索结果
-        # print(theme)
-        # f = open(theme, "a+")
-        # for page in tqdm(range(1, int(pagecount))):
-        #         print(page)
-        #         page_button = driver.find_element_by_xpath("//input[@type='text'][@name='page']")
-        #         page_button.clear()
-        #         page_button.send_keys(str(page) + "\n")
-        #
-        #         results = driver.find_elements_by_xpath("//value[@lang_id]")
-        #         for r in results:
-        #                 info = r.text
-        #                 f.write(info + "\n")
-        # f.close()
-        # driver.close()
+        # 6.记录每一页搜索结果
+        print(theme)
+        line = sum(1 for _ in open(theme))
+        begin_page = int(line / 10) + 1
+        print(line, begin_page)
+
+        f = open(theme, "a+")
+        for page in tqdm(range(begin_page, int(pagecount))):
+                print(page)
+                page_button = driver.find_element_by_xpath("//input[@type='text'][@name='page']")
+                page_button.clear()
+                page_button.send_keys(str(page) + "\n")
+
+                results = driver.find_elements_by_xpath("//value[@lang_id]")
+                for r in results:
+                        info = r.text
+                        f.write(info + "\n")
+        f.close()
+        driver.close()
 
 
 if __name__ == "__main__":
         # themes = ["agro*", "fertilizer", "pesticide", "crop", "poverty, Hunger",
-        #       "urbanization", "urban-rural", "township enterprises", "Agri*"]
-        themes = ["peasant", "rural", "land", "food", "farmer"]
-        
+        #       "urbanization", "urban-rural", "township enterprises", "Agri*, "peasant", "]
+        # themes = ["rural", "land", "food", "farmer"]
+        themes = ["test"]
+        begin_year = None
         for t in themes:
-                download(t)
+                finish = False
+                while not finish:
+                        try:
+                                download(t, begin_year)
+                                finish = True
+                        except Exception as e:
+                                print("try again")
+                        
 # cpu_numbers = 10
 # pool = Pool(processes=cpu_numbers)
 # pool.map(download, themes)
