@@ -50,7 +50,7 @@ class MADDPGAgentTrainer(AgentTrainer):
     def action(self, common_obs, sep_obs):
         # obs = np.array(obs.queue)
         # print(obs)
-        return self.act([common_obs]+sep_obs)[0]
+        return self.act(common_obs[None], sep_obs[None])[0]
 
     def experience(self, obs, act, rew, new_obs, done, terminal):
         # Store transition in the replay buffer.

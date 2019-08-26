@@ -16,7 +16,7 @@ def parse_args():
     parser = argparse.ArgumentParser("Reinforcement Learning experiments for multiagent environments")
     # multi thread
     parser.add_argument("--mp", action="store_true", default=True, help="multiprocess test")
-    parser.add_argument("--reward-type", type=int, default=2, help="different reward")
+    parser.add_argument("--reward-type", type=int, default=0, help="different reward")
     parser.add_argument("--max-test-model-number", type=int, default=200, help="saved max episode number, used for test")
     parser.add_argument("--num-test-episodes", type=int, default=50, help="number of episodes")
     parser.add_argument("--save-rate", type=int, default=10,
@@ -36,7 +36,7 @@ def parse_args():
     # transfer
     parser.add_argument("--num-task-transfer", type=int, default=1, help="number of tasks")
     # batch size 16
-    parser.add_argument("--batch-size", type=int, default=16, help="batch size")
+    parser.add_argument("--batch-size", type=int, default=4, help="batch size")
     # train data name
     parser.add_argument("--train-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")

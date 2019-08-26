@@ -248,7 +248,7 @@ class MultiAgentEnv(gym.Env):
         obs_n = self._get_obs(self.agents)
         for agent in self.agents:
             reward_n.append(self._get_reward(agent))
-            done_n.append(self._get_done(agent))
+            done_n.append(float(self._get_done(agent)))
             info_n['n'].append(self._get_info(agent))
 
         # all agents get total reward in cooperative case

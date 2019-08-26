@@ -56,12 +56,12 @@ class MADDPGAgentTrainer(AgentTrainer):
 
     def experience(self, obs, act, rew, new_obs, done, terminal):
         # Store transition in the replay buffer.
-        self.replay_buffer.add(obs, act, rew, new_obs, float(done))
+        self.replay_buffer.add(obs, act, rew, new_obs, done)
 
     def preupdate(self):
         self.replay_sample_index = None
 
-    def update(self, agents, t):
+    def update(self, agents, t, agent_index):
         # 训练critic
         # print("hello, nihao a ")
         if len(self.replay_buffer) < self.max_replay_buffer_len:    # replay buffer is not large enough
@@ -69,19 +69,11 @@ class MADDPGAgentTrainer(AgentTrainer):
         if not t % 100 == 0:  # only update every 100 steps
             return
         # print("critic update")
-        self.replay_sample_index = self.replay_buffer.make_index(self.args.batch_size)
+        self.replay_sample_index = self.replay_buffer.make_index(self.args.batch_size, agent_index)
         # collect replay sample from all agents
-        obs_n = []
-        obs_next_n = []
-        act_n = []
         index = self.replay_sample_index
-        for i in range(self.n):
-            # buffer
-            obs, act, rew, obs_next, done = agents[i].replay_buffer.sample_index(index)
-            obs_n.append(obs)
-            obs_next_n.append(obs_next)
-            act_n.append(act)
-        obs, act, rew, obs_next, done = self.replay_buffer.sample_index(index)
+        obs_n, act_n, rew_n, obs_next_n, done_n, terminal = agents[0].replay_buffer.sample_index(index)
+        # obs, act, rew, obs_next, done = self.replay_buffer.sample_index(index)
         
         # train q network
         num_sample = 1

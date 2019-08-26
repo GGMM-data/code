@@ -172,9 +172,10 @@ def train(arglist):
                     common.append(com_obs)
                     sep.append(sep_obs)
                 common = np.stack(common)
+                sep = np.array(sep)
                                         
-                for agent, obs in zip(actor_0, sep_obs):
-                    action_n.append(agent.action(common, obs))
+                for index, agent in enumerate(actor_0):
+                    action_n.append(agent.action(common, sep[:, index, :]))
                                         
                 # environment step
                 new_obs_n, rew_n, done_n, info_n = current_env.step(action_n)
@@ -188,15 +189,13 @@ def train(arglist):
                 done = all(done_n)
                 terminal = (local_steps[task_index] >= arglist.max_episode_len)
                 # 收集experience
-                for i in range(env.n):
-                    current_critics[i].experience(obs_n_list[task_index][i], action_n[i], rew_n[i], new_obs_n[i],
-                                                  done_n[i], terminal)
-
+                # 把n个agents的experience放到一个agent的buffer中
+                current_critics[0].experience(obs_n_list[task_index], action_n, rew_n, new_obs_n,
+                                                  done_n, terminal)
                 # 更新obs
                 obs_n_list[task_index] = new_obs_n
-                for i in range(env.n):
-                    history_n[task_index][i].get()
-                    history_n[task_index][i].put(new_obs_n[i])
+                history_n[task_index].get()
+                history_n[task_index].put(new_obs_n)
                 # 更新reward
                 for i, rew in enumerate(rew_n):
                     episodes_rewards[task_index][-1] += rew
@@ -206,8 +205,8 @@ def train(arglist):
                 for critic in current_critics:
                     critic.preupdate()
 
-                for critic in current_critics:
-                    critic.update(current_critics, global_steps[task_index])
+                for agent_index, critic in enumerate(current_critics):
+                    critic.update(current_critics, global_steps[task_index], agent_index)
 
                 for index, actor in enumerate(current_actors):
                     actor.update(current_actors, current_critics, global_steps[task_index], index)

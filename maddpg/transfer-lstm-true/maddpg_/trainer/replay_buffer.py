@@ -53,7 +53,7 @@ class ReplayBuffer(object):
             dones.append(done)
         return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones)
 
-    def make_index(self, batch_size):
+    def make_index(self, batch_size, agent_index):
         indexes = []
         while len(indexes) < batch_size:
             while True:
@@ -61,7 +61,8 @@ class ReplayBuffer(object):
                 # sample one not wraps current pointer, because dont't have previous history_length state
                 if index - self.history_length < self._next_idx <= index:
                     continue
-                if (np.array(self._storage[index - self.history_length+1:index+1])[:, 4]).any():
+                done_array = np.array(np.array(self._storage[index - self.history_length + 1:index + 1])[:, 4])
+                if (done_array[agent_index]).any():
                     continue
                 break
             indexes.append(index)
