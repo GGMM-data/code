@@ -13,24 +13,27 @@ from maddpg_.common.ops import q_train
 
 
 class MADDPGAgentTrainer(AgentTrainer):
-    def __init__(self, name, model, lstm_model, cnn_model, obs_shape_n, act_space_n, agent_index, actors, args, local_q_func=False,
-                 session=None, lstm_scope=None):
+    def __init__(self, name, agents_number, agent_index, actors, act_space_n, args,
+                 common_obs_shape, sep_obs_shape, model, lstm_model, cnn_model, cnn_scope=None, lstm_scope=None,
+                 reuse=False, local_q_func=False, session=None):
         self.actors = actors
         self.name = name
-        self.n = len(obs_shape_n)
+        self.n = agents_number
         self.agent_index = agent_index
         self.args = args
         self.history_length = args.history_length
         
-        obs_ph_n = []
-        for i in range(self.n):
-            obs_shape = [args.history_length] + list(obs_shape_n[i])
-            obs_ph_n.append(U.BatchInput((obs_shape), name="observation"+str(i)).get())
-
+        sep_obs_shape = [args.history_length] + list(sep_obs_shape[1:])
+        common_obs_shape = [args.history_length] + list(common_obs_shape)
+        common_obs_ph = U.BatchInput(common_obs_shape, name="common_observation").get()
+        sep_obs_ph_n = [U.BatchInput(sep_obs_shape, name="common_observation" + str(i)).get() for i in
+                        range(self.n)]
+        
         # Create all the functions necessary to train the model
         self.q_train, self.q_update, self.q_debug = q_train(
             scope=self.name,
-            make_obs_ph_n=obs_ph_n,
+            make_common_obs_ph=common_obs_ph,
+            make_sep_obs_ph_n=sep_obs_ph_n,
             act_space_n=act_space_n,
             q_index=agent_index,
             cnn_model=cnn_model,

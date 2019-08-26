@@ -23,13 +23,16 @@ def parse_args():
                         help="save model once every time this many episodes are completed")
     # use lstm
     parser.add_argument('--use-lstm', action="store_true", default=True, help="use lstm?")
+    # use cnn
+    parser.add_argument('--use-cnn', action="store_true", default=True, help="use cnn")
 
-    # shared lstm
+    # shared lstm和cnn
     #parser.add_argument('--shared-lstm', action="store_true", default=False, help="shared lstm?")
     parser.add_argument('--shared-lstm', action="store_true", default=True, help="shared lstm?")
+    parser.add_argument('--shared-cnn', action="store_true", default=True, help="shared cnn?")
     parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
     # num of taskes
-    parser.add_argument("--num-task", type=int, default=3, help="number of tasks")
+    parser.add_argument("--num-task", type=int, default=2, help="number of tasks")
     # transfer
     parser.add_argument("--num-task-transfer", type=int, default=1, help="number of tasks")
     # batch size 16

@@ -12,7 +12,7 @@ import multiprocessing as mp
 sys.path.append(os.getcwd() + "/../")
 
 import maddpg_.common.tf_util as U
-from experiments.ops import time_begin, time_end, mkdir, make_env, get_trainers, sample_map
+from experiments.ops import mkdir, make_env, get_trainers, sample_map
 from experiments.uav_statistics import draw_util
 
 

@@ -8,25 +8,25 @@ from maddpg_.common.ops import q_train, p_act, p_train
 
 
 class MADDPGAgentTrainer(AgentTrainer):
-    def __init__(self, name, model, lstm_model, cnn_model, obs_shape_n, act_space_n, agent_index, actor_env, args,
-                 local_q_func=False, session=None, lstm_scope=None):
+    def __init__(self, name, agents_number, act_space_n, agent_index, actor_scope, args, common_obs_shape, sep_obs_shape,
+                model, lstm_model, cnn_model, cnn_scope=None, lstm_scope=None, reuse=False, local_q_func=False, session=None):
         self.args = args
         self.name = name
-        self.n = len(obs_shape_n)
+        self.n = agents_number
         self.agent_index = agent_index
-    
-        obs_ph_n = []
-        for i in range(self.n):
-            obs_shape = [args.history_length] + list(obs_shape_n[i])
-            # obs_shape.append()
-            obs_ph_n.append(U.BatchInput((obs_shape), name="observation"+str(i)).get())
-            
         optimizer = tf.train.AdamOptimizer(learning_rate=self.args.lr)
+        
+        sep_obs_shape = [args.history_length] + list(sep_obs_shape[1:])
+        common_obs_shape = [args.history_length] + list(common_obs_shape)
+        common_obs_ph = U.BatchInput(common_obs_shape, name="common_observation").get()
+        sep_obs_ph_n = [U.BatchInput(sep_obs_shape, name="common_observation" + str(i)).get() for i in
+                        range(self.n)]
         
         self.p_train, self.p_update = p_train(
             scope=self.name,
-            p_scope=actor_env,
-            make_obs_ph_n=obs_ph_n,
+            p_scope=actor_scope,
+            make_common_obs_ph=common_obs_ph,
+            make_sep_obs_ph_n=sep_obs_ph_n,
             act_space_n=act_space_n,
             p_index=self.agent_index,
             p_func=model,

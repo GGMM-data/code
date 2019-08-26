@@ -12,7 +12,7 @@ import multiprocessing as mp
 sys.path.append(os.getcwd() + "/../")
 
 import maddpg_.common.tf_util as U
-from experiments.ops import time_begin, time_end, mkdir, make_env, get_trainers, sample_map
+from experiments.ops import mkdir, make_env, get_trainers, sample_map
 from experiments.uav_statistics import draw_util
 
 
@@ -27,33 +27,52 @@ def train(arglist):
 
     with U.single_threaded_session():
         sess = tf.get_default_session()
-        if debug:
-            begin = time_begin()
         # 1.1创建每个任务的actor trainer和critic trainer
         env = make_env(arglist.scenario, reward_type=arglist.reward_type)
         env.set_map(sample_map(arglist.train_data_dir + arglist.train_data_name + "_1.h5"))
         
         # Create agent trainers
-        obs_shape_n = [env.observation_space[i].shape for i in range(env.n)]
         num_adversaries = min(env.n, arglist.num_adversaries)
+        # map for all agents
+        common_obs_shape = env.common_observation_space.shape
+        # speed size and direction
+        sep_obs_shape = env.sep_observation_space.shape
+
         lstm_scope = "lstm"
         cnn_scope = "cnn"
-        actor_0 = get_trainers(env, "actor_", num_adversaries, obs_shape_n, arglist, lstm_scope=lstm_scope, agent_type=0, session=sess)
+        actor_scope = "actor_"
+
+        actor_0 = get_trainers(env=env, env_name=actor_scope,
+                               num_adversaries=num_adversaries, arglist=arglist,
+                               common_obs_shape=common_obs_shape, sep_obs_shape=sep_obs_shape,
+                               lstm_scope=lstm_scope, cnn_scope=cnn_scope,
+                               agent_type=0, reuse=False, session=sess)
+
+        # 是否共享lstm
+        if not arglist.shared_lstm:
+            lstm_scope = None
+        if not arglist.shared_cnn:
+            cnn_scope = None
         
         # 1.2创建每个任务的actor trainer和critic trainer
         critic_list = []  # 所有任务critic的list
         actor_list = []
         for i in range(num_tasks):
             list_of_taskenv.append(make_env(arglist.scenario, reward_type=arglist.reward_type))
-            if arglist.shared_lstm:
-                critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                        obs_shape_n, arglist, lstm_scope=lstm_scope, actors=actor_0, agent_type=1, session=sess)
-            else:
-                critic_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                        obs_shape_n, arglist, actors=actor_0, agent_type=1, session=sess)
-
-            actor_trainers = get_trainers(list_of_taskenv[i], "task_" + str(i + 1) + "_", num_adversaries,
-                                    obs_shape_n, arglist, lstm_scope=lstm_scope, actor_env_name="actor_", agent_type=2, session=sess)
+            
+            critic_trainers = get_trainers(env=list_of_taskenv[i], env_name="task_" + str(i + 1) + "_",
+                                           num_adversaries=num_adversaries, arglist=arglist,
+                                           common_obs_shape=common_obs_shape, sep_obs_shape=sep_obs_shape,
+                                           lstm_scope=lstm_scope, cnn_scope=cnn_scope,
+                                           actors=actor_0, agent_type=1, session=sess)
+            
+            actor_trainers = get_trainers(actor_scope=actor_scope,
+                                          env=list_of_taskenv[i], env_name="task_" + str(i + 1) + "_",
+                                          num_adversaries=num_adversaries, arglist=arglist,
+                                          common_obs_shape=common_obs_shape, sep_obs_shape=sep_obs_shape,
+                                          lstm_scope=lstm_scope, cnn_scope=cnn_scope,
+                                          agent_type=2, session=sess)
+            
             actor_list.append(actor_trainers)
             critic_list.append(critic_trainers)
 
@@ -112,7 +131,7 @@ def train(arglist):
         # 1.4 加载checkpoints
         if arglist.load_dir == "":
             arglist.load_dir = save_path
-        if arglist.display or arglist.restore or arglist.benchmark:
+        if arglist.display or arglist.restore:
             print('Loading previous state...')
             U.load_state(arglist.load_dir)
         global_steps = tf.get_default_session().run(global_steps_tensor)
@@ -120,10 +139,10 @@ def train(arglist):
         # 1.5 初始化ENV
         obs_n_list = []
         for i in range(num_tasks):
-            obs_n = list_of_taskenv[i].reset()
+            (common_obs, sep_obs_n) = list_of_taskenv[i].reset()
             list_of_taskenv[i].set_map(
                         sample_map(arglist.train_data_dir + arglist.train_data_name + "_" + str(i + 1) + ".h5"))
-            obs_n_list.append(obs_n)
+            obs_n_list.append((common_obs, sep_obs_n))
                
         if debug:
             print(time_end(begin, "initialize"))
@@ -132,13 +151,12 @@ def train(arglist):
         t_start = time.time()
         print('Starting iterations...')
         episode_start_time = time.time()
-        state_dim = obs_shape_n[0][0]
+        # state_dim = common_obs_shape + sep_obs_shape[0]
 
-        history_n = [[queue.Queue(arglist.history_length) for _ in range(env.n)] for _ in range(num_tasks)]
+        history_n = [queue.Queue(arglist.history_length) for _ in range(num_tasks)]
         for i in range(num_tasks):
-            for j in range(env.n):
-                for _ in range(arglist.history_length):
-                    history_n[i][j].put(obs_n_list[i][j])
+            for j in range(arglist.history_length):
+                history_n[i].put(obs_n_list[i])
 
         while True:
             for task_index in range(num_tasks):
@@ -146,7 +164,18 @@ def train(arglist):
                 current_env = list_of_taskenv[task_index]
                 # get action
                 # action_n = [agent.action(obs) for agent, obs in zip(actor_0, obs_n_list[task_index])]
-                action_n = [agent.action(obs) for agent, obs in zip(actor_0, history_n[task_index])]
+                action_n = []
+                common = []
+                sep = []
+                for com_obs, sep_obs in history_n[task_index].queue:
+                    # com_obs, sep_obs = obs
+                    common.append(com_obs)
+                    sep.append(sep_obs)
+                common = np.stack(common)
+                                        
+                for agent, obs in zip(actor_0, sep_obs):
+                    action_n.append(agent.action(common, obs))
+                                        
                 # environment step
                 new_obs_n, rew_n, done_n, info_n = current_env.step(action_n)
                 current_critics = critic_list[task_index]

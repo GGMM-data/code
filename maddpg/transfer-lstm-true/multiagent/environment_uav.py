@@ -83,8 +83,11 @@ class MultiAgentEnv(gym.Env):
         self.agent_index_for_greedy = 0
 
         # shared observation space
-        obs_dim = observation_callback(self.M, self.map, self.state, self.size).shape
-        self.observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=obs_dim)
+        common_obs, sep_obs_n = observation_callback(self.M, self.map, self.state, self.agents, self.size)
+        self.common_obs_shape = common_obs.shape
+        self.sep_obs_n_shape = sep_obs_n.shape
+        self.common_observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=self.common_obs_shape)
+        self.sep_observation_space = spaces.Box(low=-np.inf, high=+np.inf, shape=self.sep_obs_n_shape)
 
         # custom parameters for uav end---------------------------------------------------------------------------------
         for agent in self.agents:
@@ -306,11 +309,10 @@ class MultiAgentEnv(gym.Env):
         self.reset_callback(self.world)
         # reset renderer
         self._reset_render()
-        # record observations for each agent
-        obs_n = []
         self.agents = self.world.policy_agents
-        
-        obs_n = self._get_obs(self.agents)
+
+        # record observations for each agent
+        (common_obs, sep_obs_n) = self._get_obs(self.agents)
 
         # map reset begin-----------------------------------------------------------------------------------------------
         # energy reset
@@ -325,7 +327,7 @@ class MultiAgentEnv(gym.Env):
             location_tem = [a.state.p_pos[0] * self.map_scale_rate, a.state.p_pos[1] * self.map_scale_rate]
             self.state.append(location_tem)
         # map reset end-------------------------------------------------------------------------------------------------
-        return obs_n
+        return common_obs, sep_obs_n
 
     # get info used for benchmarking
     def _get_info(self, agent):
@@ -337,7 +339,7 @@ class MultiAgentEnv(gym.Env):
     def _get_obs(self, agents):
         if self.observation_callback is None:
             return np.zeros(0)
-        return self.observation_callback(self.M, self.map, self.poi_array, self.state, self.size)
+        return self.observation_callback(self.M, self.map, self.state, self.agents, self.size)
 
     # get dones for a particular agent
     # unused right now -- agents are allowed to go beyond the viewing screen

@@ -294,6 +294,7 @@ class _Function(object):
     def __init__(self, inputs, outputs, updates, givens, check_nan=False, session=None):
         for inpt in inputs:
             if not issubclass(type(inpt), TfInput):
+                print("why?")
                 assert len(inpt.op.inputs) == 0, "inputs should all be placeholders of rl_algs.common.TfInput"
         self.inputs = inputs
         updates = updates or []
