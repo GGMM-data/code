@@ -61,8 +61,7 @@ class MADDPGAgentTrainer(AgentTrainer):
     def preupdate(self):
         self.replay_sample_index = None
 
-    def update(self, agents, t, agent_index):
-        # 训练critic
+         # 训练critic
         # print("hello, nihao a ")
         if len(self.replay_buffer) < self.max_replay_buffer_len:    # replay buffer is not large enough
             return
