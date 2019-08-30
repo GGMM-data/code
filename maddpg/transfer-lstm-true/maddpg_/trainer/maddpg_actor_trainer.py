@@ -56,7 +56,7 @@ class MADDPGAgentTrainer(AgentTrainer):
     def preupdate(self):
         self.replay_sample_index = None
         
-    def update(self, agents, critics, t, index):
+    def update(self, agents, critics, t, agent_index):
         # 这个就是训练actor的
         # if len(self.replay_buffer) < self.max_replay_buffer_len:
         if len(critics[0].replay_buffer) < self.max_replay_buffer_len:
@@ -64,21 +64,23 @@ class MADDPGAgentTrainer(AgentTrainer):
         if not t % 100 == 0:  # only update every 100 steps
             return
         # print("actor  update")
-        self.replay_sample_index = critics[index].replay_sample_index
+        self.replay_sample_index = critics[0].replay_buffer.make_index(self.args.batch_size, agent_index)
         # collect replay sample from all agents
-        obs_n = []
-        obs_next_n = []
-        act_n = []
-        index = self.replay_sample_index
-        for i in range(self.n):
-            # buffer
-            obs, act, rew, obs_next, done = critics[i].replay_buffer.sample_index(index)
-            obs_n.append(obs)
-            obs_next_n.append(obs_next)
-            act_n.append(act)
 
+        index = self.replay_sample_index
+        
+        (common_obs_n, sep_obs_n), act_n, rew_n, (common_obs_next_n, sep_obs_next_n), done_n = \
+            critics[0].replay_buffer.sample_index(index)
+        act, rew, done = act_n[:, agent_index], rew_n[:, agent_index], done_n[:, agent_index]
+        # obs, obs_next = sep_obs_n[:, agent_index], sep_obs_next_n[:, agent_index]
+        sep_obs_n_list, sep_obs_next_n_list, act_n_list = [], [], []
+        for i in range(self.n):
+            sep_obs_n_list.append(sep_obs_n[:, :, i])
+            sep_obs_next_n_list.append(sep_obs_next_n[:, :, i])
+            act_n_list.append(act_n[:, i])
+        
         # train p network
-        p_loss = self.p_train(*(obs_n + act_n))
+        p_loss = self.p_train(*([common_obs_n] + sep_obs_n_list + act_n_list))
 
         self.p_update()
         # print("step: ", t, "p_loss: ", p_loss)

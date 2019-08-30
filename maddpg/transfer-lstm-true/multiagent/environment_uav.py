@@ -301,7 +301,7 @@ class MultiAgentEnv(gym.Env):
         # original reward
         self.o_r = reward_positive
         reward_n = reward_n + reward_positive_n
-        return obs_n, reward_n, done_n, info_n
+        return obs_n, np.array(reward_n), np.array(done_n), np.array(info_n)
         # custom code for uav end---------------------------------------------------------------------------------------
 
     def reset(self):

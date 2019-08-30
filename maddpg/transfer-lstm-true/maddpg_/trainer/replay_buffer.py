@@ -33,25 +33,39 @@ class ReplayBuffer(object):
         self._next_idx = (self._next_idx + 1) % self._maxsize
 
     def _encode_sample(self, idxes):
-        obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
-        for i in idxes:
-            temp_obs, temp_next_obs = [], []
-            for j in range(i - self.history_length + 1, i):
+        actions, rewards, dones = [], [], []
+        common_obs_t, sep_obs_t, common_obs_tp1, sep_obs_tp1 = [], [], [], []
+        for i in idxes:     # batch
+            temp_common_obs, temp_sep_obs, temp_next_common_obs, temp_next_sep_obs = [], [], [], []
+            for j in range(i - self.history_length + 1, i):     # 只用history长度的observation
                 data = self._storage[j]
-                obs_t, action, reward, obs_tp1, done = data
-                temp_obs.append(np.array(obs_t, copy=False))
-                temp_next_obs.append(np.array(obs_tp1, copy=False))
+                (common_obs, sep_obs), action, reward, (next_common_obs, next_sep_obs), done = data
+                temp_common_obs.append(np.array(common_obs, copy=False))
+                temp_sep_obs.append(np.array(sep_obs, copy=False))
+                temp_next_common_obs.append(np.array(next_common_obs, copy=False))
+                temp_next_sep_obs.append(np.array(next_sep_obs, copy=False))
+                
+            # action, reward还是只用当前timestep的
             data = self._storage[i]
-            obs_t, action, reward, obs_tp1, done = data
-            temp_obs.append(np.array(obs_t, copy=False))
-            temp_next_obs.append(np.array(obs_tp1, copy=False))
-            
-            obses_t.append(temp_obs)
-            obses_tp1.append(temp_next_obs)
+            (common_obs, sep_obs), action, reward, (next_common_obs, next_sep_obs), done = data
+            temp_common_obs.append(np.array(common_obs, copy=False))
+            temp_sep_obs.append(np.array(sep_obs, copy=False))
+            temp_next_common_obs.append(np.array(next_common_obs, copy=False))
+            temp_next_sep_obs.append(np.array(next_sep_obs, copy=False))
+
+            common_obs_t.append(temp_common_obs)
+            sep_obs_t.append(temp_sep_obs)
+            common_obs_tp1.append(temp_next_common_obs)
+            sep_obs_tp1.append(temp_next_sep_obs)
             actions.append(action)
             rewards.append(reward)
             dones.append(done)
-        return np.array(obses_t), np.array(actions), np.array(rewards), np.array(obses_tp1), np.array(dones)
+            
+        return (np.array(common_obs_t), np.array(sep_obs_t)), \
+               np.array(actions), \
+               np.array(rewards), \
+               (np.array(common_obs_tp1), np.array(sep_obs_tp1)), \
+               np.array(dones)
 
     def make_index(self, batch_size, agent_index):
         indexes = []

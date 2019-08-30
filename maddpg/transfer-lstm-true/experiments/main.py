@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument('--use-cnn', action="store_true", default=True, help="use cnn")
 
     # shared lstm和cnn
-    #parser.add_argument('--shared-lstm', action="store_true", default=False, help="shared lstm?")
+    # parser.add_argument('--shared-lstm', action="store_true", default=False, help="shared lstm?")
     parser.add_argument('--shared-lstm', action="store_true", default=True, help="shared lstm?")
     parser.add_argument('--shared-cnn', action="store_true", default=True, help="shared cnn?")
     parser.add_argument('--history-length', type=int, default=4, help="how many history states were used")
@@ -36,7 +36,7 @@ def parse_args():
     # transfer
     parser.add_argument("--num-task-transfer", type=int, default=1, help="number of tasks")
     # batch size 16
-    parser.add_argument("--batch-size", type=int, default=4, help="batch size")
+    parser.add_argument("--batch-size", type=int, default=2, help="batch size")
     # train data name
     parser.add_argument("--train-data-name", type=str, default="chengdu",
                         help="directory in which map data are saved")
@@ -44,15 +44,15 @@ def parse_args():
                         help="directory in which map data are saved")
     # not train
     parser.add_argument("--train", action="store_true", default=True)
-    #parser.add_argument("--train", action="store_true", default=False)
+    # parser.add_argument("--train", action="store_true", default=False)
     # transfer train
-    #parser.add_argument("--transfer-train", action="store_true", default=True)
+    # parser.add_argument("--transfer-train", action="store_true", default=True)
     parser.add_argument("--transfer-train", action="store_true", default=False)
     # train test
-    #parser.add_argument("--train-test", action="store_true", default=True)
+    # parser.add_argument("--train-test", action="store_true", default=True)
     parser.add_argument("--train-test", action="store_true", default=False)
     # transfer test
-    #parser.add_argument("--transfer-test", action="store_true", default=True)
+    # parser.add_argument("--transfer-test", action="store_true", default=True)
     parser.add_argument("--transfer-test", action="store_true", default=False)
 
     parser.add_argument("--buffer-size", type=int, default=100000, help="buffer capacity")

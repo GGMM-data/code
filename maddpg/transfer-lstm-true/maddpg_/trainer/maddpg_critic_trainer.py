@@ -61,6 +61,7 @@ class MADDPGAgentTrainer(AgentTrainer):
     def preupdate(self):
         self.replay_sample_index = None
 
+    def update(self, agents, t, agent_index):
          # 训练critic
         # print("hello, nihao a ")
         if len(self.replay_buffer) < self.max_replay_buffer_len:    # replay buffer is not large enough
@@ -68,24 +69,32 @@ class MADDPGAgentTrainer(AgentTrainer):
         if not t % 100 == 0:  # only update every 100 steps
             return
         # print("critic update")
-        self.replay_sample_index = self.replay_buffer.make_index(self.args.batch_size, agent_index)
+        self.replay_sample_index = agents[0].replay_buffer.make_index(self.args.batch_size, agent_index)
         # collect replay sample from all agents
         index = self.replay_sample_index
-        obs_n, act_n, rew_n, obs_next_n, done_n, terminal = agents[0].replay_buffer.sample_index(index)
-        # obs, act, rew, obs_next, done = self.replay_buffer.sample_index(index)
-        
+        (common_obs_n, sep_obs_n), act_n, rew_n, (common_obs_next_n, sep_obs_next_n), done_n = \
+            agents[0].replay_buffer.sample_index(index)
+        act, rew, done = act_n[:, agent_index], rew_n[:, agent_index], done_n[:, agent_index]
+        # obs, obs_next = sep_obs_n[:, agent_index], sep_obs_next_n[:, agent_index]
+        sep_obs_n_list, sep_obs_next_n_list, act_n_list = [], [], []
+        for i in range(self.n):
+            sep_obs_n_list.append(sep_obs_n[:, :, i])
+            sep_obs_next_n_list.append(sep_obs_next_n[:, :, i])
+            act_n_list.append(act_n[:, i])
         # train q network
         num_sample = 1
         target_q = 0.0
         for i in range(num_sample):
-            target_act_next_n = [self.actors[j].p_debug['target_act'](obs_next_n[i]) for j in range(self.n)]
-            target_q_next = self.q_debug['target_q_values'](*(obs_next_n + target_act_next_n))
+            # obs_next_n[j]是第j个智能体的observation
+            # p_debug的输入应该是[[?, 4, 30, 30, 3], [?, 4, 4]]
+            target_act_next_n = [self.actors[j].p_debug['target_act'](common_obs_n, sep_obs_next_n[:, :, j]) for j in range(self.n)]
+            target_q_next = self.q_debug['target_q_values'](*([common_obs_next_n] + sep_obs_next_n_list + target_act_next_n))
             target_q += rew + self.args.gamma * (1.0 - done) * target_q_next
         target_q /= num_sample
 
-        q_loss = self.q_train(*(obs_n + act_n + [target_q]))
+        q_loss = self.q_train(*([common_obs_n] + sep_obs_n_list + act_n_list + [target_q]))
         # train p network
 
         self.q_update()
-        # print("step: ", t, "q_loss: ", q_loss)
+        # print("step: ", t, "q_loss: ", q_loss)33
         return [q_loss, np.mean(target_q), np.mean(rew), np.std(target_q)]

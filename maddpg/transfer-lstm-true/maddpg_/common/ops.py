@@ -87,6 +87,7 @@ def p_act(make_common_obs_ph, make_sep_obs_ph_n, act_space_n,
         # ============p network建图结束=================
         
         # 采样aciton的函数调用
+        # 这个sep_obs_ph_n[p_index]是一个单独的placeholder，它的输入不需要sep_obs_ph_n
         local_inputs = [common_obs_ph, sep_obs_ph_n[p_index]]
         act = U.function(inputs=local_inputs, outputs=act_sample, session=session)
         # p value的函数调用
