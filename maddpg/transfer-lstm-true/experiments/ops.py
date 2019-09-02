@@ -115,11 +115,11 @@ def mlp_model(input, num_outputs, scope, reuse=False, num_units=64, rnn_cell=Non
         return outupts
 
 
-def cnn_model(inputs, reuse=tf.AUTO_REUSE, scope='cnn'):
+def cnn_model(inputs, reuse=tf.AUTO_REUSE, scope='cnn', padding='SAME'):
     with tf.variable_scope(scope, reuse=reuse):
-        l1 = tf.layers.conv2d(inputs, 16, 3, activation='relu', strides=2, padding='VALID')
-        l2 = tf.layers.conv2d(l1, 32, 3, activation='relu', strides=2, padding='VALID')
-        l3 = tf.layers.conv2d(l2, 64, 3, activation='relu', strides=2, padding='VALID')
+        l1 = tf.layers.conv2d(inputs, 16, 3, activation='relu', strides=2, padding=padding)
+        l2 = tf.layers.conv2d(l1, 32, 3, activation='relu', strides=2, padding=padding)
+        l3 = tf.layers.conv2d(l2, 64, 3, activation='relu', strides=2, padding=padding)
         bn = tf.layers.batch_normalization(l3)
         
         temp = 64 * bn.shape[1] * bn.shape[2]
