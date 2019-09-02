@@ -21,7 +21,7 @@ tools/py_matplotlib/*png
 **/__pycache__/
 maddpg/**/experiments/benchmark_files/
 maddpg/**/experiments/learning_curves/
-maddpg/**/experiments/multiagent/uav/flag.py
+maddpg/**/multiagent/uav/flag.py
 **/experiments/tmp/**
 **/checkpoints/**
 **/summary/**
