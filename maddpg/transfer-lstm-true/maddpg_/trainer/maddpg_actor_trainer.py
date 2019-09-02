@@ -32,6 +32,7 @@ class MADDPGAgentTrainer(AgentTrainer):
             p_func=model,
             q_func=model,
             cnn_model=cnn_model,
+            cnn_scope=cnn_scope,
             lstm_model=lstm_model,
             lstm_scope=lstm_scope,
             optimizer=optimizer,

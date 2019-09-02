@@ -29,6 +29,7 @@ def sample_map(path, random=False):
         map = np.sum(data[index, :map_size, :map_size], 2)
     return map
 
+
 def make_env(scenario_name, benchmark=False, reward_type=0):
     from multiagent.environment_uav import MultiAgentEnv
     import multiagent.scenarios as scenarios

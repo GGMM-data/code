@@ -23,9 +23,9 @@ class MADDPGAgentTrainer(AgentTrainer):
         self.args = args
         self.history_length = args.history_length
         
-        sep_obs_shape = [args.history_length] + list(sep_obs_shape[1:])
         common_obs_shape = [args.history_length] + list(common_obs_shape)
         common_obs_ph = U.BatchInput(common_obs_shape, name="common_observation").get()
+        sep_obs_shape = [args.history_length] + list(sep_obs_shape[1:])
         sep_obs_ph_n = [U.BatchInput(sep_obs_shape, name="common_observation" + str(i)).get() for i in
                         range(self.n)]
         
@@ -35,8 +35,9 @@ class MADDPGAgentTrainer(AgentTrainer):
             make_common_obs_ph=common_obs_ph,
             make_sep_obs_ph_n=sep_obs_ph_n,
             act_space_n=act_space_n,
-            q_index=agent_index,
             cnn_model=cnn_model,
+            cnn_scope=cnn_scope,
+            q_index=agent_index,
             q_func=model,
             lstm_model=lstm_model,
             lstm_scope=lstm_scope,
