@@ -76,7 +76,7 @@ class ReplayBuffer(object):
                 if index - self.history_length < self._next_idx <= index:
                     continue
                 done_array = np.array(np.array(self._storage[index - self.history_length + 1:index + 1])[:, 4])
-                if (done_array[agent_index]).any():
+                if (np.vstack(done_array)[:, agent_index]).any():
                     continue
                 break
             indexes.append(index)

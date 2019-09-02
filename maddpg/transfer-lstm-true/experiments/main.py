@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--use-lstm', action="store_true", default=True, help="use lstm?")
     # use cnn
     parser.add_argument('--use-cnn', action="store_true", default=True, help="use cnn")
-
+    
     # shared lstm和cnn
     # parser.add_argument('--shared-lstm', action="store_true", default=False, help="shared lstm?")
     parser.add_argument('--shared-lstm', action="store_true", default=True, help="shared lstm?")
