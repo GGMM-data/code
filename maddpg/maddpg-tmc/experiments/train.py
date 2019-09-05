@@ -6,6 +6,8 @@ import time
 import pickle
 import sys
 import os
+import json
+
 cwd = os.getcwd()
 path = cwd + "/../"
 print(path)
@@ -175,6 +177,11 @@ def train(arglist):
             model_name = model_name + 'random/'
 
         print('Starting iterations...')
+        route_dict = {}
+        for i in range(FLAGS.num_uav):
+            key_temp = "UAV" + str(i + 1)
+            route_dict[key_temp] = []
+            
         ax = plt.gca()
         episode_begin_time = time.time()
         while True:
@@ -204,12 +211,24 @@ def train(arglist):
             aver_cover_one_episode.append(env._get_aver_cover())
             energy_one_episode.append(env._get_energy())
             s_route = env._get_state()
-            for route_i in range(0, FLAGS.num_uav * 2, 2):
-                tmp = [s_route[route_i], s_route[route_i + 1]]
-                route.append(tmp)
+
+            for index, route_i in enumerate(range(0, FLAGS.num_uav * 2, 2)):
+                # for piao zong
+                position = [s_route[route_i], s_route[route_i + 1]]
+                route.append(position)
+                route_dict["UAV" + str(index + 1)].append(position)
+                # for piao zong
+
             accmulated_reward_one_episode.append(episode_reward_step)
 
             if done or terminal:
+                ### for piaozong
+                uav_poss_file = os.path.join(path, "UAVNumber_" + str(FLAGS.num_uav) + ".json")
+                route_str = json.dumps(route_dict)
+                with open(uav_poss_file, "w+") as f:
+                    f.write(route_str)
+                ### for piaozong
+    
                 # reset custom statistics variabl between episode and epoch---------------------------------------------
                 instantaneous_accmulated_reward.append(accmulated_reward_one_episode[-1])
                 j_index.append(j_index_one_episode[-1])

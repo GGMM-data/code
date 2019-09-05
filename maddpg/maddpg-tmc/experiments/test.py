@@ -213,7 +213,7 @@ def test(arglist):
                 for i, rew in enumerate(rew_n):
                     episode_rewards[-1] += rew
                     agent_rewards[i][-1] += rew
-
+                    
                 # increment custom statistics variables in the epoch--------------------------------------------------------
                 episode_reward_step += np.mean(rew_n)
                 j_index_one_episode.append(env._get_jain_index())
@@ -225,21 +225,16 @@ def test(arglist):
                 energy_one_episode.append(env._get_energy())
 
                 s_route = env._get_state()
-                i = 0
-                for route_i in range(0, FLAGS.num_uav * 2, 2):
-                    tmp = [s_route[route_i], s_route[route_i + 1]]
-                    route.append(tmp)
+                for index, route_i in enumerate(range(0, FLAGS.num_uav * 2, 2)):
                     # for piao zong
-                    key_temp = "UAV" + str(i+1)
-                    route_dict[key_temp].append(tmp)
-                    i += 1
+                    route_dict["UAV" + str(index+1)].append([s_route[route_i], s_route[route_i + 1]])
                     # for piao zong
 
                 accmulated_reward_one_episode.append(episode_reward_step)
 
                 if done or terminal:
                     ### for piaozong
-                    uav_poss_file = "/home/lirhea/UAVNumber_"+str(FLAGS.num_uav) + ".json"
+                    uav_poss_file = "~/UAVNumber_"+str(FLAGS.num_uav) + ".json"
                     route_str = json.dumps(route_dict)
                     with open(uav_poss_file, "w+") as f:
                         f.write(route_str)
