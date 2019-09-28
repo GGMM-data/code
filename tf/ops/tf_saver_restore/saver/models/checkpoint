@@ -1,2 +1,2 @@
-model_checkpoint_path: "saver1.ckpt"
-all_model_checkpoint_paths: "saver1.ckpt"
+model_checkpoint_path: "-3"
+all_model_checkpoint_paths: "-3"

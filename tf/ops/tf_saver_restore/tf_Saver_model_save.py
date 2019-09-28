@@ -28,8 +28,8 @@ with tf.Session(graph=graph) as sess:
         sess.run(train_op, feed_dict={x: inputs, y: outputs})
     l_, W_, b_ = sess.run([loss, W, b], feed_dict={x: inputs, y: outputs})
     print("loss: ", l_, "w: ", W_, "b:", b_)
-    checkpoint = "saver/models/saver1.ckpt"
-    save_path = saver.save(sess, checkpoint)
+    checkpoint = "saver/models/"
+    save_path = saver.save(sess, checkpoint, global_step=3)
     print("Model has been saved in %s." % save_path)
 
 with tf.Session(graph=graph) as sess:
