@@ -2,6 +2,11 @@ import mpi4py
 from mpi4py import MPI
 
 
-com = MPI.COMM_WORLD
+comm = MPI.COMM_WORLD
 
-print(com.Get_rank())
+size = comm.Get_size()
+rank = ccomm.Get_rank()
+
+print("============")
+print(size)
+print(rank)
