@@ -1,4 +1,8 @@
 m_dict = {'a': 10, 'b': 20}
+print(m_dict)
+m_dict.update({})
+m_dict.update({"name": "mxx"})
+print(m_dict)
 
 values = m_dict.values()
 print(type(values))
