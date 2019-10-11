@@ -1,5 +1,11 @@
 import numpy as np
 
+# np.random.choice(
+#     a,    # 采样范围
+#     size=None,    # 返回采样的shape
+#     replace=True, # 是否重复用
+#     p=None    # a中每个值的概率
+# )
 a0 = np.random.choice([8, 9, -1, 2, 0], 3)
 print(a0)
 
@@ -13,3 +19,6 @@ print(a2)
 
 a3 = np.random.choice([1, 2, 3, 8, 9], 5, replace=False)
 print(a3)
+
+a4 = np.random.choice(3, 5, p=[0.9, 0.05, 0.05])
+print(a4)
